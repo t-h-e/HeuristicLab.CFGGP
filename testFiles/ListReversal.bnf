@@ -1,0 +1,103 @@
+<predefined> ::= 'help = list()'
+                 'a = '<int_const>
+                 'b = '<int_const>
+                 'c = '<int_const>
+                 'x = '<bool_const>
+                 'y = '<bool_const>
+                 <code>
+
+<int_var> ::= 'a' | 'b' | 'c'
+<list_var> ::= 'inList' | 'help'
+<bool_var> ::= 'x' | 'y'
+
+<code> ::= <code>'\n'<statement>'\n' | <statement>'\n'
+
+<statement> ::= <simple_stmt>  | <compound_stmt>
+<simple_stmt> ::= <call> | <assign>
+<compound_stmt> ::= <if> | <while> | <for>
+
+<call> ::= <list_var>'.append('<int>')'
+         | <list_var>'.insert('<int>','<int>')'
+         | <deleteListItemCall>
+         | <setListIndexToCall>
+
+
+<assign> ::= <int_assing> | <list_assign> | <bool_assign>
+<int_assing> ::= <int_lhs> '=' <int_rhs> | <int_lhs> <arith_assign> <int_rhs>
+<int_lhs> ::= <int_var>
+<int_rhs> ::= <int>
+
+<list_assign> ::= <list_var>' = '<list>
+
+<bool_assign> ::= <bool_var>' = '<bool>
+
+<int> ::= <int_var> | <list_int> | <int_const>
+        | <arith_prefix><int_var> | <arith_prefix><list_int> | <arith_prefix><int_const>
+        | '(' <int> <arith_ops> <int> ')' |  <arith_prefix>'('<int> <arith_ops> <int>')'
+        | <arith_ops_protected>'('<int>','<int>')' | <arith_prefix>'('<arith_ops_protected>'('<int>','<int>'))'
+<list_int> ::= <getListIndexCall>
+
+<bool> ::= <comp> | <bool_var> | <bool_const> | ( <bool> <bool_op> <bool> )
+         | <bool_pre> <comp> | <bool_pre> <bool_var> | <bool_pre> <bool_const> | <bool_pre>( <bool> <bool_op> <bool> )
+
+<comp> ::= <int> <comp_op> <int> | <int> <int_in_list_comp_op> <list>
+
+<list> ::= <list_var> | <list_range> | <list_slice>
+<list_slice> ::= <list_var>'['<int>':'<int>']' | <list_var>'[:'<int>']' | <list_var>'['<int>':]'
+<list_range> ::= 'list(range('<int>','<int>'))'
+
+<if> ::= <if-then> | <if-then><else>
+
+<if-then> ::= 'if '<bool><block>
+<else> ::= 'else'<block>
+
+<block> ::= ':{:\n'<code>'\n:}\n'
+
+
+<while> ::= <loop-header>'while '<bool><loop-block>
+<for> ::= <loop-header>'for forCounter% in '<list><loop-block>
+        | <loop-header>'for '<int_var>' in '<list><loop-block>
+
+<loop-header> ::= 'loopBreak% = 0\n'
+// stop is set by program to break immediately
+<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop:{:\nbreak\n:}\nloopBreak% += 1:}\n'
+
+<comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
+<int_in_list_comp_op> ::= 'in'|'not in'
+
+<bool_const> ::= 'True' | 'False'
+// avoid leading zeros, which lead to a syntax error
+<int_const>   ::= <num><int_const_2> | <num+zero>
+<int_const_2> ::= <int_const_2><num+zero> | <num+zero>
+<num> ::=  1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+<num+zero> ::= 0 | <num>
+
+<arith_assign> ::= <arith_ops>'='
+<arith_ops> ::= '+'|'-'|'*'
+// ** raises ZeroDivision error when 'a = 0; a ** ~a'
+//|'**'
+
+// could create negative shift, which leads to an error
+// could be avoided with positive prefix
+// |'<<'|'>>'
+
+<arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
+<arith_prefix> ::= '+'|'-'
+//|'~'
+
+<bool_op> ::= 'and' | 'or'
+<bool_pre> ::= 'not'
+
+// not used
+// <binary> ::= <binary_var>
+// <binary_assign> ::= <binary>' = '<binary> | <binary> <binary_assign> <binary>
+// <binary_assign> ::= <binary_ops_without_not>'='
+// <binary_ops> ::= <binary_ops_without_not>
+// <binary_ops_without_not> ::= '&'|'|'|'^'|'<<'|'>>'
+// <binary_complement> ::= '~'
+
+<getListIndexCall> ::= 'getIndex('<list>', '<int>')'
+
+<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
+
+<setListIndexToCall> ::= 'setListIndexTo('<list>', '<int>', '<int>')'
