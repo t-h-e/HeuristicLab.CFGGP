@@ -45,7 +45,6 @@ using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Operators.Programmable;
-using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
@@ -74,6 +73,12 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<StringArray> OutputParameter {
       get { return (ILookupParameter<StringArray>)Parameters["Output"]; }
     }
+    public ILookupParameter<IntRange> TrainingPartitionParameter {
+      get { return (ILookupParameter<IntRange>)Parameters["TrainingPartition"]; }
+    }
+    public ILookupParameter<IntRange> TestPartitionParameter {
+      get { return (ILookupParameter<IntRange>)Parameters["TestPartition"]; }
+    }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
     }
@@ -95,6 +100,8 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<StringArray>("Input", "The input for the program"));
       Parameters.Add(new LookupParameter<StringArray>("Output", "The expected output for an input"));
+      Parameters.Add(new LookupParameter<IntRange>("TrainingPartition", ""));
+      Parameters.Add(new LookupParameter<IntRange>("TestPartition", ""));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
       Parameters.ForEach(x => x.Hidden = false);

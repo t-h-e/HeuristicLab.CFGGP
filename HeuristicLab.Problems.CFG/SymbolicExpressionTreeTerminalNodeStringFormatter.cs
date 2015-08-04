@@ -19,12 +19,12 @@
  */
 #endregion
 
-using HeuristicLab.Common;
-using HeuristicLab.Core;
-using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using System.Linq;
 using System.Text;
+using HeuristicLab.Common;
+using HeuristicLab.Core;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG {
   [Item("Terminal Node String Formatter", "A string formatter for symbolic expression trees.")]

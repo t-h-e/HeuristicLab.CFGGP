@@ -40,15 +40,14 @@
  */
 #endregion
 
+using System.Collections.Generic;
+using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
-using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
-using System.Collections.Generic;
-using System.Linq;
 using HeuristicLab.Selection;
 
 namespace HeuristicLab.Problems.CFG {

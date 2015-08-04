@@ -19,11 +19,6 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HeuristicLab.PluginInfrastructure;
 
 namespace HeuristicLab.Problems.CFG {
@@ -41,6 +36,7 @@ namespace HeuristicLab.Problems.CFG {
   [PluginDependency("HeuristicLab.Optimization.Operators", "3.3")]
   [PluginDependency("HeuristicLab.Parameters", "3.3")]
   [PluginDependency("HeuristicLab.Persistence", "3.3")]
+  [PluginDependency("HeuristicLab.Problems.Instances", "3.3")]
   [PluginDependency("HeuristicLab.Random", "3.3")]
   [PluginDependency("HeuristicLab.Selection", "3.3")]
   public class Plugin : PluginBase {

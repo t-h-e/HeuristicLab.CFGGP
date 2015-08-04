@@ -19,15 +19,12 @@
  */
 #endregion
 
-using HeuristicLab.Common;
-using HeuristicLab.Core;
-using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using System.Linq;
 using System.Text;
+using HeuristicLab.Common;
+using HeuristicLab.Core;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using System;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
+using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG {
   [Item("CFG String Formatter", "A string formatter for CFG symbolic expression trees.")]

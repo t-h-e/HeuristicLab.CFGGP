@@ -19,19 +19,13 @@
  */
 #endregion
 
-using HeuristicLab.Core;
-using HeuristicLab.Data;
-using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using HeuristicLab.Optimization;
+using HeuristicLab.PluginInfrastructure;
 
 namespace HeuristicLab.Problems.CFG {
-  public interface ICFGEvaluator : ISingleObjectiveEvaluator, ICaseEvaluator {
-    ILookupParameter<ISymbolicExpressionTree> ProgramParameter { get; }
-    ILookupParameter<StringArray> InputParameter { get; }
-    ILookupParameter<StringArray> OutputParameter { get; }
-    ILookupParameter<IntRange> TrainingPartitionParameter { get; }
-    ILookupParameter<IntRange> TestPartitionParameter { get; }
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
+  [Plugin("HeuristicLab.Problems.Instances.CFG", "Provides problem instacts for grammar based problems", "3.3.12.0")]
+  [PluginFile("HeuristicLab.Problems.Instances.CFG.dll", PluginFileType.Assembly)]
+  [PluginDependency("HeuristicLab.Common", "3.3")]
+  [PluginDependency("HeuristicLab.Problems.Instances", "3.3")]
+  public class Plugin : PluginBase {
   }
 }

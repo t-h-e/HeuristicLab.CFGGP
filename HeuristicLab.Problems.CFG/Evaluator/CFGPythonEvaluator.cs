@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -57,6 +56,12 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<StringArray> OutputParameter {
       get { return (ILookupParameter<StringArray>)Parameters["Output"]; }
     }
+    public ILookupParameter<IntRange> TrainingPartitionParameter {
+      get { return (ILookupParameter<IntRange>)Parameters["TrainingPartition"]; }
+    }
+    public ILookupParameter<IntRange> TestPartitionParameter {
+      get { return (ILookupParameter<IntRange>)Parameters["TestPartition"]; }
+    }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
     }
@@ -66,6 +71,8 @@ namespace HeuristicLab.Problems.CFG {
     #endregion
 
     #region properties
+    public IntRange TrainingPartition { get { return TrainingPartitionParameter.ActualValue; } }
+    public IntRange TestPartition { get { return TestPartitionParameter.ActualValue; } }
     public int Timeout { get { return TimeoutParameter.Value.Value; } }
     public string Program {
       get {
@@ -101,10 +108,12 @@ namespace HeuristicLab.Problems.CFG {
     public CFGPythonEvaluator() {
       Parameters.Add(new ValueParameter<IntValue>("Timeout", "The amount of time an execution is allowed to take, before it is stopped.", new IntValue(1000)));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
-      Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
-      Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<StringArray>("Input", "The input for the program."));
       Parameters.Add(new LookupParameter<StringArray>("Output", "The output the program should produce."));
+      Parameters.Add(new LookupParameter<IntRange>("TrainingPartition", ""));
+      Parameters.Add(new LookupParameter<IntRange>("TestPartition", ""));
+      Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
+      Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
 
@@ -116,14 +125,15 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     public override IOperation InstrumentedApply() {
+
       // create python engine and scope
       ScriptEngine pyEngine = Python.CreateEngine();
       ScriptScope scope = pyEngine.CreateScope();
 
       // set variables in scope
       scope.SetVariable("stop", false);
-      scope.SetVariable("input", InputParameter.ActualValue);
-      scope.SetVariable("output", OutputParameter.ActualValue);
+      pyEngine.Execute("input = " + GetPythonTrainingValues(InputParameter.ActualValue), scope);
+      pyEngine.Execute("output = " + GetPythonTrainingValues(OutputParameter.ActualValue), scope);
 
       // create thread and execute the code
       ExecutePythonThread pyThread = new ExecutePythonThread(Program, pyEngine, scope);
@@ -156,6 +166,23 @@ namespace HeuristicLab.Problems.CFG {
 
 
       return base.InstrumentedApply();
+    }
+
+    private string GetPythonTrainingValues(StringArray array) {
+      StringBuilder strBuilder = new StringBuilder("[");
+      foreach (int row in GetTrainingRows()) {
+        strBuilder.Append("[");
+        strBuilder.Append(array[row]);
+        strBuilder.Append("],");
+      }
+      strBuilder.Append("]");
+      return strBuilder.ToString();
+    }
+
+    private IEnumerable<int> GetTrainingRows() {
+      IEnumerable<int> rows = Enumerable.Range(TrainingPartition.Start, TrainingPartition.End - TrainingPartition.Start)
+                  .Where(i => i < TestPartition.Start || TestPartition.End <= i);
+      return rows;
     }
 
     /**

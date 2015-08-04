@@ -19,19 +19,18 @@
  */
 #endregion
 
-using HeuristicLab.Core;
-using HeuristicLab.Data;
-using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using HeuristicLab.Optimization;
+namespace HeuristicLab.Problems.Instances.CFG {
+  internal class CFGDataDescriptor : IDataDescriptor {
 
-namespace HeuristicLab.Problems.CFG {
-  public interface ICFGEvaluator : ISingleObjectiveEvaluator, ICaseEvaluator {
-    ILookupParameter<ISymbolicExpressionTree> ProgramParameter { get; }
-    ILookupParameter<StringArray> InputParameter { get; }
-    ILookupParameter<StringArray> OutputParameter { get; }
-    ILookupParameter<IntRange> TrainingPartitionParameter { get; }
-    ILookupParameter<IntRange> TestPartitionParameter { get; }
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
+    public string Name { get; internal set; }
+    public string Description { get; internal set; }
+
+    internal string Identifier { get; set; }
+
+    internal CFGDataDescriptor(string name, string description, string identifier) {
+      this.Name = name;
+      this.Description = description;
+      this.Identifier = identifier;
+    }
   }
 }

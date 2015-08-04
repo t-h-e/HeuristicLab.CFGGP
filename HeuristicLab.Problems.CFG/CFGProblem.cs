@@ -20,11 +20,8 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -33,12 +30,15 @@ using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.PluginInfrastructure;
+using HeuristicLab.Problems.Instances;
+using HeuristicLab.Problems.Instances.CFG;
 
 namespace HeuristicLab.Problems.CFG {
   [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 140)]
   [StorableClass]
-  public class CFGProblem : SingleObjectiveHeuristicOptimizationProblem<ICFGEvaluator, ISymbolicExpressionTreeCreator>, IStorableContent {
+  public class CFGProblem : SingleObjectiveHeuristicOptimizationProblem<ICFGEvaluator, ISymbolicExpressionTreeCreator>, IStorableContent,
+    IProblemInstanceConsumer<CFGData> {
     public string Filename { get; set; }
 
     private const string INSERTCODE = "<insertCodeHere>";
@@ -56,6 +56,12 @@ namespace HeuristicLab.Problems.CFG {
 
     public IValueParameter<StringArray> OutputParameter {
       get { return (IValueParameter<StringArray>)Parameters["Output"]; }
+    }
+    public IValueParameter<IntRange> TrainingPartitionParameter {
+      get { return (IValueParameter<IntRange>)Parameters["TrainingPartition"]; }
+    }
+    public IValueParameter<IntRange> TestPartitionParameter {
+      get { return (IValueParameter<IntRange>)Parameters["TestPartition"]; }
     }
     public IValueParameter<CFGExpressionGrammar> GrammarParameter {
       get { return (IValueParameter<CFGExpressionGrammar>)Parameters["Grammar"]; }
@@ -112,6 +118,8 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new FixedValueParameter<TextFileValue>("EmbedCodeFilePath", "Path to file where code should be embedded to. (Optinal: Does not have to be set.)", new TextFileValue()));
       Parameters.Add(new ValueParameter<StringArray>("Input", "The input used for the CFG program.", new StringArray(new string[] { "a" })));
       Parameters.Add(new ValueParameter<StringArray>("Output", "The input used for the CFG program.", new StringArray(new string[] { "b" })));
+      Parameters.Add(new ValueParameter<IntRange>("TrainingPartition", "", new IntRange()));
+      Parameters.Add(new ValueParameter<IntRange>("TestPartition", "", new IntRange()));
       Parameters.Add(new FixedValueParameter<IntValue>("MaximumSymbolicExpressionTreeDepth", "Maximal depth of the symbolic expression. The minimum depth needed for the algorithm is 3 because two levels are reserved for the ProgramRoot and the Start symbol.", new IntValue(8)));
       Parameters.Add(new FixedValueParameter<IntValue>("MaximumSymbolicExpressionTreeLength", "Maximal length of the symbolic expression.", new IntValue(25)));
       Parameters.Add(new ValueParameter<CFGExpressionGrammar>("Grammar", "The grammar created from the grammar text file.", CFGExpressionGrammar.Empty));
@@ -150,11 +158,19 @@ namespace HeuristicLab.Problems.CFG {
     private void EmbedCodeFilePathParameter_Value_StringValue_ValueChanged(object sender, EventArgs e) {
       SetCodeHeaderAndFooter();
     }
+    protected override void OnEvaluatorChanged() {
+      ParameterizeEvaluator();
+    }
+    private void Partition_ValueChanged(object sender, EventArgs e) {
+      ParameterizeEvaluator();
+    }
     #endregion
 
     private void RegisterEventHandlers() {
       GrammarFilePathParameter.Value.StringValue.ValueChanged += new EventHandler(GrammarParameter_Value_StringValue_ValueChanged);
       EmbedCodeFilePathParameter.Value.StringValue.ValueChanged += new EventHandler(EmbedCodeFilePathParameter_Value_StringValue_ValueChanged);
+      TrainingPartitionParameter.Value.ValueChanged += new EventHandler(Partition_ValueChanged);
+      TrainingPartitionParameter.Value.ValueChanged += new EventHandler(Partition_ValueChanged);
     }
     #region Helpers
     private void InitializeOperators() {
@@ -170,6 +186,8 @@ namespace HeuristicLab.Problems.CFG {
         Evaluator.ProgramParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
         Evaluator.OutputParameter.ActualName = OutputParameter.Name;
         Evaluator.InputParameter.ActualName = InputParameter.Name;
+        Evaluator.TrainingPartitionParameter.ActualName = TrainingPartitionParameter.Name;
+        Evaluator.TestPartitionParameter.ActualName = TestPartitionParameter.Name;
       }
     }
 
@@ -229,6 +247,20 @@ namespace HeuristicLab.Problems.CFG {
         HeaderFilePathParameter.Value.Value = embedCode.Substring(0, insert);
         FooterFilePathParameter.Value.Value = embedCode.Substring(insert + INSERTCODE.Length, embedCode.Length - insert - INSERTCODE.Length);
       }
+    }
+
+
+    public void Load(CFGData data) {
+      Name = data.Name;
+      Description = data.Description;
+      TrainingPartitionParameter.Value.Start = data.TrainStart;
+      TrainingPartitionParameter.Value.End = data.TrainEnd;
+      TestPartitionParameter.Value.Start = data.TestStart;
+      TestPartitionParameter.Value.End = data.TestEnd;
+      InputParameter.Value = new StringArray(data.Input);
+      OutputParameter.Value = new StringArray(data.Output);
+      GrammarFilePath.Value = data.Grammar;
+      EmbedCodeFilePath.Value = data.Embed;
     }
   }
 }
