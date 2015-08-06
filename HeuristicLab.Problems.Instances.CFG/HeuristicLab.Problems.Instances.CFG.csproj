@@ -40,6 +40,10 @@
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Common-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="HeuristicLab.Core-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Core-3.3.dll</HintPath>
+    </Reference>
     <Reference Include="HeuristicLab.PluginInfrastructure-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.PluginInfrastructure-3.3.dll</HintPath>
       <Private>False</Private>
@@ -47,6 +51,10 @@
     <Reference Include="HeuristicLab.Problems.Instances-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Problems.Instances-3.3.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="HeuristicLab.Random-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Random-3.3.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -59,19 +67,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CFGDataDescriptor.cs" />
+    <Compile Include="BenchmarkSuite\BenchmarkSuiteInstanceProvider.cs" />
+    <Compile Include="BenchmarkSuite\NumberIO.cs" />
+    <Compile Include="CFGArtificialDataDescriptor.cs" />
+    <Compile Include="CFGArtificialInstanceProvider.cs" />
+    <Compile Include="CFGZipDataDescriptor.cs" />
     <Compile Include="CFGInstanceProvider.cs" />
+    <Compile Include="CFGZipInstanceProvider.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Types\CFGData.cs" />
+    <Compile Include="ValueGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Data\ProgramSynthesis.zip" />
+    <EmbeddedResource Include="Data\BenchmarkSuite.zip" />
     <None Include="HeuristicLab.snk" />
   </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

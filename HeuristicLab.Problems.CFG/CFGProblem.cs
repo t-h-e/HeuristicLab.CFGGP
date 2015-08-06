@@ -253,10 +253,10 @@ namespace HeuristicLab.Problems.CFG {
     public void Load(CFGData data) {
       Name = data.Name;
       Description = data.Description;
-      TrainingPartitionParameter.Value.Start = data.TrainStart;
-      TrainingPartitionParameter.Value.End = data.TrainEnd;
-      TestPartitionParameter.Value.Start = data.TestStart;
-      TestPartitionParameter.Value.End = data.TestEnd;
+      TrainingPartitionParameter.Value.Start = data.TrainingPartitionStart;
+      TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
+      TestPartitionParameter.Value.Start = data.TestPartitionStart;
+      TestPartitionParameter.Value.End = data.TestPartitionEnd;
       InputParameter.Value = new StringArray(data.Input);
       OutputParameter.Value = new StringArray(data.Output);
       GrammarFilePath.Value = data.Grammar;

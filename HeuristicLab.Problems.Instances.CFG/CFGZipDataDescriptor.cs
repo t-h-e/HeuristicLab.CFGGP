@@ -20,14 +20,14 @@
 #endregion
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  internal class CFGDataDescriptor : IDataDescriptor {
+  internal class CFGZipDataDescriptor : IDataDescriptor {
 
     public string Name { get; internal set; }
     public string Description { get; internal set; }
 
     internal string Identifier { get; set; }
 
-    internal CFGDataDescriptor(string name, string description, string identifier) {
+    internal CFGZipDataDescriptor(string name, string description, string identifier) {
       this.Name = name;
       this.Description = description;
       this.Identifier = identifier;

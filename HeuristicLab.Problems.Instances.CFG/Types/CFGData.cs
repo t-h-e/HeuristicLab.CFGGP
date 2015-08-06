@@ -51,10 +51,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
     /// </summary>
     public string[] Output { get; set; }
 
-    public int TrainStart { get; set; }
-    public int TrainEnd { get; set; }
-    public int TestStart { get; set; }
-    public int TestEnd { get; set; }
+    public int TrainingPartitionStart { get; set; }
+    public int TrainingPartitionEnd { get; set; }
+    public int TestPartitionStart { get; set; }
+    public int TestPartitionEnd { get; set; }
 
   }
 }

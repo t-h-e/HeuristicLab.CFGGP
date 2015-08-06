@@ -132,8 +132,8 @@ namespace HeuristicLab.Problems.CFG {
 
       // set variables in scope
       scope.SetVariable("stop", false);
-      pyEngine.Execute("input = " + GetPythonTrainingValues(InputParameter.ActualValue), scope);
-      pyEngine.Execute("output = " + GetPythonTrainingValues(OutputParameter.ActualValue), scope);
+      pyEngine.Execute("inval = " + GetPythonTrainingValues(InputParameter.ActualValue), scope);
+      pyEngine.Execute("outval = " + GetPythonTrainingValues(OutputParameter.ActualValue), scope);
 
       // create thread and execute the code
       ExecutePythonThread pyThread = new ExecutePythonThread(Program, pyEngine, scope);
