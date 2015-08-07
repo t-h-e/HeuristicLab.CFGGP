@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\</OutputPath>
+    <OutputPath>..\..\HeuristicLab\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -41,62 +41,62 @@
   <ItemGroup>
     <Reference Include="HeuristicLab.Collections-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Collections-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Collections-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Common-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Common-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Common-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Core-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Core-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Core-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Data-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Data-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Data-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4, Version=3.4.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Operators-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Operators-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Operators-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Operators.Programmable-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Operators.Programmable-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Operators.Programmable-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Optimization-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Optimization-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Optimization-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Optimization.Operators-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Optimization.Operators-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Optimization.Operators-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Parameters-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Parameters-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Parameters-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Persistence-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Persistence-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Persistence-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.PluginInfrastructure-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.PluginInfrastructure-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.PluginInfrastructure-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Problems.Instances-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
@@ -106,22 +106,22 @@
     </Reference>
     <Reference Include="HeuristicLab.Random-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Random-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Random-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Selection-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\HeuristicLab.Selection-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Selection-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="IronPython, Version=2.7.5.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\IronPython.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\IronPython.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HeuristicLab+stable+sources+r12756\bin\Microsoft.Scripting.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\Microsoft.Scripting.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
