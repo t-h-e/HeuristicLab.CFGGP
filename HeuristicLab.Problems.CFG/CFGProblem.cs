@@ -20,12 +20,12 @@
 #endregion
 
 using System;
-using System.IO;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Misc;
 using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
@@ -44,11 +44,11 @@ namespace HeuristicLab.Problems.CFG {
     private const string INSERTCODE = "<insertCodeHere>";
 
     #region Parameter Properties
-    public IFixedValueParameter<TextFileValue> GrammarFilePathParameter {
-      get { return (IFixedValueParameter<TextFileValue>)Parameters["GrammarFilePath"]; }
+    public IFixedValueParameter<TextValue> GrammarBNFParameter {
+      get { return (IFixedValueParameter<TextValue>)Parameters["GrammarBNF"]; }
     }
-    public IFixedValueParameter<TextFileValue> EmbedCodeFilePathParameter {
-      get { return (IFixedValueParameter<TextFileValue>)Parameters["EmbedCodeFilePath"]; }
+    public IFixedValueParameter<TextValue> EmbedCodeParameter {
+      get { return (IFixedValueParameter<TextValue>)Parameters["EmbedCode"]; }
     }
     public IValueParameter<StringArray> InputParameter {
       get { return (IValueParameter<StringArray>)Parameters["Input"]; }
@@ -81,11 +81,11 @@ namespace HeuristicLab.Problems.CFG {
     #endregion
 
     #region properties
-    public TextFileValue GrammarFilePath {
-      get { return GrammarFilePathParameter.Value; }
+    public TextValue GrammarBNF {
+      get { return GrammarBNFParameter.Value; }
     }
-    public TextFileValue EmbedCodeFilePath {
-      get { return EmbedCodeFilePathParameter.Value; }
+    public TextValue EmbedCode {
+      get { return EmbedCodeParameter.Value; }
     }
 
     public StringArray Input {
@@ -114,8 +114,8 @@ namespace HeuristicLab.Problems.CFG {
 
     public CFGProblem()
       : base(new CFGPythonEvaluator(), new ProbabilisticTreeCreator()) {
-      Parameters.Add(new FixedValueParameter<TextFileValue>("GrammarFilePath", "Path to the grammar file.", new TextFileValue()));
-      Parameters.Add(new FixedValueParameter<TextFileValue>("EmbedCodeFilePath", "Path to file where code should be embedded to. (Optinal: Does not have to be set.)", new TextFileValue()));
+      Parameters.Add(new FixedValueParameter<TextValue>("GrammarBNF", "Grammar in BNF Form.", new TextValue()));
+      Parameters.Add(new FixedValueParameter<TextValue>("EmbedCode", "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue()));
       Parameters.Add(new ValueParameter<StringArray>("Input", "The input used for the CFG program.", new StringArray(new string[] { "a" })));
       Parameters.Add(new ValueParameter<StringArray>("Output", "The input used for the CFG program.", new StringArray(new string[] { "b" })));
       Parameters.Add(new ValueParameter<IntRange>("TrainingPartition", "", new IntRange()));
@@ -152,10 +152,10 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     #region Events
-    private void GrammarParameter_Value_StringValue_ValueChanged(object sender, EventArgs e) {
+    private void GrammarBNFParameter_Value_ValueChanged(object sender, EventArgs e) {
       CreateTreeFromGrammar();
     }
-    private void EmbedCodeFilePathParameter_Value_StringValue_ValueChanged(object sender, EventArgs e) {
+    private void EmbedCodeFilePathParameter_Value_ValueChanged(object sender, EventArgs e) {
       SetCodeHeaderAndFooter();
     }
     protected override void OnEvaluatorChanged() {
@@ -167,8 +167,8 @@ namespace HeuristicLab.Problems.CFG {
     #endregion
 
     private void RegisterEventHandlers() {
-      GrammarFilePathParameter.Value.StringValue.ValueChanged += new EventHandler(GrammarParameter_Value_StringValue_ValueChanged);
-      EmbedCodeFilePathParameter.Value.StringValue.ValueChanged += new EventHandler(EmbedCodeFilePathParameter_Value_StringValue_ValueChanged);
+      GrammarBNFParameter.Value.ValueChanged += new EventHandler(GrammarBNFParameter_Value_ValueChanged);
+      EmbedCodeParameter.Value.ValueChanged += new EventHandler(EmbedCodeFilePathParameter_Value_ValueChanged);
       TrainingPartitionParameter.Value.ValueChanged += new EventHandler(Partition_ValueChanged);
       TrainingPartitionParameter.Value.ValueChanged += new EventHandler(Partition_ValueChanged);
     }
@@ -195,7 +195,7 @@ namespace HeuristicLab.Problems.CFG {
       var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
 
       foreach (var op in operators.OfType<ISymbolicExpressionTreeGrammarBasedOperator>()) {
-        op.SymbolicExpressionTreeGrammarParameter.ActualName = GrammarParameter.Name;
+        op.SymbolicExpressionTreeGrammarParameter.ActualName = GrammarBNFParameter.Name;
       }
       foreach (var op in operators.OfType<ISymbolicExpressionTreeSizeConstraintOperator>()) {
         op.MaximumSymbolicExpressionTreeDepthParameter.ActualName = MaximumSymbolicExpressionTreeDepthParameter.Name;
@@ -218,30 +218,27 @@ namespace HeuristicLab.Problems.CFG {
     #endregion
 
     private void CreateTreeFromGrammar() {
-      if (!GrammarFilePath.Exists()) {
+      if (String.IsNullOrWhiteSpace(GrammarBNF.Value)) {
         GrammarParameter.Value = CFGExpressionGrammar.Empty;
         GrammarParameter.Hidden = true;
         return;
       }
 
       CFGParser parser = new CFGParser();
-      CFGExpressionGrammar grammar = parser.readGrammarFile(GrammarFilePath.Value);
+      CFGExpressionGrammar grammar = parser.readGrammarBNF(GrammarBNF.Value);
 
       Grammar = grammar;
       GrammarParameter.Hidden = false;
     }
 
     private void SetCodeHeaderAndFooter() {
-      if (!EmbedCodeFilePath.Exists()) {
+      if (String.IsNullOrWhiteSpace(EmbedCode.Value)) {
         HeaderFilePathParameter.Value.Value = String.Empty;
         FooterFilePathParameter.Value.Value = String.Empty;
         return;
       }
 
-      string embedCode;
-      using (StreamReader sr = new StreamReader(EmbedCodeFilePath.Value)) {
-        embedCode = sr.ReadToEnd();
-      }
+      string embedCode = EmbedCode.Value;
       int insert = embedCode.IndexOf(INSERTCODE);
       if (insert > 0) {
         HeaderFilePathParameter.Value.Value = embedCode.Substring(0, insert);
@@ -259,8 +256,8 @@ namespace HeuristicLab.Problems.CFG {
       TestPartitionParameter.Value.End = data.TestPartitionEnd;
       InputParameter.Value = new StringArray(data.Input);
       OutputParameter.Value = new StringArray(data.Output);
-      GrammarFilePath.Value = data.Grammar;
-      EmbedCodeFilePath.Value = data.Embed;
+      GrammarBNF.Value = data.Grammar;
+      EmbedCode.Value = data.Embed;
     }
   }
 }

@@ -21,7 +21,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
@@ -41,204 +40,197 @@ namespace HeuristicLab.Problems.CFG {
     private CFGExpressionGrammar treeGrammar;
     private GroupSymbol ruleSymbols;
 
-    public CFGExpressionGrammar readGrammarFile(String file) {
+    public CFGExpressionGrammar readGrammarBNF(String bnf) {
       treeGrammar = new CFGExpressionGrammar();
       ruleSymbols = new GroupSymbol();
       ruleSymbols.Name = "Rule symbols";
 
       treeGrammar.AddSymbol(ruleSymbols);
 
-      try {
-        using (StreamReader sr = new StreamReader(file)) {
-          String line;
-          CFGSymbol rule = null;
-          GroupSymbol curRuleSymbolGroup = null;
-          String productionRuleName = null;
-          List<string> productionRuleParts = new List<string>();
-          List<CFGSymbol> productionsForRule = new List<CFGSymbol>();
-          List<CFGSymbol> symbolsForProduction = new List<CFGSymbol>();
+      String curLine;
+      CFGSymbol rule = null;
+      GroupSymbol curRuleSymbolGroup = null;
+      String productionRuleName = null;
+      List<string> productionRuleParts = new List<string>();
+      List<CFGSymbol> productionsForRule = new List<CFGSymbol>();
+      List<CFGSymbol> symbolsForProduction = new List<CFGSymbol>();
 
-          while ((line = sr.ReadLine()) != null) {
-            line = line.Trim();
-            if (String.IsNullOrEmpty(line) || line.StartsWith(COMMENT)) { continue; }
+      string[] lines = bnf.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+      foreach (string line in lines) {
+        curLine = line.Trim();
+        if (String.IsNullOrEmpty(curLine) || curLine.StartsWith(COMMENT)) { continue; }
 
-            if (IsRuleLine(line)) {
-              //if the previous production rule has not been added yet, because the it could have continued. It is added now.
-              if (productionRuleName != null) {
-                if (rule == null) {
-                  throw new Exception("No rule specified.");
-                }
-                productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
-                productionRuleName = null;
-                productionRuleParts = new List<string>();
-
-                CreateRule(rule, productionsForRule);
-              }
-
-              int indexOfRuleSymbol = line.IndexOf(RULESYMBOL);
-
-              String ruleName = line.Substring(0, indexOfRuleSymbol).Trim();
-              if (rule == null) {
-                rule = GetRule(ruleName);
-                treeGrammar.AddAllowedChildSymbol(treeGrammar.StartSymbol, rule, 0);
-              } else {
-                rule = GetRule(ruleName);
-              }
-              curRuleSymbolGroup = new GroupSymbol();
-              curRuleSymbolGroup.Name = ruleName.Substring(1, ruleName.Length - 2);
-              treeGrammar.AddSymbol(curRuleSymbolGroup);
-
-              int removeChars = indexOfRuleSymbol + RULESYMBOL.Length;
-              line = line.Substring(removeChars, line.Length - removeChars).Trim();
+        if (IsRuleLine(curLine)) {
+          //if the previous production rule has not been added yet, because the it could have continued. It is added now.
+          if (productionRuleName != null) {
+            if (rule == null) {
+              throw new Exception("No rule specified.");
             }
+            productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
+            productionRuleName = null;
+            productionRuleParts = new List<string>();
 
-            // can line.ElementAt(0) throw an exception?
-            if (line.ElementAt(0) == PRODUCTIONSPLIT && productionRuleName != null) {
-              productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
-              productionRuleName = null;
-              productionRuleParts = new List<string>();
-            }
+            CreateRule(rule, productionsForRule);
+          }
 
-            IList<String> split = splitToProcutionRules(line);
-            for (int i = 0; i < split.Count; i++) {
-              String productionString = split[i].Trim();
-              if (String.IsNullOrEmpty(productionString)) { continue; }
+          int indexOfRuleSymbol = curLine.IndexOf(RULESYMBOL);
 
-              if (productionRuleName == null) {
-                productionRuleName = productionString;
-              } else {
-                productionRuleName += Environment.NewLine + productionString;
-                if (productionRuleParts.Count == symbolsForProduction.Count) {
-                  productionRuleParts.Add(Environment.NewLine);
-                } else if (productionRuleParts.Count > symbolsForProduction.Count) {
-                  productionRuleParts[productionRuleParts.Count - 1] += Environment.NewLine;
-                } else {
-                  throw new ArgumentException("ParserError: Should not happen.");
-                }
-              }
+          String ruleName = curLine.Substring(0, indexOfRuleSymbol).Trim();
+          if (rule == null) {
+            rule = GetRule(ruleName);
+            treeGrammar.AddAllowedChildSymbol(treeGrammar.StartSymbol, rule, 0);
+          } else {
+            rule = GetRule(ruleName);
+          }
+          curRuleSymbolGroup = new GroupSymbol();
+          curRuleSymbolGroup.Name = ruleName.Substring(1, ruleName.Length - 2);
+          treeGrammar.AddSymbol(curRuleSymbolGroup);
 
+          int removeChars = indexOfRuleSymbol + RULESYMBOL.Length;
+          curLine = curLine.Substring(removeChars, curLine.Length - removeChars).Trim();
+        }
 
-              while (!String.IsNullOrEmpty(productionString)) {
-                char firstChar = productionString.ElementAt(0);
-                int endIndex = -1;
-                bool quoted = false;
-                bool terminalSymbol = true;
-                switch (firstChar) {
-                  case '<':
-                    endIndex = productionString.IndexOf('>', 1);
-                    // increment to add '>' Symbol
-                    terminalSymbol = false;
-                    endIndex++;
-                    break;
-                  case '\'':
-                    endIndex = productionString.IndexOf('\'', 1);
-                    quoted = true;
-                    break;
-                  case '"':
-                    endIndex = productionString.IndexOf('"', 1);
-                    quoted = true;
-                    break;
-                  default:
-                    endIndex = productionString.Length;
-                    foreach (char curChar in CHECKCHARS) {
-                      int indexOfChar = productionString.IndexOf(curChar);
-                      if (indexOfChar > 0 && endIndex > indexOfChar) {
-                        endIndex = indexOfChar;
-                      }
-                    }
-                    break;
-                }
+        // can line.ElementAt(0) throw an exception?
+        if (curLine.ElementAt(0) == PRODUCTIONSPLIT && productionRuleName != null) {
+          productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
+          productionRuleName = null;
+          productionRuleParts = new List<string>();
+        }
 
-                endIndex = endIndex <= 0
-                           ? productionString.Length
-                           : endIndex;
+        IList<String> split = splitToProcutionRules(curLine);
+        for (int i = 0; i < split.Count; i++) {
+          String productionString = split[i].Trim();
+          if (String.IsNullOrEmpty(productionString)) { continue; }
 
-                // increment to include specifiec symbol
-                String symbolName = quoted
-                                    ? productionString.Substring(1, endIndex - 1)
-                                    : productionString.Substring(0, endIndex);
-
-                // unescape characters so that tab and newline can be defined in the grammar
-                if (symbolName.Contains('\\')) {
-                  symbolName = symbolName.Replace("\\n", Environment.NewLine);
-                  symbolName = Regex.Unescape(symbolName);
-                }
-
-                if (terminalSymbol) {
-                  if (productionRuleParts.Count == symbolsForProduction.Count) {
-                    productionRuleParts.Add(symbolName);
-                  } else if (productionRuleParts.Count > symbolsForProduction.Count) {
-                    productionRuleParts[productionRuleParts.Count - 1] += symbolName;
-                  } else {
-                    throw new ArgumentException("ParserError: Should not happen.");
-                  }
-                } else {
-                  if (productionRuleParts.Count == 0 || productionRuleParts.Count == symbolsForProduction.Count) {
-                    productionRuleParts.Add(String.Empty);
-                  }
-                  symbolsForProduction.Add(GetRule(symbolName));
-                }
-
-                endIndex = quoted ? endIndex + 1 : endIndex;
-                productionString = productionString.Substring(endIndex, productionString.Length - endIndex);
-                String trimmedProduction = productionString.Trim();
-
-                //add whitespaces within a production
-                int whitespaces = productionString.Length - trimmedProduction.Length;
-                if (whitespaces > 0) {
-                  String whitespacePart = productionString.Substring(0, whitespaces);
-                  if (terminalSymbol) {
-                    productionRuleParts[productionRuleParts.Count - 1] += whitespacePart;
-                  } else {
-                    productionRuleParts.Add(whitespacePart);
-                  }
-                }
-
-                productionString = trimmedProduction;
-              }
-
-              if (i < split.Count - 1) {
-                productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
-                productionRuleName = null;
-                productionRuleParts = new List<string>();
-              }
+          if (productionRuleName == null) {
+            productionRuleName = productionString;
+          } else {
+            productionRuleName += Environment.NewLine + productionString;
+            if (productionRuleParts.Count == symbolsForProduction.Count) {
+              productionRuleParts.Add(Environment.NewLine);
+            } else if (productionRuleParts.Count > symbolsForProduction.Count) {
+              productionRuleParts[productionRuleParts.Count - 1] += Environment.NewLine;
+            } else {
+              throw new ArgumentException("ParserError: Should not happen.");
             }
           }
 
-          productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
-          CreateRule(rule, productionsForRule);
-        }
 
-        // reduce depth
-        var allSymbols = treeGrammar.AllowedSymbols.Where(x => !(x is GroupSymbol));
-        foreach (var symbol in allSymbols) {
-          if (symbol == treeGrammar.StartSymbol || symbol == treeGrammar.ProgramRootSymbol) {
-            // startsymbol only contains exactly one subtree, but maximum arity is set to 255 and cannot be changed
-            var allowedSymbols = treeGrammar.GetAllowedChildSymbols(symbol, 0);
-            var firstSymbol = allowedSymbols.FirstOrDefault() as CFGSymbol;
-            if (allowedSymbols.Count() == 1 && firstSymbol != null) {
-              treeGrammar.RemoveAllowedChildSymbol(symbol, firstSymbol, 0);
-              foreach (var production in ruleDictionary[firstSymbol.Name]) {
-                treeGrammar.AddAllowedChildSymbol(symbol, production, 0);
-              }
-            }
-          } else {
-            for (int index = 0; index < symbol.MaximumArity; index++) {
-              var allowedSymbols = treeGrammar.GetAllowedChildSymbols(symbol, index);
-              var firstSymbol = allowedSymbols.FirstOrDefault() as CFGSymbol;
-              if (firstSymbol != null && ruleDictionary.ContainsKey(firstSymbol.Name)) {
-                treeGrammar.RemoveAllowedChildSymbol(symbol, firstSymbol, index);
-                foreach (var production in ruleDictionary[firstSymbol.Name]) {
-                  treeGrammar.AddAllowedChildSymbol(symbol, production, index);
+          while (!String.IsNullOrEmpty(productionString)) {
+            char firstChar = productionString.ElementAt(0);
+            int endIndex = -1;
+            bool quoted = false;
+            bool terminalSymbol = true;
+            switch (firstChar) {
+              case '<':
+                endIndex = productionString.IndexOf('>', 1);
+                // increment to add '>' Symbol
+                terminalSymbol = false;
+                endIndex++;
+                break;
+              case '\'':
+                endIndex = productionString.IndexOf('\'', 1);
+                quoted = true;
+                break;
+              case '"':
+                endIndex = productionString.IndexOf('"', 1);
+                quoted = true;
+                break;
+              default:
+                endIndex = productionString.Length;
+                foreach (char curChar in CHECKCHARS) {
+                  int indexOfChar = productionString.IndexOf(curChar);
+                  if (indexOfChar > 0 && endIndex > indexOfChar) {
+                    endIndex = indexOfChar;
+                  }
                 }
+                break;
+            }
+
+            endIndex = endIndex <= 0
+                       ? productionString.Length
+                       : endIndex;
+
+            // increment to include specifiec symbol
+            String symbolName = quoted
+                                ? productionString.Substring(1, endIndex - 1)
+                                : productionString.Substring(0, endIndex);
+
+            // unescape characters so that tab and newline can be defined in the grammar
+            if (symbolName.Contains('\\')) {
+              symbolName = symbolName.Replace("\\n", Environment.NewLine);
+              symbolName = Regex.Unescape(symbolName);
+            }
+
+            if (terminalSymbol) {
+              if (productionRuleParts.Count == symbolsForProduction.Count) {
+                productionRuleParts.Add(symbolName);
+              } else if (productionRuleParts.Count > symbolsForProduction.Count) {
+                productionRuleParts[productionRuleParts.Count - 1] += symbolName;
+              } else {
+                throw new ArgumentException("ParserError: Should not happen.");
+              }
+            } else {
+              if (productionRuleParts.Count == 0 || productionRuleParts.Count == symbolsForProduction.Count) {
+                productionRuleParts.Add(String.Empty);
+              }
+              symbolsForProduction.Add(GetRule(symbolName));
+            }
+
+            endIndex = quoted ? endIndex + 1 : endIndex;
+            productionString = productionString.Substring(endIndex, productionString.Length - endIndex);
+            String trimmedProduction = productionString.Trim();
+
+            //add whitespaces within a production
+            int whitespaces = productionString.Length - trimmedProduction.Length;
+            if (whitespaces > 0) {
+              String whitespacePart = productionString.Substring(0, whitespaces);
+              if (terminalSymbol) {
+                productionRuleParts[productionRuleParts.Count - 1] += whitespacePart;
+              } else {
+                productionRuleParts.Add(whitespacePart);
               }
             }
+
+            productionString = trimmedProduction;
+          }
+
+          if (i < split.Count - 1) {
+            productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
+            productionRuleName = null;
+            productionRuleParts = new List<string>();
           }
         }
       }
-      catch (IOException e) {
-        Console.WriteLine("The file could not be read:");
-        Console.WriteLine(e.Message);
+
+      productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
+      CreateRule(rule, productionsForRule);
+
+      // reduce depth
+      var allSymbols = treeGrammar.AllowedSymbols.Where(x => !(x is GroupSymbol));
+      foreach (var symbol in allSymbols) {
+        if (symbol == treeGrammar.StartSymbol || symbol == treeGrammar.ProgramRootSymbol) {
+          // startsymbol only contains exactly one subtree, but maximum arity is set to 255 and cannot be changed
+          var allowedSymbols = treeGrammar.GetAllowedChildSymbols(symbol, 0);
+          var firstSymbol = allowedSymbols.FirstOrDefault() as CFGSymbol;
+          if (allowedSymbols.Count() == 1 && firstSymbol != null) {
+            treeGrammar.RemoveAllowedChildSymbol(symbol, firstSymbol, 0);
+            foreach (var production in ruleDictionary[firstSymbol.Name]) {
+              treeGrammar.AddAllowedChildSymbol(symbol, production, 0);
+            }
+          }
+        } else {
+          for (int index = 0; index < symbol.MaximumArity; index++) {
+            var allowedSymbols = treeGrammar.GetAllowedChildSymbols(symbol, index);
+            var firstSymbol = allowedSymbols.FirstOrDefault() as CFGSymbol;
+            if (firstSymbol != null && ruleDictionary.ContainsKey(firstSymbol.Name)) {
+              treeGrammar.RemoveAllowedChildSymbol(symbol, firstSymbol, index);
+              foreach (var production in ruleDictionary[firstSymbol.Name]) {
+                treeGrammar.AddAllowedChildSymbol(symbol, production, index);
+              }
+            }
+          }
+        }
       }
       return treeGrammar;
     }

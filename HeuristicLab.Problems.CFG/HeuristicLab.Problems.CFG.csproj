@@ -162,9 +162,15 @@
       <Name>HeuristicLab.IronPython-2.7.5</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\HeuristicLab.Misc\HeuristicLab.Misc.csproj">
+      <Project>{0e26857a-8f65-4a60-a939-fbe90298afaf}</Project>
+      <Name>HeuristicLab.Misc</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\HeuristicLab.Problems.Instances.CFG\HeuristicLab.Problems.Instances.CFG.csproj">
       <Project>{4996fdbe-c9f3-4a0b-a1f1-8a1a5a1780e1}</Project>
       <Name>HeuristicLab.Problems.Instances.CFG</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
