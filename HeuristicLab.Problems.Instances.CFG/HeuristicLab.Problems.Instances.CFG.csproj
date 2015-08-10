@@ -70,6 +70,34 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BenchmarkSuite\BenchmarkSuiteInstanceProvider.cs" />
+    <Compile Include="BenchmarkSuite\Grade.cs" />
+    <Compile Include="BenchmarkSuite\Median.cs" />
+    <Compile Include="BenchmarkSuite\Smallest.cs" />
+    <Compile Include="BenchmarkSuite\Syllables.cs" />
+    <Compile Include="BenchmarkSuite\Digits.cs" />
+    <Compile Include="BenchmarkSuite\NegativeToZero.cs" />
+    <Compile Include="BenchmarkSuite\ScrabbleScore.cs" />
+    <Compile Include="BenchmarkSuite\WordStats.cs" />
+    <Compile Include="BenchmarkSuite\Checksum.cs" />
+    <Compile Include="BenchmarkSuite\PigLatin.cs" />
+    <Compile Include="BenchmarkSuite\XWordLines.cs" />
+    <Compile Include="BenchmarkSuite\VectorsSummed.cs" />
+    <Compile Include="BenchmarkSuite\SumOfSquares.cs" />
+    <Compile Include="BenchmarkSuite\SuperAnagrams.cs" />
+    <Compile Include="BenchmarkSuite\MirrorImage.cs" />
+    <Compile Include="BenchmarkSuite\CountOdds.cs" />
+    <Compile Include="BenchmarkSuite\VectorAverage.cs" />
+    <Compile Include="BenchmarkSuite\LastIndexOfZero.cs" />
+    <Compile Include="BenchmarkSuite\StringLengthsBackwards.cs" />
+    <Compile Include="BenchmarkSuite\WallisPi.cs" />
+    <Compile Include="BenchmarkSuite\EvenSquares.cs" />
+    <Compile Include="BenchmarkSuite\StringDifferences.cs" />
+    <Compile Include="BenchmarkSuite\ReplaceSpaceWithNewline.cs" />
+    <Compile Include="BenchmarkSuite\CollatzNumbers.cs" />
+    <Compile Include="BenchmarkSuite\DoubleLetters.cs" />
+    <Compile Include="BenchmarkSuite\CompareStringLengths.cs" />
+    <Compile Include="BenchmarkSuite\ForLoopIndex.cs" />
+    <Compile Include="BenchmarkSuite\SmallOrLarge.cs" />
     <Compile Include="BenchmarkSuite\NumberIO.cs" />
     <Compile Include="CFGArtificialDataDescriptor.cs" />
     <Compile Include="CFGArtificialInstanceProvider.cs" />

@@ -42,6 +42,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
     public override IEnumerable<IDataDescriptor> GetDataDescriptors() {
       List<IDataDescriptor> descriptorList = new List<IDataDescriptor>();
       descriptorList.Add(new NumberIO());
+      descriptorList.Add(new SmallOrLarge());
+      descriptorList.Add(new ForLoopIndex());
+      descriptorList.Add(new CollatzNumbers());
+      descriptorList.Add(new EvenSquares());
       return descriptorList;
     }
   }

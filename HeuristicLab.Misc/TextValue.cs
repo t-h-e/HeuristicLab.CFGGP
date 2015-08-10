@@ -19,7 +19,6 @@
  */
 #endregion
 
-using System;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -40,13 +39,6 @@ namespace HeuristicLab.Misc {
 
     public override IDeepCloneable Clone(Cloner cloner) {
       return new TextValue(this, cloner);
-    }
-
-    public event EventHandler ValueChanged;
-    protected override void OnValueChanged() {
-      if (ValueChanged != null)
-        ValueChanged(this, EventArgs.Empty);
-      OnToStringChanged();
     }
   }
 }

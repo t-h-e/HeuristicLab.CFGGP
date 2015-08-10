@@ -48,5 +48,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
         yield return rand.Next(start, end + 1);
       }
     }
+
+    public static IEnumerable<T> Shuffle<T>(IEnumerable<T> enumerable) {
+      return enumerable.Shuffle(rand);
+    }
+
+    public static IEnumerable<T> SampleRandomWithoutRepetition<T>(IEnumerable<T> enumerable, int count) {
+      return enumerable.SampleRandomWithoutRepetition(rand, count);
+    }
+
   }
 }
