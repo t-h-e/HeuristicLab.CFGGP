@@ -20,6 +20,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Core;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class Median : CFGArtificialDataDescriptor {
@@ -36,7 +40,39 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<List<int>> median = GetTriple(10, rand).ToList();
+      median = GetDoubles(30, rand).ToList();
+      median = GetSingles(60, rand).ToList();
+      median = median.Shuffle(rand).ToList();
+
+      median = GetTriple(100, rand).ToList();
+      median = GetDoubles(300, rand).ToList();
+      median = GetSingles(600, rand).ToList();
+
+      var input = median.Select(x => String.Join(", ", x)).ToArray();
+      var output = median.Select(x => { x.Sort(); return x.ElementAt(1).ToString(); }).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<List<int>> GetTriple(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return Enumerable.Repeat(rand.Next(-100, 100), 3).ToList();
+      }
+    }
+
+    private IEnumerable<List<int>> GetDoubles(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        var temp = Enumerable.Repeat(rand.Next(-100, 100), 2).ToList();
+        temp.Add(rand.Next(-100, 100));
+        yield return temp.Shuffle(rand).ToList();
+      }
+    }
+
+    private IEnumerable<List<int>> GetSingles(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return new List<int>(3) { rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100) };
+      }
     }
   }
 }

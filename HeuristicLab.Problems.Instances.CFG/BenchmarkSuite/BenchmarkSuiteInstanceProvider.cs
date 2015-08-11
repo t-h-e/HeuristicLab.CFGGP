@@ -46,6 +46,13 @@ namespace HeuristicLab.Problems.Instances.CFG {
       descriptorList.Add(new ForLoopIndex());
       descriptorList.Add(new CollatzNumbers());
       descriptorList.Add(new EvenSquares());
+      descriptorList.Add(new WallisPi());
+      descriptorList.Add(new LastIndexOfZero());
+      descriptorList.Add(new SumOfSquares());
+      descriptorList.Add(new Digits());
+      descriptorList.Add(new Grade());
+      descriptorList.Add(new Median());
+      descriptorList.Add(new Smallest());
       return descriptorList;
     }
   }

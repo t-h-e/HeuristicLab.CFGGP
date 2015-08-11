@@ -19,6 +19,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using HeuristicLab.Random;
 
@@ -46,6 +47,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
     public static IEnumerable<int> GenerateUniformDistributedValues(int n, int start, int end) {
       for (int i = 0; i < n; i++) {
         yield return rand.Next(start, end + 1);
+      }
+    }
+
+    public static IEnumerable<long> GenerateUniformDistributedValues(int n, long start, long end) {
+      for (int i = 0; i < n; i++) {
+        double r = rand.NextDouble(); // r \in [0, 1)
+        r = r * ((end + 1) - start) + start; // r \in [start, end + 1), the "+ 1" makes sure that it is uniformlly distibuted when using floor in the next line
+        yield return (long)Math.Floor(r);
       }
     }
 

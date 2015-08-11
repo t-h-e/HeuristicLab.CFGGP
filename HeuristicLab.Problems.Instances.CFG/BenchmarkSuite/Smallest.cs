@@ -20,6 +20,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Core;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class Smallest : CFGArtificialDataDescriptor {
@@ -36,7 +40,52 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<List<int>> smalles = GetHardcodedTrainingSamples();
+      smalles = GetQuadrupel(10, rand).ToList();
+      smalles = GetTriple(10, rand).ToList();
+      smalles = GetNonNegativeSingles(10, rand).ToList();
+      smalles = GetSingles(10, rand).ToList();
+
+      var input = smalles.Select(x => String.Join(", ", x)).ToArray();
+      var output = smalles.Select(x => { x.Sort(); return x.First().ToString(); }).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<List<int>> GetQuadrupel(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return Enumerable.Repeat(rand.Next(-100, 100), 4).ToList();
+      }
+    }
+
+    private IEnumerable<List<int>> GetTriple(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        var temp = Enumerable.Repeat(rand.Next(-100, 100), 3).ToList();
+        temp.Add(rand.Next(-100, 100));
+        yield return temp.Shuffle(rand).ToList();
+      }
+    }
+
+    private IEnumerable<List<int>> GetNonNegativeSingles(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return new List<int>(4) { rand.Next(0, 100), rand.Next(0, 100), rand.Next(0, 100), rand.Next(0, 100) };
+      }
+    }
+
+    private IEnumerable<List<int>> GetSingles(int n, IRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return new List<int>(4) { rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100) };
+      }
+    }
+
+    private List<List<int>> GetHardcodedTrainingSamples() {
+      return new List<List<int>>() {
+            new List<int>() {0, 0, 0, 0},
+            new List<int>() {-44, -44, -7, -13},
+            new List<int>() {0, 4, -99, -33},
+            new List<int>() {-22, -22, -22, -22},
+            new List<int>() {99, 100, 99, 100}
+      };
     }
   }
 }
