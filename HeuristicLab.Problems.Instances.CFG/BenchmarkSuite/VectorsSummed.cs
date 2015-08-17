@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class VectorsSummed : CFGArtificialDataDescriptor {
@@ -36,7 +39,53 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1650; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<Tuple<List<int>, List<int>>> vectors = GetHardcodedTrainingSamples();
+      vectors.AddRange(GetVectorOfLength(5, 1, rand).ToList());
+      vectors.AddRange(GetVectorOfLength(10, 50, rand).ToList());
+      vectors.AddRange(GetRandomTuple(126, rand).ToList());
+
+      vectors = vectors.Shuffle(rand).ToList();
+
+      vectors.AddRange(GetVectorOfLength(100, 50, rand).ToList());
+      vectors.AddRange(GetRandomTuple(1400, rand).ToList());
+
+      var input = vectors.Select(x => String.Format("[[{0}], [{1}]]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
+      var output = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x.Item1.Zip(x.Item2, (a, b) => a + b)))).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<Tuple<List<int>, List<int>>> GetRandomTuple(int n, FastRandom rand) {
+      int length = rand.Next(0, 50);
+      return GetVectorOfLength(n, length, rand);
+    }
+
+    private IEnumerable<Tuple<List<int>, List<int>>> GetVectorOfLength(int n, int length, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return new Tuple<List<int>, List<int>>(GetRandom(rand, length), GetRandom(rand, length));
+      }
+    }
+
+    private List<int> GetRandom(FastRandom rand, int length) {
+      List<int> vector = new List<int>(length);
+      for (int j = 0; j < length; j++) {
+        vector.Add(rand.Next(-1000, 1000));
+      }
+      return vector;
+    }
+
+    private List<Tuple<List<int>, List<int>>> GetHardcodedTrainingSamples() {
+      return new List<Tuple<List<int>, List<int>>>() {
+          new Tuple<List<int>, List<int>>(new List<int>() {}, new List<int>() {}),
+          new Tuple<List<int>, List<int>>(new List<int>() {0}, new List<int>() {0}),
+          new Tuple<List<int>, List<int>>(new List<int>() {10}, new List<int>() {0}),
+          new Tuple<List<int>, List<int>>(new List<int>() {5}, new List<int>() {3}),
+          new Tuple<List<int>, List<int>>(new List<int>() {-9}, new List<int>() {7}),
+          new Tuple<List<int>, List<int>>(new List<int>() {0, 0}, new List<int>() {0, 0}),
+          new Tuple<List<int>, List<int>>(new List<int>() {-4, 2}, new List<int>() {0, 1}),
+          new Tuple<List<int>, List<int>>(new List<int>() {-3, 0}, new List<int>() {-1, 0}),
+          new Tuple<List<int>, List<int>>(new List<int>() {-323, 49}, new List<int>() {-90, -6}),
+        };
     }
   }
 }

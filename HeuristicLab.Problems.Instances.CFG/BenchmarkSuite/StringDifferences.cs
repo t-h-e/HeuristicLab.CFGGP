@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class StringDifferences : CFGArtificialDataDescriptor {
@@ -36,7 +39,54 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 2200; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<List<string>> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(StringValueGenerator.GetRandomStringsWithoutSpaces(170, 2, 10, rand).Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(170, 2, 10, rand),
+                       (x, y) => new List<string>(2) { x, y }).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand).Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand),
+                       (x, y) => new List<string>(2) { x, y }).ToList());
+
+      var input = strings.Select(x => String.Format("[{0}], [{1}]", x[0], x[1])).ToArray();
+      var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray())).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private List<List<string>> GetHardcodedTrainingSamples() {
+      return new List<List<string>>() {
+        new List<string>() { "", "" },
+        new List<string>() { "", "hi" },
+        new List<string>() { "ThereWorld", "" },
+        new List<string>() { "A", "A" },
+        new List<string>() { "B", "C" },
+        new List<string>() { "&", "#" },
+        new List<string>() { "4", "456789" },
+        new List<string>() { "rat", "hat" },
+        new List<string>() { "new", "net" },
+        new List<string>() { "big", "bag" },
+        new List<string>() { "STOP", "SIGN" },
+        new List<string>() { "abcde", "a" },
+        new List<string>() { "abcde", "abcde" },
+        new List<string>() { "abcde", "edcba" },
+        new List<string>() { "2n", "nn" },
+        new List<string>() { "hi", "zipper" },
+        new List<string>() { "dealer", "dollars" },
+        new List<string>() { "nacho", "cheese" },
+        new List<string>() { "loud", "louder" },
+        new List<string>() { "qwertyuiop", "asdfghjkl;" },
+        new List<string>() { "LALALALALA", "LLLLLLLLLL" },
+        new List<string>() { "!!!!!!", ".?." },
+        new List<string>() { "9r2334", "9223d4r" },
+        new List<string>() { "WellWell", "wellwell" },
+        new List<string>() { "TakeThat!", "TAKETHAT!!" },
+        new List<string>() { "CHOCOLATE^", "CHOCOLATE^" },
+        new List<string>() { "ssssssssss", "~~~~~~~~~~" },
+        new List<string>() { ">_=]>_=]>_", "q_q_q_q_q_" },
+        new List<string>() { "()()()()()", "pp)pp)pp)p" },
+        new List<string>() { "HaHaHaHaHa", "HiHiHiHiHi" },
+      };
     }
   }
 }

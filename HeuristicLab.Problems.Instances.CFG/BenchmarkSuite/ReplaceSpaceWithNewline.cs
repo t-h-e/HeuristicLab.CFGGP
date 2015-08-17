@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class ReplaceSpaceWithNewline : CFGArtificialDataDescriptor {
@@ -36,7 +39,43 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<string> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(GetStringWithSpaces(70, rand).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(GetStringWithSpaces(1000, rand).ToList());
+
+      var input = strings.ToArray();
+      var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray())).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<string> GetStringWithSpaces(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        var value = StringValueGenerator.GetRandomStringWithoutSpaces(rand.Next(0, 20), rand).ToCharArray();
+
+        // add 20% spaces
+        for (int j = 0; j < value.Length; j++) {
+          if (rand.NextDouble() < 0.2) {
+            value[j] = ' ';
+          }
+        }
+        yield return new string(value);
+      }
+    }
+
+    private List<string> GetHardcodedTrainingSamples() {
+      return new List<string>() { "", "A", "*", " ", "s", "B ", "  ", " D", "ef", "!!",
+        " F ", "T L", "4ps", "q  ", "   ", "  e", "hi ", "  $  ",
+        "      9", "i !i !i !i !i", "88888888888888888888",
+        "                    ", "ssssssssssssssssssss",
+        "1 1 1 1 1 1 1 1 1 1 ", " v v v v v v v v v v",
+        "Ha Ha Ha Ha Ha Ha Ha", "x y!x y!x y!x y!x y!",
+        "G5G5G5G5G5G5G5G5G5G5", ">_=]>_=]>_=]>_=]>_=]",
+        "^_^ ^_^ ^_^ ^_^ ^_^ "
+      };
     }
   }
 }

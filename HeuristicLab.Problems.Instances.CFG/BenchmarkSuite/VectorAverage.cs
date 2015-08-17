@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class VectorAverage : CFGArtificialDataDescriptor {
@@ -36,7 +39,43 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<List<double>> vectors = GetHardcodedTrainingSamples();
+      vectors.AddRange(GetVecotrsOfLenght50(4).Select(x => x.ToList()));
+      vectors.AddRange(GetVecotrsOfVariableLenght(90, rand).Select(x => x.ToList()));
+
+      vectors = vectors.Shuffle(rand).ToList();
+
+      vectors.AddRange(GetVecotrsOfLenght50(50).Select(x => x.ToList()));
+      vectors.AddRange(GetVecotrsOfVariableLenght(950, rand).Select(x => x.ToList()));
+
+
+      var input = vectors.Select(x => String.Format("[{0:0.0################}]", String.Join(", ", x))).ToArray();
+      var output = vectors.Select(x => x.Average().ToString()).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<IEnumerable<double>> GetVecotrsOfVariableLenght(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        yield return ValueGenerator.GenerateUniformDistributedValues(rand.Next(1, 50), -1000.0, 1000.0);
+      }
+    }
+
+    private IEnumerable<IEnumerable<double>> GetVecotrsOfLenght50(int n) {
+      for (int i = 0; i < n; i++) {
+        yield return ValueGenerator.GenerateUniformDistributedValues(50, -1000.0, 1000.0);
+      }
+    }
+
+    private List<List<double>> GetHardcodedTrainingSamples() {
+      return new List<List<double>>() {
+            new List<double>() {0.0},
+            new List<double>() {100.0},
+            new List<double>() {-100.0},
+            new List<double>() {2.0, 129.0},
+            new List<double>() {0.12345, -4.678},
+            new List<double>() {999.99, 74.113},
+      };
     }
   }
 }

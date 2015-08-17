@@ -20,6 +20,10 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using HeuristicLab.Random;
+using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class DoubleLetters : CFGArtificialDataDescriptor {
@@ -36,7 +40,43 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<string> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(StringValueGenerator.GetRandomStrings(68, 0, 20, rand).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(StringValueGenerator.GetRandomStrings(1000, 0, 20, rand).ToList());
+
+      var input = strings.ToArray();
+      var output = strings.Select(x => CalcDoubleLetter(x)).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private string CalcDoubleLetter(string x) {
+      StringBuilder strBuilder = new StringBuilder();
+      foreach (var cur in x.ToCharArray()) {
+        if (cur == 33) {
+          strBuilder.Append(Enumerable.Repeat(cur, 3).ToArray());
+        } else if ((cur >= 65 && cur <= 90) || (cur >= 97 && cur <= 122)) {
+          strBuilder.Append(Enumerable.Repeat(cur, 2).ToArray());
+        } else {
+          strBuilder.Append(cur);
+        }
+      }
+      return strBuilder.ToString();
+    }
+
+    private List<string> GetHardcodedTrainingSamples() {
+      return new List<string>() { "", "A", "!", " ", "*", "\t", "\n", "B\n", "\n\n", "CD",
+        "ef", "!!", "q!", "!R", "!#", "@!", "!F!", "T$L", "4ps",
+        "q\t ", "!!!", "i:!i:!i:!i:!i", "88888888888888888888",
+        "                    ", "ssssssssssssssssssss",
+        "!!!!!!!!!!!!!!!!!!!!", "Ha Ha Ha Ha Ha Ha Ha",
+        "x\ny!x\ny!x\ny!x\ny!x\ny!", "1!1!1!1!1!1!1!1!1!1!",
+        "G5G5G5G5G5G5G5G5G5G5", ">_=]>_=]>_=]>_=]>_=]",
+        "k!!k!!k!!k!!k!!k!!k!"
+      };
     }
   }
 }
