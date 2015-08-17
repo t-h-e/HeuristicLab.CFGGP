@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class SuperAnagrams : CFGArtificialDataDescriptor {
@@ -36,7 +39,77 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 2200; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<List<string>> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(GetCloseOrSuperAnagrams(170, rand));
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(GetCloseOrSuperAnagrams(2000, rand));
+
+      var input = strings.Select(x => String.Join(", ", x)).ToArray();
+      var output = strings.Select(x => CalcSuperAnagram(x[0], x[1]) ? "True" : "False").ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private bool CalcSuperAnagram(string x, string y) {
+      var xChar = x.ToCharArray().OrderBy(a => a).ToList();
+      var yChar = y.ToCharArray().OrderBy(a => a).ToList();
+
+      for (int i = 0; i < xChar.Count; i++) {
+        char cur = xChar[i];
+        int index = yChar.IndexOf(cur);
+        if (index < 0) return false;
+
+        while (xChar[i] == yChar[index]) {
+          i++;
+          index++;
+        }
+
+        if (cur != xChar[i]) continue;
+        return false;
+      }
+      return true;
+    }
+
+    private IEnumerable<List<string>> GetCloseOrSuperAnagrams(int p, FastRandom rand) {
+      // string with only letters! no other symbols
+      adsfasdf
+    }
+
+    private List<List<string>> GetHardcodedTrainingSamples() {
+      return new List<List<string>>() {
+        new List<string>() { "", ""},
+        new List<string>() { "h", ""},
+        new List<string>() { "", "i"},
+        new List<string>() { "a", "a"},
+        new List<string>() { "c", "b"},
+        new List<string>() { "nn", "n"},
+        new List<string>() { "c", "abcde"},
+        new List<string>() { "abcde", "c"},
+        new List<string>() { "mnbvccxz", "r"},
+        new List<string>() { "aabc", "abc"},
+        new List<string>() { "abcde", "aabc"},
+        new List<string>() { "edcba", "abcde"},
+        new List<string>() { "moo", "mo"},
+        new List<string>() { "mo", "moo"},
+        new List<string>() { "though", "tree"},
+        new List<string>() { "zipper", "rip"},
+        new List<string>() { "rip", "flipper"},
+        new List<string>() { "zipper", "hi"},
+        new List<string>() { "dollars", "dealer"},
+        new List<string>() { "louder", "loud"},
+        new List<string>() { "ccccc", "ccccccccc"},
+        new List<string>() { "oldwestaction", "clinteastwood"},
+        new List<string>() { "ldwestaction", "clinteastwood"},
+        new List<string>() { "verificationcomplete", "verificationcomplete"},
+        new List<string>() { "hhhhhhhhhhaaaaaaaaaa", "hahahahahahahahahaha"},
+        new List<string>() { "aahhhh", "hahahahahahahahahaha"},
+        new List<string>() { "qwqeqrqtqyquqiqoqpqs", ""},
+        new List<string>() { "qazwsxedcrfvtgbyhnuj", "wxyz"},
+        new List<string>() { "gggffggfefeededdd", "dddeeefffgggg"},
+        new List<string>() { "dddeeefffgggg", "gggffggfefeededdd"},
+      };
     }
   }
 }

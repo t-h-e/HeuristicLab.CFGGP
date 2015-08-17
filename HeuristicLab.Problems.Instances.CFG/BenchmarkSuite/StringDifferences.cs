@@ -20,8 +20,9 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
@@ -50,9 +51,22 @@ namespace HeuristicLab.Problems.Instances.CFG {
                        (x, y) => new List<string>(2) { x, y }).ToList());
 
       var input = strings.Select(x => String.Format("[{0}], [{1}]", x[0], x[1])).ToArray();
-      var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray())).ToArray();
+      var output = strings.Select(x => CalcStringDifferences(x[0].ToCharArray(), x[1].ToCharArray())).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
+
+    private string CalcStringDifferences(char[] p1, char[] p2) {
+      int length = Math.Max(p1.Length, p2.Length);
+      StringBuilder strBuilder = new StringBuilder();
+      for (int i = 0; i < length; i++) {
+        if (p1[i] != p2[i]) {
+          strBuilder.Append(String.Format("{0} {1} {2}\n", i, p1[i], p2[i]));
+        }
+      }
+      return strBuilder.ToString();
+    }
+
+
 
     private List<List<string>> GetHardcodedTrainingSamples() {
       return new List<List<string>>() {

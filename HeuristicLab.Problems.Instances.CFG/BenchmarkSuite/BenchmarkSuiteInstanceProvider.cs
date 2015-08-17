@@ -48,19 +48,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
       descriptorList.Add(new DoubleLetters());
       descriptorList.Add(new CollatzNumbers());
       descriptorList.Add(new ReplaceSpaceWithNewline());
-
-
+      descriptorList.Add(new StringDifferences());
       descriptorList.Add(new EvenSquares());
       descriptorList.Add(new WallisPi());
+      descriptorList.Add(new StringLengthsBackwards());
       descriptorList.Add(new LastIndexOfZero());
+      descriptorList.Add(new VectorAverage());
+      descriptorList.Add(new CountOdds());
+      descriptorList.Add(new MirrorImage());
+
+
       descriptorList.Add(new SumOfSquares());
       descriptorList.Add(new Digits());
       descriptorList.Add(new Grade());
       descriptorList.Add(new Median());
       descriptorList.Add(new Smallest());
-      descriptorList.Add(new VectorAverage());
-      descriptorList.Add(new CountOdds());
-      descriptorList.Add(new MirrorImage());
       descriptorList.Add(new VectorsSummed());
       descriptorList.Add(new NegativeToZero());
       return descriptorList;

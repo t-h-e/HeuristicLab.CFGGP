@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class StringLengthsBackwards : CFGArtificialDataDescriptor {
@@ -36,7 +39,39 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<List<string>> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(GetRandomStringsOfStrings(90, rand).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(GetRandomStringsOfStrings(1000, rand).ToList());
+
+      var input = strings.Select(x => String.Join(", ", x)).ToArray();
+      var output = strings.Select(x => String.Join(", ", x.Select(y => y.Length).Reverse())).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<List<string>> GetRandomStringsOfStrings(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        int count = rand.Next(0, 50);
+        yield return StringValueGenerator.GetRandomStrings(count, 0, 50, rand).ToList();
+      }
+    }
+
+    private List<List<string>> GetHardcodedTrainingSamples() {
+      return new List<List<string>>() {
+        new List<string>() { },
+        new List<string>() { "" },
+        new List<string>() { "", "" },
+        new List<string>() { "", "", "" },
+        new List<string>() { "", "", "", "", "", "", "", "", "", "" },
+        new List<string>() { "abcde" },
+        new List<string>() { "1" },
+        new List<string>() { "abc", "hi there" },
+        new List<string>() { "!@#", "\n\n\t\t", "5552\na r" },
+        new List<string>() { "tt", "333", "1", "ccc" }
+      };
     }
   }
 }

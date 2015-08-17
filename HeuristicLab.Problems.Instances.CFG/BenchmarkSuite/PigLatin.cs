@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class PigLatin : CFGArtificialDataDescriptor {
@@ -36,7 +39,42 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1200; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<string> strings = GetHardcodedTrainingSamples();
+
+      strings.AddRange(GetLetterStrings(167, rand));
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(GetLetterStrings(1000, rand));
+
+      var input = strings.Select(x => String.Join(", ", x)).ToArray();
+      var output = strings.Select(x => CalcPigLatin(x)).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<string> GetLetterStrings(int p, FastRandom rand) {
+      throw new NotImplementedException();
+    }
+
+    private string CalcPigLatin(string x) {
+      throw new NotImplementedException();
+    }
+
+    private List<string> GetHardcodedTrainingSamples() {
+      return new List<string>() {
+        "", "a", "b", "c", "d", "e", "i", "m", "o", "u", "y", "z",
+        "hello", "there", "world", "eat", "apple", "yellow",
+        "orange", "umbrella", "ouch", "in", "hello there world",
+        "out at the plate", "nap time on planets",
+        "supercalifragilistic", "expialidocious",
+        "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu",
+        "ssssssssssssssssssssssssssssssssssssssssssssssssss",
+        "w w w w w w w w w w w w w w w w w w w w w w w w w",
+        "e e e e e e e e e e e e e e e e e e e e e e e e e",
+        "ha ha ha ha ha ha ha ha ha ha ha ha ha ha ha ha ha",
+        "x y x y x y x y x y x y x y x y x y x y x y x y x"
+      };
     }
   }
 }
