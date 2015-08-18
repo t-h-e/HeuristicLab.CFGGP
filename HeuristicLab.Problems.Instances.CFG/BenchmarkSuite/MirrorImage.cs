@@ -41,17 +41,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override Tuple<string[], string[]> GenerateInputOutput() {
       FastRandom rand = new FastRandom();
       List<Tuple<List<int>, List<int>>> vectors = GetHardcodedTrainingSamples();
-      vectors.AddRange(GetMirrorImages(37, rand));
-      vectors.AddRange(GetEqual(10, rand));
-      vectors.AddRange(GetMirrorImagesWithFewChanges(20, rand));
-      vectors.AddRange(GetRandomTuple(10, rand));
+      vectors.AddRange(GetMirrorImages(37, rand).ToList());
+      vectors.AddRange(GetEqual(10, rand).ToList());
+      vectors.AddRange(GetMirrorImagesWithFewChanges(20, rand).ToList());
+      vectors.AddRange(GetRandomTuple(10, rand).ToList());
 
       vectors = vectors.Shuffle(rand).ToList();
 
-      vectors.AddRange(GetMirrorImages(500, rand));
-      vectors.AddRange(GetEqual(100, rand));
-      vectors.AddRange(GetMirrorImagesWithFewChanges(200, rand));
-      vectors.AddRange(GetRandomTuple(200, rand));
+      vectors.AddRange(GetMirrorImages(500, rand).ToList());
+      vectors.AddRange(GetEqual(100, rand).ToList());
+      vectors.AddRange(GetMirrorImagesWithFewChanges(200, rand).ToList());
+      vectors.AddRange(GetRandomTuple(200, rand).ToList());
       var input = vectors.Select(x => String.Format("[[{0}], [{1}]]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
       var output = vectors.Select(x => x.Item1.SequenceEqual(Enumerable.Reverse(x.Item2)).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);
@@ -71,7 +71,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
         // add few changes
         int length = vector.Count;
-        int changes = rand.Next(1, length / 10);
+        int changes = rand.Next(1, 5);
         for (int j = 0; j < changes; j++) {
           if (rand.NextBool()) {
             vector[rand.Next(0, length - 1)] = rand.Next(-1000, 1000);

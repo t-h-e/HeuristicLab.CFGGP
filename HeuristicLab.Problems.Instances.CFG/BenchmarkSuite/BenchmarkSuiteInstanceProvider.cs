@@ -56,15 +56,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
       descriptorList.Add(new VectorAverage());
       descriptorList.Add(new CountOdds());
       descriptorList.Add(new MirrorImage());
-
-
+      descriptorList.Add(new SuperAnagrams());
       descriptorList.Add(new SumOfSquares());
+      descriptorList.Add(new VectorsSummed());
+      descriptorList.Add(new XWordLines());
+      descriptorList.Add(new PigLatin());
+      descriptorList.Add(new NegativeToZero());
+      descriptorList.Add(new ScrabbleScore());
+      descriptorList.Add(new WordStats());
+      descriptorList.Add(new Checksum());
       descriptorList.Add(new Digits());
       descriptorList.Add(new Grade());
       descriptorList.Add(new Median());
       descriptorList.Add(new Smallest());
-      descriptorList.Add(new VectorsSummed());
-      descriptorList.Add(new NegativeToZero());
+      descriptorList.Add(new Syllables());
+
       return descriptorList;
     }
   }

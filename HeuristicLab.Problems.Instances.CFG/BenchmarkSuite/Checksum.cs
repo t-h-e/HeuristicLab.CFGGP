@@ -20,6 +20,9 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class Checksum : CFGArtificialDataDescriptor {
@@ -36,7 +39,37 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<string> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(StringValueGenerator.GetRandomStrings(88, 0, 50, rand).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(StringValueGenerator.GetRandomStrings(1000, 0, 50, rand).ToList());
+
+      var input = strings.Select(x => String.Format("\"{0}\"", x)).ToArray();
+      var output = strings.Select(x => String.Format("Check sum is {0}.", CalcChecksum(x))).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private char CalcChecksum(string x) {
+      int sum = 0;
+      foreach (int item in x.ToCharArray()) {
+        sum += item;
+      }
+      return (char)(sum % 64);
+    }
+
+    private List<string> GetHardcodedTrainingSamples() {
+      return new List<string>() {
+        "", "A", "\t", "\n", "B\n", "\n\n",
+          String.Concat(Enumerable.Repeat('\n', 50)),
+          String.Concat(Enumerable.Repeat(' ', 50)),
+          String.Concat(Enumerable.Repeat('s', 50)),
+          String.Concat(Enumerable.Repeat("CD\n", 16)) + "CD",
+          String.Concat(Enumerable.Repeat("x\ny ", 12)) + "x\n",
+          String.Concat(Enumerable.Repeat(" \n", 25)),
+      };
     }
   }
 }

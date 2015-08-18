@@ -20,6 +20,10 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using HeuristicLab.Random;
+using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class WordStats : CFGArtificialDataDescriptor {
@@ -36,7 +40,103 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<string> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(GetRandomString(104, rand).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(GetRandomString(1000, rand).ToList());
+
+      var input = strings.Select(x => String.Format("\"{0}\"", x)).ToArray();
+      var output = strings.Select(x => String.Format("\"{0}\"", CalcWordStats(x))).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private static readonly char[] terminators = new char[] { '.', '!', '?' };
+
+    private string CalcWordStats(string x) {
+      StringBuilder strBuilder = new StringBuilder();
+
+      int sentences = x.Count(y => terminators.Contains(y));
+
+      var words = x.Split(terminators.Concat(new char[] { ' ', '\t', '\n' }).ToArray()).OrderBy(y => y.Length).ToArray();
+      int lenght = 1;
+      int count = 0;
+      int index = 0;
+
+      while (index < words.Length) {
+        if (words[index].Length <= lenght) {
+          count++;
+          index++;
+        } else {
+          lenght++;
+          count = 0;
+          strBuilder.AppendLine(String.Format("words of length {0}: {1}", lenght, count));
+        }
+      }
+
+      strBuilder.AppendLine(String.Format("words of length {0}: {1}", lenght, count));
+
+      strBuilder.AppendLine(String.Format("number of sentences: {0}", sentences));
+      strBuilder.AppendLine(String.Format("average sentence length: {0:0.#####}", sentences));
+      return strBuilder.ToString();
+    }
+
+    private IEnumerable<string> GetRandomString(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        int length = rand.Next(1, 100);
+        var value = GetRandomChar(length, rand).ToArray();
+
+        if (!value.Any(x => terminators.Contains(x))) {
+          value[rand.Next(0, value.Length - 1)] = terminators[rand.Next(0, terminators.Length - 1)];
+        }
+        yield return new String(value);
+      }
+    }
+
+    private IEnumerable<char> GetRandomChar(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        double prob = rand.NextDouble();
+        double tabProb = 0.01 + 0.02 * rand.NextDouble(); //prob of tab is between 0.01 and 0.03
+        double newlineProb = 0.02 + 0.05 * rand.NextDouble(); //prob of newline is between 0.02 and 0.07
+        double spaceProb = 0.05 + 0.3 * rand.NextDouble();//prob of space is between 0.05 and 0.35
+        double terminatorProb = 0.01 + 0.19 * rand.NextDouble(); //prob of sentence terminator is between 0.01 and 0.2
+
+        if (prob < tabProb) yield return '\t';
+        if (prob < tabProb + newlineProb) yield return '\n';
+        if (prob < tabProb + newlineProb + spaceProb) yield return ' ';
+        if (prob < tabProb + newlineProb + spaceProb + terminatorProb) yield return terminators[rand.Next(0, terminators.Length - 1)];
+        else yield return (char)rand.Next(33, 126);
+      }
+    }
+
+    private List<string> GetHardcodedTrainingSamples() {
+      return new List<string>() {
+        ".", "!", "?", "\t.", "\n!", " ?", ".#", "A.\n", "! \n", "?\t\n", "\n?\n",
+          ".!?.!?", ".txt", "!RACECAR!", "www.google.com",
+          "Pirate basketball? Envelope WARS!",
+          ".hello there wo.RLD",
+          "out. at. the. plate.",
+          "nap time on planets!",
+          "supercalifragilisticexpialidocious?",
+          String.Concat(Enumerable.Repeat('\n', 99)) + '.',
+          String.Concat(Enumerable.Repeat('=', 99)) + '?',
+          '!' + String.Concat(Enumerable.Repeat(' ', 99)),
+          '.' + String.Concat(Enumerable.Repeat('h', 99)),
+          String.Concat(Enumerable.Repeat('\t', 99)) + '?',
+          String.Concat(Enumerable.Repeat('@', 99)) + '!',
+          String.Concat(Enumerable.Repeat('.', 100)),
+          String.Concat(Enumerable.Repeat('!', 100)),
+          String.Concat(Enumerable.Repeat('?', 100)),
+          String.Concat(Enumerable.Repeat(".\n", 50)),
+          String.Concat(Enumerable.Repeat("?\n\n", 33)) + '?',
+          String.Concat(Enumerable.Repeat("!D\n", 33)) + '!',
+          String.Concat(Enumerable.Repeat("! ", 50)),
+          String.Concat(Enumerable.Repeat(".\t", 50)),
+          String.Concat(Enumerable.Repeat("?\ny ", 25)),
+          String.Concat(Enumerable.Repeat("5!", 50)),
+      };
     }
   }
 }

@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
@@ -42,23 +43,40 @@ namespace HeuristicLab.Problems.Instances.CFG {
       FastRandom rand = new FastRandom();
       List<string> strings = GetHardcodedTrainingSamples();
 
-      strings.AddRange(GetLetterStrings(167, rand));
+      strings.AddRange(GetLetterStrings(167, rand).ToList());
 
       strings = strings.Shuffle(rand).ToList();
 
-      strings.AddRange(GetLetterStrings(1000, rand));
+      strings.AddRange(GetLetterStrings(1000, rand).ToList());
 
       var input = strings.Select(x => String.Join(", ", x)).ToArray();
       var output = strings.Select(x => CalcPigLatin(x)).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
-    private IEnumerable<string> GetLetterStrings(int p, FastRandom rand) {
-      throw new NotImplementedException();
+    private IEnumerable<string> GetLetterStrings(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        var value = StringValueGenerator.GetRandomLowerCaseString(rand.Next(0, 50), rand).ToCharArray();
+        for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
+          if (rand.NextDouble() < 0.2) value[i] = ' ';
+        }
+        string valueString = new String(value);
+        yield return String.Join(" ", valueString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));  // remove double spaces and spaces in the beginnig and the end of the string
+      }
     }
 
     private string CalcPigLatin(string x) {
-      throw new NotImplementedException();
+      var split = x.Split(new char[] { ' ' }, StringSplitOptions.None);
+      StringBuilder strBuilder = new StringBuilder();
+      foreach (var word in split) {
+        if (!StringValueGenerator.vowel.Contains(word.ElementAt(0))) {
+          strBuilder.Append(word.Substring(1, word.Length - 1));
+          strBuilder.Append(word.ElementAt(0));
+        }
+        strBuilder.Append("ay ");
+      }
+      strBuilder.Length--;
+      return strBuilder.ToString();
     }
 
     private List<string> GetHardcodedTrainingSamples() {

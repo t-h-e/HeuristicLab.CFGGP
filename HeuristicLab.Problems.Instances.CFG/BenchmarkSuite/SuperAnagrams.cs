@@ -41,11 +41,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override Tuple<string[], string[]> GenerateInputOutput() {
       FastRandom rand = new FastRandom();
       List<List<string>> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(GetCloseOrSuperAnagrams(170, rand));
+      strings.AddRange(GetCloseOrSuperAnagrams(170, rand).ToList());
 
       strings = strings.Shuffle(rand).ToList();
 
-      strings.AddRange(GetCloseOrSuperAnagrams(2000, rand));
+      strings.AddRange(GetCloseOrSuperAnagrams(2000, rand).ToList());
 
       var input = strings.Select(x => String.Join(", ", x)).ToArray();
       var output = strings.Select(x => CalcSuperAnagram(x[0], x[1]) ? "True" : "False").ToArray();
@@ -72,9 +72,24 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return true;
     }
 
-    private IEnumerable<List<string>> GetCloseOrSuperAnagrams(int p, FastRandom rand) {
+    private IEnumerable<List<string>> GetCloseOrSuperAnagrams(int n, FastRandom rand) {
       // string with only letters! no other symbols
-      adsfasdf
+      for (int i = 0; i < n; i++) {
+        int length = rand.Next(0, 20);
+        string value0 = StringValueGenerator.GetRandomLowerCaseString(length, rand);
+        string value1 = DropCharsAndShuffle(value0, rand);
+        yield return rand.NextDouble() < 0.2  // bias towards value1 first, since value0.Length >= value1.Length
+                  ? new List<string>() { value0, value1 }
+                  : new List<string>() { value1, value0 };
+
+      }
+    }
+
+    private string DropCharsAndShuffle(string original, FastRandom rand) {
+      int drop = rand.Next(0, original.Length);
+      var originalChars = original.ToCharArray();
+      var result = originalChars.Shuffle(rand).SampleRandomWithoutRepetition(rand, original.Length - drop);
+      return new String(result.ToArray());
     }
 
     private List<List<string>> GetHardcodedTrainingSamples() {

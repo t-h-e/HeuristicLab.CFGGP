@@ -26,6 +26,8 @@ using HeuristicLab.Random;
 namespace HeuristicLab.Problems.Instances.CFG {
   public class StringValueGenerator {
 
+    public static readonly char[] vowel = new char[] { 'a', 'e', 'i', 'o', 'u' };
+
     // https://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters
     // characters used
     // 9 \t
@@ -83,6 +85,33 @@ namespace HeuristicLab.Problems.Instances.CFG {
         default:
           return (char)(value + 31);
       }
+    }
+
+    public static string GetRandomStringWithOnlyPrintableCharactersWithoutUpperCaseCharacters(int length, FastRandom rand) {
+      StringBuilder strBuilder = new StringBuilder(length);
+      for (int i = 0; i < length; i++) {
+        strBuilder.Append(GetRandomLowerCaseChar(rand));
+      }
+      return strBuilder.ToString();
+    }
+
+    private static char GetRandomPrintableCharExceptUpperCase(FastRandom rand) {
+      int value = rand.Next(0, 68) + 32;
+      if (value < 65) return (char)value;
+      return (char)(value + 26);
+    }
+
+    public static string GetRandomLowerCaseString(int length, FastRandom rand) {
+      StringBuilder strBuilder = new StringBuilder(length);
+      for (int i = 0; i < length; i++) {
+        strBuilder.Append(GetRandomLowerCaseChar(rand));
+      }
+      return strBuilder.ToString();
+    }
+
+    private static char GetRandomLowerCaseChar(FastRandom rand) {
+      int value = rand.Next(0, 25);
+      return (char)(value + 97);
     }
   }
 }

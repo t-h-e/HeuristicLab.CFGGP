@@ -43,7 +43,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       List<Tuple<List<int>, List<int>>> vectors = GetHardcodedTrainingSamples();
       vectors.AddRange(GetVectorOfLength(5, 1, rand).ToList());
       vectors.AddRange(GetVectorOfLength(10, 50, rand).ToList());
-      vectors.AddRange(GetRandomTuple(126, rand).ToList());
+      vectors.AddRange(GetRandomTuple(125, rand).ToList());
 
       vectors = vectors.Shuffle(rand).ToList();
 
@@ -81,6 +81,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
           new Tuple<List<int>, List<int>>(new List<int>() {10}, new List<int>() {0}),
           new Tuple<List<int>, List<int>>(new List<int>() {5}, new List<int>() {3}),
           new Tuple<List<int>, List<int>>(new List<int>() {-9}, new List<int>() {7}),
+          new Tuple<List<int>, List<int>>(new List<int>() {-987}, new List<int>() {-432}),
           new Tuple<List<int>, List<int>>(new List<int>() {0, 0}, new List<int>() {0, 0}),
           new Tuple<List<int>, List<int>>(new List<int>() {-4, 2}, new List<int>() {0, 1}),
           new Tuple<List<int>, List<int>>(new List<int>() {-3, 0}, new List<int>() {-1, 0}),

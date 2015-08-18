@@ -1,5 +1,4 @@
-﻿
-#region License Information
+﻿#region License Information
 /* HeuristicLab
  * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
@@ -21,6 +20,9 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class Syllables : CFGArtificialDataDescriptor {
@@ -37,7 +39,36 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionEnd { get { return 1100; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      FastRandom rand = new FastRandom();
+      List<string> strings = GetHardcodedTrainingSamples();
+      strings.AddRange(GetStringsWithSomeVowels(83, rand).ToList());
+
+      strings = strings.Shuffle(rand).ToList();
+
+      strings.AddRange(GetStringsWithSomeVowels(1000, rand).ToList());
+
+      var input = strings.Select(x => String.Format("\"{0}\"", x)).ToArray();
+      var output = strings.Select(x => String.Format("The number of syllables is {0}.", x.Count(y => StringValueGenerator.vowel.Contains(y)))).ToArray();
+      return new Tuple<string[], string[]>(input, output);
+    }
+
+    private IEnumerable<string> GetStringsWithSomeVowels(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        var value = StringValueGenerator.GetRandomStringWithOnlyPrintableCharactersWithoutUpperCaseCharacters(rand.Next(0, 20), rand).ToCharArray();
+        for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
+          if (rand.NextDouble() < 0.2) value[i] = StringValueGenerator.vowel[rand.Next(0, StringValueGenerator.vowel.Length - 1)];
+        }
+        yield return new String(value);
+      }
+    }
+
+    private List<string> GetHardcodedTrainingSamples() {
+      return new List<string>() {
+        "", "a", "v", "4", "o", " ", "aei", "ouy", "chf", "quite",
+        "a r e9j>", "you are many yay yea", "ssssssssssssssssssss",
+        "oooooooooooooooooooo", "wi wi wi wi wi wi wi",
+        "x y x y x y x y x y ", "eioyeioyeioyeioyeioy"
+      };
     }
   }
 }
