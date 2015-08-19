@@ -50,13 +50,13 @@ namespace HeuristicLab.Problems.Instances.CFG {
       strings.AddRange(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand).Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand),
                        (x, y) => new List<string>(2) { x, y }).ToList());
 
-      var input = strings.Select(x => String.Format("[{0}], [{1}]", x[0], x[1])).ToArray();
-      var output = strings.Select(x => CalcStringDifferences(x[0].ToCharArray(), x[1].ToCharArray())).ToArray();
+      var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
+      var output = strings.Select(x => CalcStringDifferences(x[0].ToCharArray(), x[1].ToCharArray()).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
     private string CalcStringDifferences(char[] p1, char[] p2) {
-      int length = Math.Max(p1.Length, p2.Length);
+      int length = Math.Min(p1.Length, p2.Length);
       StringBuilder strBuilder = new StringBuilder();
       for (int i = 0; i < length; i++) {
         if (p1[i] != p2[i]) {

@@ -48,8 +48,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(StringValueGenerator.GetRandomStrings(1000, 0, 20, rand).ToList());
 
-      var input = strings.ToArray();
-      var output = strings.Select(x => CalcDoubleLetter(x)).ToArray();
+      var input = strings.Select(y => y.PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => CalcDoubleLetter(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

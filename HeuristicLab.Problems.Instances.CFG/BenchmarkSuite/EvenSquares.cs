@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class EvenSquares : CFGArtificialDataDescriptor {
@@ -45,15 +46,20 @@ namespace HeuristicLab.Problems.Instances.CFG {
       x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(1000, 1, 9999).ToList());
 
       var input = x0.Select(x => x.ToString()).ToArray();
-      var output = x0.Select(x => CalcEvenSquares(x).ToString()).ToArray();
-      return new Tuple<string[], string[]>(new string[0], new string[0]);
+      var output = x0.Select(x => CalcEvenSquares(x).PrepareStringForPython()).ToArray();
+      return new Tuple<string[], string[]>(input, output);
     }
 
-    private int CalcEvenSquares(int n) {
-      int floor = (int)Math.Floor(Math.Sqrt(n));
-      int count = floor / 2 + 1; // + 1 to add the even square 0
-      count -= floor * floor >= n ? 1 : 0;
-      return count;
+    private string CalcEvenSquares(int n) {
+      if (n <= 4) return String.Empty;
+
+      StringBuilder strBuilder = new StringBuilder();
+      for (int i = 2; i * i < n; i += 2) {
+        strBuilder.Append((i * i).ToString());
+        strBuilder.Append("\n");
+      }
+      strBuilder.Length--;
+      return strBuilder.ToString();
     }
   }
 }

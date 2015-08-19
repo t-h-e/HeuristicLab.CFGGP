@@ -47,8 +47,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(StringValueGenerator.GetRandomStrings(1000, 0, 50, rand).ToList());
 
-      var input = strings.Select(x => String.Format("\"{0}\"", x)).ToArray();
-      var output = strings.Select(x => String.Format("Check sum is {0}.", CalcChecksum(x))).ToArray();
+      var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => String.Format("Check sum is {0}.", CalcChecksum(x).ToString().PythonEscape())).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

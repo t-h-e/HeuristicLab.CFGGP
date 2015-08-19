@@ -52,8 +52,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
       vectors.AddRange(GetEqual(100, rand).ToList());
       vectors.AddRange(GetMirrorImagesWithFewChanges(200, rand).ToList());
       vectors.AddRange(GetRandomTuple(200, rand).ToList());
-      var input = vectors.Select(x => String.Format("[[{0}], [{1}]]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
-      var output = vectors.Select(x => x.Item1.SequenceEqual(Enumerable.Reverse(x.Item2)).ToString()).ToArray();
+      var input = vectors.Select(x => String.Format("[{0}], [{1}]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
+      var output = vectors.Select(x => x.Item1.SequenceEqual(Enumerable.Reverse(x.Item2)) ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

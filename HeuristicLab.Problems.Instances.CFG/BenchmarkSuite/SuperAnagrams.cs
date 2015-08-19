@@ -47,12 +47,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(GetCloseOrSuperAnagrams(2000, rand).ToList());
 
-      var input = strings.Select(x => String.Join(", ", x)).ToArray();
+      var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => CalcSuperAnagram(x[0], x[1]) ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
     private bool CalcSuperAnagram(string x, string y) {
+      if (x.Length > y.Length) return false;
+
       var xChar = x.ToCharArray().OrderBy(a => a).ToList();
       var yChar = y.ToCharArray().OrderBy(a => a).ToList();
 
@@ -61,7 +63,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
         int index = yChar.IndexOf(cur);
         if (index < 0) return false;
 
-        while (xChar[i] == yChar[index]) {
+        while (i < xChar.Count && index < yChar.Count && xChar[i] == yChar[index]) {
           i++;
           index++;
         }
@@ -86,9 +88,12 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private string DropCharsAndShuffle(string original, FastRandom rand) {
+      if (String.IsNullOrEmpty(original)) return original;
+
       int drop = rand.Next(0, original.Length);
       var originalChars = original.ToCharArray();
-      var result = originalChars.Shuffle(rand).SampleRandomWithoutRepetition(rand, original.Length - drop);
+      var result = originalChars.Shuffle(rand).ToList();
+      result = result.SampleRandomWithoutRepetition(rand, original.Length - drop).ToList();
       return new String(result.ToArray());
     }
 

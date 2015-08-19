@@ -90,7 +90,6 @@ namespace HeuristicLab.Problems.CFG {
           curLine = curLine.Substring(removeChars, curLine.Length - removeChars).Trim();
         }
 
-        // can line.ElementAt(0) throw an exception?
         if (curLine.ElementAt(0) == PRODUCTIONSPLIT && productionRuleName != null) {
           productionsForRule.Add(CreateProductionRule(productionRuleName, productionRuleParts, symbolsForProduction, curRuleSymbolGroup));
           productionRuleName = null;

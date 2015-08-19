@@ -48,7 +48,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       grades.AddRange(CreateThresholdsAndGrade(2000, rand).ToList());
 
       var input = grades.Select(x => String.Join(", ", x)).ToArray();
-      var output = grades.Select(x => CalcGrade(x)).ToArray();
+      var output = grades.Select(x => CalcGrade(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

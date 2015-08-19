@@ -47,8 +47,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(GetStringWithSpaces(1000, rand).ToList());
 
-      var input = strings.ToArray();
-      var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray())).ToArray();
+      var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray()).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

@@ -56,7 +56,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(920, -10000, 10000).ToList());
 
       var input = x0.Select(x => x.ToString()).ToArray();
-      var output = x0.Select(x => x < 1000 ? "small" : x >= 2000 ? "large" : String.Empty).ToArray();
+      var output = x0.Select(x => x < 1000 ? "\"small\"" : x >= 2000 ? "\"large\"" : "\"\"").ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
   }

@@ -50,7 +50,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       vectors.AddRange(GetVectorOfLength(100, 50, rand).ToList());
       vectors.AddRange(GetRandomTuple(1400, rand).ToList());
 
-      var input = vectors.Select(x => String.Format("[[{0}], [{1}]]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
+      var input = vectors.Select(x => String.Format("[{0}], [{1}]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
       var output = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x.Item1.Zip(x.Item2, (a, b) => a + b)))).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }

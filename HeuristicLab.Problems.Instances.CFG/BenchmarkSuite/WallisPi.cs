@@ -51,13 +51,13 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private double CalcWallisPi(int n) {
-      double piHalve = 2 / 3;
+      double piHalve = 2.0 / 3.0;
       for (int i = 2; i <= n; i += 2) {
-        double cur = 2 * i;
-        piHalve *= cur / (cur - 1);
+        double cur = 2.0 * (double)i;
+        piHalve *= cur / (cur - 1.0);
 
         if (i + 1 > n) break;
-        piHalve *= cur / (cur + 1);
+        piHalve *= cur / (cur + 1.0);
       }
       return Math.Round(piHalve, 5);
     }

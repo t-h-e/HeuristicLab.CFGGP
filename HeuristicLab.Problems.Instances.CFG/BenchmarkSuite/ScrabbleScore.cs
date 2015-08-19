@@ -49,7 +49,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(StringValueGenerator.GetRandomStrings(974, 2, 20, rand).ToList());
 
-      var input = strings.Select(x => String.Join(", ", x)).ToArray();
+      var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
       var output = strings.Select(x => CalcScrabbleScore(x).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }

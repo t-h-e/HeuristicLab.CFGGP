@@ -47,7 +47,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(GetRandomStringsOfStrings(1000, rand).ToList());
 
-      var input = strings.Select(x => String.Join(", ", x)).ToArray();
+      var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => String.Join(", ", x.Select(y => y.Length).Reverse())).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }

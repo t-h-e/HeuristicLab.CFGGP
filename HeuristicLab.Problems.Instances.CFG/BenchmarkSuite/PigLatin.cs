@@ -49,20 +49,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(GetLetterStrings(1000, rand).ToList());
 
-      var input = strings.Select(x => String.Join(", ", x)).ToArray();
-      var output = strings.Select(x => CalcPigLatin(x)).ToArray();
+      var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => CalcPigLatin(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
-    }
-
-    private IEnumerable<string> GetLetterStrings(int n, FastRandom rand) {
-      for (int i = 0; i < n; i++) {
-        var value = StringValueGenerator.GetRandomLowerCaseString(rand.Next(0, 50), rand).ToCharArray();
-        for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
-          if (rand.NextDouble() < 0.2) value[i] = ' ';
-        }
-        string valueString = new String(value);
-        yield return String.Join(" ", valueString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));  // remove double spaces and spaces in the beginnig and the end of the string
-      }
     }
 
     private string CalcPigLatin(string x) {
@@ -77,6 +66,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
       strBuilder.Length--;
       return strBuilder.ToString();
+    }
+
+    private IEnumerable<string> GetLetterStrings(int n, FastRandom rand) {
+      for (int i = 0; i < n; i++) {
+        var value = StringValueGenerator.GetRandomLowerCaseString(rand.Next(0, 50), rand).ToCharArray();
+        for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
+          if (rand.NextDouble() < 0.2) value[j] = ' ';
+        }
+        string valueString = new String(value);
+        yield return String.Join(" ", valueString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));  // remove double spaces and spaces in the beginnig and the end of the string
+      }
     }
 
     private List<string> GetHardcodedTrainingSamples() {

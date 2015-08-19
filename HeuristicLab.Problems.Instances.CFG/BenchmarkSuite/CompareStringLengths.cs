@@ -54,7 +54,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       strings.AddRange(GetStringsInSortedLengthOrder(200, rand).ToList());
       strings.AddRange(GetStrings(700, rand).ToList());
 
-      var input = strings.Select(x => String.Format("[{0}]", String.Join(", ", x))).ToArray();
+      var input = strings.Select(x => String.Format("[{0}]", String.Join(", ", x.Select(y => y.PrepareStringForPython())))).ToArray();
       var output = strings.Select(x => x[0].Length < x[1].Length && x[1].Length < x[2].Length ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);
     }

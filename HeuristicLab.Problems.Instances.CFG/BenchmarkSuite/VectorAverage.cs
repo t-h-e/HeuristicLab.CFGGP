@@ -50,7 +50,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       vectors.AddRange(GetVecotrsOfVariableLenght(950, rand).Select(x => x.ToList()));
 
 
-      var input = vectors.Select(x => String.Format("[{0:0.0################}]", String.Join(", ", x))).ToArray();
+      var input = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x.Select(y => String.Format("{0:0.0################}", y))))).ToArray();
       var output = vectors.Select(x => x.Average().ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }

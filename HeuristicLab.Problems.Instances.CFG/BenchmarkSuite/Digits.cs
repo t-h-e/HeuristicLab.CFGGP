@@ -47,15 +47,19 @@ namespace HeuristicLab.Problems.Instances.CFG {
       x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(1000, -9999999999, 9999999999).ToList());
 
       var input = x0.Select(x => x.ToString()).ToArray();
-      var output = x0.Select(x => CalcDigits(x)).ToArray();
+      var output = x0.Select(x => CalcDigits(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
     private string CalcDigits(long x) {
-      StringBuilder strBuilder = new StringBuilder();
-      strBuilder.Append("\"");
-      strBuilder.Append(String.Join("\", \"", x.ToString().ToCharArray()));
-      strBuilder.Append("\"");
+      long absX = Math.Abs(x);
+      var absXDigitsReverse = absX.ToString().ToCharArray().Reverse();
+      StringBuilder strBuilder = new StringBuilder(String.Join("\n", absXDigitsReverse.Take(absXDigitsReverse.Count() - 1)));
+      strBuilder.Append('\n');
+      if (x < 0) {
+        strBuilder.Append('-');
+      }
+      strBuilder.Append(absXDigitsReverse.Last());
       return strBuilder.ToString();
     }
   }

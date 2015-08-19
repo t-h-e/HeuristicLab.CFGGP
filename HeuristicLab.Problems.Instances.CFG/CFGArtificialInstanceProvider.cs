@@ -39,8 +39,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
       using (var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName), ZipArchiveMode.Read)) {
         IEnumerable<ZipArchiveEntry> entries = instancesZipFile.Entries.Where(e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
 
-        using (var stream = new StreamReader(entries.Where(x => x.Name.EndsWith(".bnf")).First().Open())) {
-          cfgData.Grammar = stream.ReadToEnd();
+        var bnfEntry = entries.Where(x => x.Name.EndsWith(".bnf")).FirstOrDefault();
+        if (bnfEntry != null) {
+          using (var stream = new StreamReader(bnfEntry.Open())) {
+            cfgData.Grammar = stream.ReadToEnd();
+          }
         }
 
         var embedEntry = entries.Where(x => x.Name.EndsWith("Embed.txt")).FirstOrDefault();

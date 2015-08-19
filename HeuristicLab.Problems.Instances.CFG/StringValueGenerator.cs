@@ -24,7 +24,7 @@ using System.Text;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class StringValueGenerator {
+  public static class StringValueGenerator {
 
     public static readonly char[] vowel = new char[] { 'a', 'e', 'i', 'o', 'u' };
 

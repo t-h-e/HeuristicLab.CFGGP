@@ -48,8 +48,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       strings.AddRange(GetRandomString(1000, rand).ToList());
 
-      var input = strings.Select(x => String.Format("\"{0}\"", x)).ToArray();
-      var output = strings.Select(x => String.Format("\"{0}\"", CalcWordStats(x))).ToArray();
+      var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => CalcWordStats(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
