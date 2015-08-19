@@ -54,10 +54,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private string CalcGrade(List<int> x) {
       int score = x.Last();
-      if (score > x[0]) return "A";
-      else if (score > x[1]) return "B";
-      else if (score > x[2]) return "C";
-      else if (score > x[3]) return "D";
+      if (score >= x[0]) return "A";
+      else if (score >= x[1]) return "B";
+      else if (score >= x[2]) return "C";
+      else if (score >= x[3]) return "D";
       else return "F";
     }
 

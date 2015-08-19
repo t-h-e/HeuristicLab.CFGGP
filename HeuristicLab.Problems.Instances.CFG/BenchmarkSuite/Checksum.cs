@@ -20,8 +20,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
@@ -57,7 +57,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       foreach (int item in x.ToCharArray()) {
         sum += item;
       }
-      return (char)(sum % 64);
+      return (char)(sum % 64 + (int)' ');
     }
 
     private List<string> GetHardcodedTrainingSamples() {

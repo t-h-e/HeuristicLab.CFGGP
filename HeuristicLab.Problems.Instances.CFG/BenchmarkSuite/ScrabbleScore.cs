@@ -20,8 +20,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
@@ -85,8 +85,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private int CalcScrabbleScore(string x) {
       int score = 0;
-      foreach (var item in x.ToCharArray()) {
-        score += scrabbleDictinary[item];
+      foreach (var item in x.ToCharArray().Select(y => Char.ToLower(y))) {
+        score += scrabbleDictinary.ContainsKey(item) ? scrabbleDictinary[item] : 0;
       }
       return score;
     }

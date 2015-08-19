@@ -68,7 +68,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
           index++;
         }
 
-        if (cur != xChar[i]) continue;
+        if (i >= xChar.Count) return true;
+        if (i < xChar.Count && cur != xChar[i]) continue;
         return false;
       }
       return true;

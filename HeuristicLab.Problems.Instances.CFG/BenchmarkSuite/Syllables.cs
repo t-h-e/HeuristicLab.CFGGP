@@ -20,8 +20,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
@@ -56,7 +56,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       for (int i = 0; i < n; i++) {
         var value = StringValueGenerator.GetRandomStringWithOnlyPrintableCharactersWithoutUpperCaseCharacters(rand.Next(0, 20), rand).ToCharArray();
         for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
-          if (rand.NextDouble() < 0.2) value[i] = StringValueGenerator.vowel[rand.Next(0, StringValueGenerator.vowel.Length - 1)];
+          if (rand.NextDouble() < 0.2) value[j] = StringValueGenerator.vowel[rand.Next(0, StringValueGenerator.vowel.Length - 1)];
         }
         yield return new String(value);
       }

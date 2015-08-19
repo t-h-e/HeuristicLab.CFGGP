@@ -41,14 +41,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
       FastRandom rand = new FastRandom();
-      List<List<int>> smalles = GetHardcodedTrainingSamples();
-      smalles = GetQuadrupel(10, rand).ToList();
-      smalles = GetTriple(10, rand).ToList();
-      smalles = GetNonNegativeSingles(10, rand).ToList();
-      smalles = GetSingles(10, rand).ToList();
+      List<List<int>> smallest = GetHardcodedTrainingSamples();
+      smallest.AddRange(GetQuadrupel(5, rand).ToList());
+      smallest.AddRange(GetTriple(10, rand).ToList());
+      smallest.AddRange(GetNonNegativeSingles(20, rand).ToList());
+      smallest.AddRange(GetRandom(60, rand).ToList());
 
-      var input = smalles.Select(x => String.Join(", ", x)).ToArray();
-      var output = smalles.Select(x => { x.Sort(); return x.First().ToString(); }).ToArray();
+      smallest.Shuffle(rand).ToList();
+
+      smallest.AddRange(GetQuadrupel(100, rand).ToList());
+      smallest.AddRange(GetTriple(100, rand).ToList());
+      smallest.AddRange(GetNonNegativeSingles(200, rand).ToList());
+      smallest.AddRange(GetRandom(600, rand).ToList());
+
+      var input = smallest.Select(x => String.Join(", ", x)).ToArray();
+      var output = smallest.Select(x => { x.Sort(); return x.First().ToString(); }).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
@@ -72,7 +79,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    private IEnumerable<List<int>> GetSingles(int n, IRandom rand) {
+    private IEnumerable<List<int>> GetRandom(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
         yield return new List<int>(4) { rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100) };
       }
