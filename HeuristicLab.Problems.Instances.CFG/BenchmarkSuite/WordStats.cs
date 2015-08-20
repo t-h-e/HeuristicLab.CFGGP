@@ -42,7 +42,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override Tuple<string[], string[]> GenerateInputOutput() {
       FastRandom rand = new FastRandom();
       List<string> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(GetRandomString(104, rand).ToList());
+      strings.AddRange(GetRandomString(64, rand).ToList());
 
       strings = strings.Shuffle(rand).ToList();
 
@@ -70,16 +70,16 @@ namespace HeuristicLab.Problems.Instances.CFG {
           count++;
           index++;
         } else {
+          strBuilder.Append(String.Format("words of length {0}: {1}\n", lenght, count));
           lenght++;
           count = 0;
-          strBuilder.AppendLine(String.Format("words of length {0}: {1}", lenght, count));
         }
       }
 
-      strBuilder.AppendLine(String.Format("words of length {0}: {1}", lenght, count));
+      strBuilder.Append(String.Format("words of length {0}: {1}\n", lenght, count));
 
-      strBuilder.AppendLine(String.Format("number of sentences: {0}", sentences));
-      strBuilder.AppendLine(String.Format("average sentence length: {0:0.#####}", sentences));
+      strBuilder.Append(String.Format("number of sentences: {0}\n", sentences));
+      strBuilder.Append(String.Format("average sentence length: {0:0.#####}\n", sentences));
       return strBuilder.ToString();
     }
 

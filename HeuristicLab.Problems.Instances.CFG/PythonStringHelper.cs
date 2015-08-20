@@ -30,7 +30,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
   public static class PythonStringHelper {
 
     public static string PrepareStringForPython(this string x) {
-      return String.Format("\"{0}\"", Regex.Escape(x));
+      return String.Format("\"{0}\"", x.PythonEscape());
     }
 
     /// <summary>

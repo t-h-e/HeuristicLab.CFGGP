@@ -42,13 +42,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override Tuple<string[], string[]> GenerateInputOutput() {
       FastRandom rand = new FastRandom();
       List<List<int>> median = GetTriple(10, rand).ToList();
-      median = GetDoubles(30, rand).ToList();
-      median = GetSingles(60, rand).ToList();
+      median.AddRange(GetDoubles(30, rand).ToList());
+      median.AddRange(GetSingles(60, rand).ToList());
+
       median = median.Shuffle(rand).ToList();
 
-      median = GetTriple(100, rand).ToList();
-      median = GetDoubles(300, rand).ToList();
-      median = GetSingles(600, rand).ToList();
+      median.AddRange(GetTriple(100, rand).ToList());
+      median.AddRange(GetDoubles(300, rand).ToList());
+      median.AddRange(GetSingles(600, rand).ToList());
 
       var input = median.Select(x => String.Join(", ", x)).ToArray();
       var output = median.Select(x => { x.Sort(); return x.ElementAt(1).ToString(); }).ToArray();

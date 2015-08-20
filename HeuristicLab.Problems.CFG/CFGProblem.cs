@@ -195,7 +195,7 @@ namespace HeuristicLab.Problems.CFG {
       var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
 
       foreach (var op in operators.OfType<ISymbolicExpressionTreeGrammarBasedOperator>()) {
-        op.SymbolicExpressionTreeGrammarParameter.ActualName = GrammarBNFParameter.Name;
+        op.SymbolicExpressionTreeGrammarParameter.ActualName = GrammarParameter.Name;
       }
       foreach (var op in operators.OfType<ISymbolicExpressionTreeSizeConstraintOperator>()) {
         op.MaximumSymbolicExpressionTreeDepthParameter.ActualName = MaximumSymbolicExpressionTreeDepthParameter.Name;

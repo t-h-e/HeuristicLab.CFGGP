@@ -54,7 +54,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       strings.AddRange(GetStringsInSortedLengthOrder(200, rand).ToList());
       strings.AddRange(GetStrings(700, rand).ToList());
 
-      var input = strings.Select(x => String.Format("[{0}]", String.Join(", ", x.Select(y => y.PrepareStringForPython())))).ToArray();
+      var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => x[0].Length < x[1].Length && x[1].Length < x[2].Length ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
@@ -90,11 +90,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private List<List<string>> GetPermutationsWithOneEmptyStrings(int n, FastRandom rand) {
       List<List<string>> strings = new List<List<string>>();
       for (int i = 0; i < n; i++) {
-        int length1 = rand.Next(1, 49);
-        string value1 = StringValueGenerator.GetRandomString(length1, rand);
-        int length2 = rand.Next(1, 49);
-        string value2 = StringValueGenerator.GetRandomString(length2, rand);
-        strings.AddRange(GetDistinctPermutations(new string[] { String.Empty, value1, value2 }));
+        int length = rand.Next(1, 49);
+        string value = StringValueGenerator.GetRandomString(length, rand);
+        strings.AddRange(GetDistinctPermutations(new string[] { String.Empty, value, String.Copy(value) }));
       }
       return strings;
     }
