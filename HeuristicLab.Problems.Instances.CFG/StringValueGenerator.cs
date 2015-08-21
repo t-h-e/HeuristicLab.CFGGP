@@ -90,7 +90,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     public static string GetRandomStringWithOnlyPrintableCharactersWithoutUpperCaseCharacters(int length, FastRandom rand) {
       StringBuilder strBuilder = new StringBuilder(length);
       for (int i = 0; i < length; i++) {
-        strBuilder.Append(GetRandomLowerCaseChar(rand));
+        strBuilder.Append(GetRandomPrintableCharExceptUpperCase(rand));
       }
       return strBuilder.ToString();
     }

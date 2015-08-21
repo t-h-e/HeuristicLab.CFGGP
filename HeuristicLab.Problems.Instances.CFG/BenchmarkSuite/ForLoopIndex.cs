@@ -26,7 +26,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class ForLoopIndex : CFGArtificialDataDescriptor {
+  public class ForLoopIndex : BenchmarkSuiteDataDescritpor<Tuple<int, int, int>> {
     public override string Name { get { return "For Loop Index"; } }
     public override string Description {
       get {
@@ -39,52 +39,45 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
-      var start = new List<int>(TrainingPartitionEnd);
-      var end = new List<int>(TrainingPartitionEnd);
-      var step = ValueGenerator.GenerateUniformDistributedValues(TrainingPartitionEnd, 1, 10).ToList();
-
-      createCasesAroundZero(start, end, step, 0, 10, rand);
-      createCasesEverywhere(start, end, step, 10, 100, rand);
-
-      var shuffled = start.Zip(end, (a, b) => new { start = a, end = b }).Zip(step, (a, b) => new { start = a.start, end = a.end, step = b }).Shuffle(rand).ToList();
-      start = shuffled.Select(x => x.start).ToList();
-      end = shuffled.Select(x => x.end).ToList();
-      step = shuffled.Select(x => x.step).ToList();
-
-      step.AddRange(ValueGenerator.GenerateUniformDistributedValues(TestPartitionEnd - TestPartitionStart, 1, 10).ToList());
-      createCasesAroundZero(start, end, step, 100, 200, rand);
-      createCasesEverywhere(start, end, step, 200, 1100, rand);
-
-      var input = step.Zip(start.Zip(end, (first, second) => String.Format("{0}, {1}", first, second)), (third, firstSecond) => String.Format("{0}, {1}", firstSecond, third)).ToArray();
-      string[] output = new string[TestPartitionEnd];
-      for (int i = 0; i < TestPartitionEnd; i++) {
-        output[i] = String.Join("\n", Enumerable.Range(start[i], (end[i] - start[i]) / step[i])).PrepareStringForPython();
-      }
-
-      return new Tuple<string[], string[]>(input, output);
+    protected override IEnumerable<Tuple<int, int, int>> GenerateTraining() {
+      var loop = CreateCasesAroundZero(10).ToList();
+      loop.AddRange(CreateCasesEverywhere(90));
+      return loop;
     }
 
-    private void createCasesAroundZero(List<int> start, List<int> end, List<int> step, int from, int to, IRandom rand) {
-      int curStart, curStep, curEnd;
-      for (int i = from; i < to; i++) {
-        curStep = step[i];
-        curStart = rand.Next(-(curStep * 20) + 1, -1);
-        curEnd = rand.Next(1, curStart + (20 * curStep));
-        start.Add(curStart);
-        end.Add(curEnd);
+    protected override IEnumerable<Tuple<int, int, int>> GenerateTest() {
+      var loop = CreateCasesAroundZero(100).ToList();
+      loop.AddRange(CreateCasesEverywhere(900));
+      return loop;
+    }
+
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<int, int, int>> loop) {
+      var input = loop.Select(x => String.Format("{0}, {1}, {2}", x.Item1, x.Item2, x.Item3)).ToArray();
+      List<string> output = new List<string>(input.Length);
+      foreach (var item in loop) {
+        output.Add(String.Join("\n", Enumerable.Range(item.Item1, (item.Item2 - item.Item1) / item.Item3)).PrepareStringForPython());
+      }
+
+      return new Tuple<string[], string[]>(input, output.ToArray());
+    }
+
+    private IEnumerable<Tuple<int, int, int>> CreateCasesAroundZero(int n) {
+      int start, step, end;
+      for (int i = 0; i < n; i++) {
+        step = rand.Next(1, 10);
+        start = rand.Next(-(step * 20) + 1, -1);
+        end = rand.Next(1, start + (20 * step));
+        yield return new Tuple<int, int, int>(start, end, step);
       }
     }
 
-    private void createCasesEverywhere(List<int> start, List<int> end, List<int> step, int from, int to, IRandom rand) {
-      int curStart, curStep, curEnd;
-      for (int i = from; i < to; i++) {
-        curStep = step[i];
-        curStart = rand.Next(-500, 500 - (20 * curStep));
-        curEnd = rand.Next(curStart + 1, curStart + (20 * curStep));
-        start.Add(curStart);
-        end.Add(curEnd);
+    private IEnumerable<Tuple<int, int, int>> CreateCasesEverywhere(int n) {
+      int start, step, end;
+      for (int i = 0; i < n; i++) {
+        step = rand.Next(1, 10);
+        start = rand.Next(-500, 500 - (20 * step));
+        end = rand.Next(start + 1, start + (20 * step));
+        yield return new Tuple<int, int, int>(start, end, step);
       }
     }
   }

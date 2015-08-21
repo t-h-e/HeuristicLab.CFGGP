@@ -26,7 +26,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class Smallest : CFGArtificialDataDescriptor {
+  public class Smallest : BenchmarkSuiteDataDescritpor<List<int>> {
     public override string Name { get { return "Smallest"; } }
     public override string Description {
       get {
@@ -39,21 +39,24 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<int>> GenerateTraining() {
       List<List<int>> smallest = GetHardcodedTrainingSamples();
-      smallest.AddRange(GetQuadrupel(5, rand).ToList());
-      smallest.AddRange(GetTriple(10, rand).ToList());
-      smallest.AddRange(GetNonNegativeSingles(20, rand).ToList());
-      smallest.AddRange(GetRandom(60, rand).ToList());
+      smallest.AddRange(GetQuadrupel(5, rand));
+      smallest.AddRange(GetTriple(10, rand));
+      smallest.AddRange(GetNonNegativeSingles(20, rand));
+      smallest.AddRange(GetRandom(60, rand));
+      return smallest;
+    }
 
-      smallest.Shuffle(rand).ToList();
+    protected override IEnumerable<List<int>> GenerateTest() {
+      var smallest = GetQuadrupel(100, rand).ToList();
+      smallest.AddRange(GetTriple(100, rand));
+      smallest.AddRange(GetNonNegativeSingles(200, rand));
+      smallest.AddRange(GetRandom(600, rand));
+      return smallest;
+    }
 
-      smallest.AddRange(GetQuadrupel(100, rand).ToList());
-      smallest.AddRange(GetTriple(100, rand).ToList());
-      smallest.AddRange(GetNonNegativeSingles(200, rand).ToList());
-      smallest.AddRange(GetRandom(600, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> smallest) {
       var input = smallest.Select(x => String.Join(", ", x)).ToArray();
       var output = smallest.Select(x => { x.Sort(); return x.First().ToString(); }).ToArray();
       return new Tuple<string[], string[]>(input, output);

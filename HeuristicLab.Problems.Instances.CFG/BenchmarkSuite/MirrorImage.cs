@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class MirrorImage : CFGArtificialDataDescriptor {
+  public class MirrorImage : BenchmarkSuiteDataDescritpor<Tuple<List<int>, List<int>>> {
     public override string Name { get { return "Mirror Image"; } }
     public override string Description {
       get {
@@ -38,20 +38,24 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<Tuple<List<int>, List<int>>> GenerateTraining() {
       List<Tuple<List<int>, List<int>>> vectors = GetHardcodedTrainingSamples();
       vectors.AddRange(GetMirrorImages(37, rand).ToList());
       vectors.AddRange(GetEqual(10, rand).ToList());
       vectors.AddRange(GetMirrorImagesWithFewChanges(20, rand).ToList());
       vectors.AddRange(GetRandomTuple(10, rand).ToList());
+      return vectors;
+    }
 
-      vectors = vectors.Shuffle(rand).ToList();
+    protected override IEnumerable<Tuple<List<int>, List<int>>> GenerateTest() {
+      var vectors = GetMirrorImages(500, rand).ToList();
+      vectors.AddRange(GetEqual(100, rand));
+      vectors.AddRange(GetMirrorImagesWithFewChanges(200, rand));
+      vectors.AddRange(GetRandomTuple(200, rand));
+      return vectors;
+    }
 
-      vectors.AddRange(GetMirrorImages(500, rand).ToList());
-      vectors.AddRange(GetEqual(100, rand).ToList());
-      vectors.AddRange(GetMirrorImagesWithFewChanges(200, rand).ToList());
-      vectors.AddRange(GetRandomTuple(200, rand).ToList());
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<List<int>, List<int>>> vectors) {
       var input = vectors.Select(x => String.Format("[{0}], [{1}]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
       var output = vectors.Select(x => x.Item1.SequenceEqual(Enumerable.Reverse(x.Item2)) ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);

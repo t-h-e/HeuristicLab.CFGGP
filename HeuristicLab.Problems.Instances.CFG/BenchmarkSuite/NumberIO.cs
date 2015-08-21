@@ -20,10 +20,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class NumberIO : CFGArtificialDataDescriptor {
+  public class NumberIO : BenchmarkSuiteDataDescritpor<Tuple<int, double>> {
     public override string Name { get { return "Number IO"; } }
     public override string Description {
       get {
@@ -37,12 +38,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 25; } }
     protected override int TestPartitionEnd { get { return 1025; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      var x0 = ValueGenerator.GenerateUniformDistributedValues(TestPartitionEnd, -100, 100).ToList();
-      var x1 = ValueGenerator.GenerateUniformDistributedValues(TestPartitionEnd, -100.0, 100.0).ToList();
+    protected override IEnumerable<Tuple<int, double>> GenerateTraining() {
+      var x0 = ValueGenerator.GenerateUniformDistributedValues(25, -100, 100, rand);
+      var x1 = ValueGenerator.GenerateUniformDistributedValues(25, -100.0, 100.0, rand);
+      return x0.Zip(x1, (first, second) => new Tuple<int, double>(first, second));
+    }
 
-      var input = x0.Zip(x1, (first, second) => String.Format("{0}, {1}", first, second)).ToArray();
-      var output = x0.Zip(x1, (first, second) => (first + second).ToString()).ToArray();
+    protected override IEnumerable<Tuple<int, double>> GenerateTest() {
+      var x0 = ValueGenerator.GenerateUniformDistributedValues(1000, -100, 100, rand);
+      var x1 = ValueGenerator.GenerateUniformDistributedValues(1000, -100.0, 100.0, rand);
+      return x0.Zip(x1, (first, second) => new Tuple<int, double>(first, second));
+    }
+
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<int, double>> trainingAndTest) {
+      var input = trainingAndTest.Select(x => String.Format("{0}, {1}", x.Item1, x.Item2)).ToArray();
+      var output = trainingAndTest.Select(x => (x.Item1 + x.Item2).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
   }

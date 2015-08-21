@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class WallisPi : CFGArtificialDataDescriptor {
+  public class WallisPi : BenchmarkSuiteDataDescritpor<int> {
     public override string Name { get { return "Wallis Pi"; } }
     public override string Description {
       get {
@@ -37,14 +37,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 150; } }
     protected override int TestPartitionEnd { get { return 200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
+    protected override IEnumerable<int> GenerateTraining() {
       var x0 = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 198, 199, 200 };
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(135, 1, 200).ToList());
+      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(135, 1, 200, rand));
+      return x0;
+    }
 
-      x0 = ValueGenerator.Shuffle(x0).ToList();
+    protected override IEnumerable<int> GenerateTest() {
+      return ValueGenerator.GenerateUniformDistributedValues(50, 1, 200, rand);
+    }
 
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(50, 1, 200).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {
       var input = x0.Select(x => x.ToString()).ToArray();
       var output = x0.Select(x => CalcWallisPi(x).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);

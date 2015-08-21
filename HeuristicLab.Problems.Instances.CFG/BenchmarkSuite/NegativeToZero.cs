@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class NegativeToZero : CFGArtificialDataDescriptor {
+  public class NegativeToZero : BenchmarkSuiteDataDescritpor<List<int>> {
     public override string Name { get { return "Negative To Zero"; } }
     public override string Description {
       get {
@@ -38,20 +38,23 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 2200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<int>> GenerateTraining() {
       List<List<int>> vectors = GetHardcodedTrainingSamples();
-      vectors.AddRange(GetLength1(5, rand).ToList());
-      vectors.AddRange(GetRandom(9, rand, -1000, -1).ToList());
-      vectors.AddRange(GetRandom(9, rand, 1).ToList());
-      vectors.AddRange(GetRandom(165, rand).ToList());
+      vectors.AddRange(GetLength1(5, rand));
+      vectors.AddRange(GetRandom(9, rand, -1000, -1));
+      vectors.AddRange(GetRandom(9, rand, 1));
+      vectors.AddRange(GetRandom(165, rand));
+      return vectors;
+    }
 
-      vectors = vectors.Shuffle(rand).ToList();
+    protected override IEnumerable<List<int>> GenerateTest() {
+      var vectors = GetRandom(100, rand, -1000, -1).ToList();
+      vectors.AddRange(GetRandom(100, rand, 1));
+      vectors.AddRange(GetRandom(1800, rand));
+      return vectors;
+    }
 
-      vectors.AddRange(GetRandom(100, rand, -1000, -1).ToList());
-      vectors.AddRange(GetRandom(100, rand, 1).ToList());
-      vectors.AddRange(GetRandom(1800, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> vectors) {
       var input = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x))).ToArray();
       var output = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x.Select(y => y >= 0 ? y : 0)))).ToArray();
       return new Tuple<string[], string[]>(input, output);

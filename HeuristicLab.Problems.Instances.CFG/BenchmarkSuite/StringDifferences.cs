@@ -26,7 +26,7 @@ using System.Text;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class StringDifferences : CFGArtificialDataDescriptor {
+  public class StringDifferences : BenchmarkSuiteDataDescritpor<List<string>> {
     public override string Name { get { return "String Differences"; } }
     public override string Description {
       get {
@@ -39,17 +39,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 2200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<string>> GenerateTraining() {
       List<List<string>> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(StringValueGenerator.GetRandomStringsWithoutSpaces(170, 2, 10, rand).Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(170, 2, 10, rand),
-                       (x, y) => new List<string>(2) { x, y }).ToList());
+      strings.AddRange(StringValueGenerator.GetRandomStringsWithoutSpaces(170, 2, 10, rand)
+                  .Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(170, 2, 10, rand),
+                       (x, y) => new List<string>(2) { x, y }));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<List<string>> GenerateTest() {
+      return StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand)
+                  .Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand),
+                        (x, y) => new List<string>(2) { x, y });
+    }
 
-      strings.AddRange(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand).Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand),
-                       (x, y) => new List<string>(2) { x, y }).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<string>> strings) {
       var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => CalcStringDifferences(x[0].ToCharArray(), x[1].ToCharArray()).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
@@ -65,8 +69,6 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
       return strBuilder.ToString();
     }
-
-
 
     private List<List<string>> GetHardcodedTrainingSamples() {
       return new List<List<string>>() {

@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class VectorsSummed : CFGArtificialDataDescriptor {
+  public class VectorsSummed : BenchmarkSuiteDataDescritpor<Tuple<List<int>, List<int>>> {
     public override string Name { get { return "Vectors Summed"; } }
     public override string Description {
       get {
@@ -38,18 +38,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 150; } }
     protected override int TestPartitionEnd { get { return 1650; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<Tuple<List<int>, List<int>>> GenerateTraining() {
       List<Tuple<List<int>, List<int>>> vectors = GetHardcodedTrainingSamples();
-      vectors.AddRange(GetVectorOfLength(5, 1, rand).ToList());
-      vectors.AddRange(GetVectorOfLength(10, 50, rand).ToList());
-      vectors.AddRange(GetRandomTuple(125, rand).ToList());
+      vectors.AddRange(GetVectorOfLength(5, 1, rand));
+      vectors.AddRange(GetVectorOfLength(10, 50, rand));
+      vectors.AddRange(GetRandomTuple(125, rand));
+      return vectors;
+    }
 
-      vectors = vectors.Shuffle(rand).ToList();
+    protected override IEnumerable<Tuple<List<int>, List<int>>> GenerateTest() {
+      var vectors = GetVectorOfLength(100, 50, rand).ToList();
+      vectors.AddRange(GetRandomTuple(1400, rand));
+      return vectors;
+    }
 
-      vectors.AddRange(GetVectorOfLength(100, 50, rand).ToList());
-      vectors.AddRange(GetRandomTuple(1400, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<List<int>, List<int>>> vectors) {
       var input = vectors.Select(x => String.Format("[{0}], [{1}]", String.Join(", ", x.Item1), String.Join(", ", x.Item2))).ToArray();
       var output = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x.Item1.Zip(x.Item2, (a, b) => a + b)))).ToArray();
       return new Tuple<string[], string[]>(input, output);

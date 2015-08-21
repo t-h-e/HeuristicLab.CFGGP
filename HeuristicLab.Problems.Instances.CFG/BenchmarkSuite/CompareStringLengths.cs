@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class CompareStringLengths : CFGArtificialDataDescriptor {
+  public class CompareStringLengths : BenchmarkSuiteDataDescritpor<List<string>> {
     public override string Name { get { return "Compare String Lengths"; } }
     public override string Description {
       get {
@@ -38,22 +38,25 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<string>> GenerateTraining() {
       List<List<string>> strings = new List<List<string>>() { new List<string>() { String.Empty, String.Empty, String.Empty } };
       strings.AddRange(GetDistinctPermutations(new string[] { String.Empty, "a", "bc" }));
       strings.AddRange(GetPermutationsWithTwoEmptyStrings(2, rand));
       strings.AddRange(GetPermutationsWithOneEmptyStrings(3, rand));
-      strings.AddRange(GetRepeatedString(3, rand).ToList());
-      strings.AddRange(GetStringsInSortedLengthOrder(25, rand).ToList());
-      strings.AddRange(GetStrings(50, rand).ToList());
+      strings.AddRange(GetRepeatedString(3, rand));
+      strings.AddRange(GetStringsInSortedLengthOrder(25, rand));
+      strings.AddRange(GetStrings(50, rand));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<List<string>> GenerateTest() {
+      var strings = GetRepeatedString(100, rand).ToList();
+      strings.AddRange(GetStringsInSortedLengthOrder(200, rand));
+      strings.AddRange(GetStrings(700, rand));
+      return strings;
+    }
 
-      strings.AddRange(GetRepeatedString(100, rand).ToList());
-      strings.AddRange(GetStringsInSortedLengthOrder(200, rand).ToList());
-      strings.AddRange(GetStrings(700, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<string>> strings) {
       var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => x[0].Length < x[1].Length && x[1].Length < x[2].Length ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);
@@ -128,6 +131,5 @@ namespace HeuristicLab.Problems.Instances.CFG {
         }
       }
     }
-
   }
 }

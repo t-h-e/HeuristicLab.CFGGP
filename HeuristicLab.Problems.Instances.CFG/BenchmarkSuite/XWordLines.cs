@@ -26,7 +26,7 @@ using HeuristicLab.Random;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class XWordLines : CFGArtificialDataDescriptor {
+  public class XWordLines : BenchmarkSuiteDataDescritpor<Tuple<string, int>> {
     public override string Name { get { return "X-Word Lines"; } }
     public override string Description {
       get {
@@ -39,15 +39,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 150; } }
     protected override int TestPartitionEnd { get { return 2150; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
-      List<Tuple<string, int>> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(GetRandomTuple(104, rand).ToList());
+    protected override IEnumerable<Tuple<string, int>> GenerateTraining() {
+      var strings = GetHardcodedTrainingSamples();
+      strings.AddRange(GetRandomTuple(104, rand));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<Tuple<string, int>> GenerateTest() {
+      return GetRandomTuple(2000, rand);
+    }
 
-      strings.AddRange(GetRandomTuple(2000, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<string, int>> strings) {
       var input = strings.Select(x => String.Format("{0}, {1}", x.Item1.PrepareStringForPython(), x.Item2)).ToArray();
       var output = strings.Select(x => CalcXWordLines(x.Item1, x.Item2).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);

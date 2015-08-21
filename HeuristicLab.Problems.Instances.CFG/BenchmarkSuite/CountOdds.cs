@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class CountOdds : CFGArtificialDataDescriptor {
+  public class CountOdds : BenchmarkSuiteDataDescritpor<List<int>> {
     public override string Name { get { return "Count Odds"; } }
     public override string Description {
       get {
@@ -38,20 +38,22 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 2200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<int>> GenerateTraining() {
       List<List<int>> vectors = GetHardcodedTrainingSamples();
       vectors.AddRange(GetAllOdd(9, rand).Select(x => x.ToList()));
       vectors.AddRange(GetAllEven(9, rand).Select(x => x.ToList()));
       vectors.AddRange(GetRandom(150, rand).Select(x => x.ToList()));
+      return vectors;
+    }
 
-
-      vectors = vectors.Shuffle(rand).ToList();
-
-      vectors.AddRange(GetAllOdd(100, rand).Select(x => x.ToList()));
+    protected override IEnumerable<List<int>> GenerateTest() {
+      var vectors = GetAllOdd(100, rand).Select(x => x.ToList()).ToList();
       vectors.AddRange(GetAllEven(100, rand).Select(x => x.ToList()));
       vectors.AddRange(GetRandom(1800, rand).Select(x => x.ToList()));
+      return vectors;
+    }
 
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> vectors) {
       var input = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x))).ToArray();
       var output = vectors.Select(x => x.Count(y => y % 2 == 0).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);

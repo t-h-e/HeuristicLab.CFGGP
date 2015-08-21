@@ -26,7 +26,7 @@ using HeuristicLab.Random;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class WordStats : CFGArtificialDataDescriptor {
+  public class WordStats : BenchmarkSuiteDataDescritpor<string> {
     public override string Name { get { return "Word Stats"; } }
     public override string Description {
       get {
@@ -39,15 +39,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<string> GenerateTraining() {
       List<string> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(GetRandomString(64, rand).ToList());
+      strings.AddRange(GetRandomString(64, rand));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<string> GenerateTest() {
+      return GetRandomString(1000, rand);
+    }
 
-      strings.AddRange(GetRandomString(1000, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
       var output = strings.Select(x => CalcWordStats(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);

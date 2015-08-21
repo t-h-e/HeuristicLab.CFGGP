@@ -26,7 +26,7 @@ using System.Text;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class PigLatin : CFGArtificialDataDescriptor {
+  public class PigLatin : BenchmarkSuiteDataDescritpor<string> {
     public override string Name { get { return "Pig Latin"; } }
     public override string Description {
       get {
@@ -39,25 +39,32 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 1200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<string> GenerateTraining() {
       List<string> strings = GetHardcodedTrainingSamples();
-
       strings.AddRange(GetLetterStrings(167, rand).ToList());
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<string> GenerateTest() {
+      return GetLetterStrings(1000, rand);
+    }
 
-      strings.AddRange(GetLetterStrings(1000, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
       var output = strings.Select(x => CalcPigLatin(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
     private string CalcPigLatin(string x) {
+      if (String.IsNullOrWhiteSpace(x)) return x;
+
       var split = x.Split(new char[] { ' ' }, StringSplitOptions.None);
       StringBuilder strBuilder = new StringBuilder();
       foreach (var word in split) {
+        if (String.IsNullOrEmpty(word)) {
+          strBuilder.Append(" ");
+          continue;
+        }
         if (!StringValueGenerator.vowel.Contains(word.ElementAt(0))) {
           strBuilder.Append(word.Substring(1, word.Length - 1));
           strBuilder.Append(word.ElementAt(0));

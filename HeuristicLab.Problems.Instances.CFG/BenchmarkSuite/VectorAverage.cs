@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class VectorAverage : CFGArtificialDataDescriptor {
+  public class VectorAverage : BenchmarkSuiteDataDescritpor<List<double>> {
     public override string Name { get { return "Vector Average"; } }
     public override string Description {
       get {
@@ -38,18 +38,20 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<double>> GenerateTraining() {
       List<List<double>> vectors = GetHardcodedTrainingSamples();
       vectors.AddRange(GetVecotrsOfLenght50(4).Select(x => x.ToList()));
       vectors.AddRange(GetVecotrsOfVariableLenght(90, rand).Select(x => x.ToList()));
+      return vectors;
+    }
 
-      vectors = vectors.Shuffle(rand).ToList();
-
-      vectors.AddRange(GetVecotrsOfLenght50(50).Select(x => x.ToList()));
+    protected override IEnumerable<List<double>> GenerateTest() {
+      var vectors = GetVecotrsOfLenght50(50).Select(x => x.ToList()).ToList();
       vectors.AddRange(GetVecotrsOfVariableLenght(950, rand).Select(x => x.ToList()));
+      return vectors;
+    }
 
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<double>> vectors) {
       var input = vectors.Select(x => String.Format("[{0}]", String.Join(", ", x.Select(y => String.Format("{0:0.0################}", y))))).ToArray();
       var output = vectors.Select(x => x.Average().ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);
@@ -57,13 +59,13 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<IEnumerable<double>> GetVecotrsOfVariableLenght(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return ValueGenerator.GenerateUniformDistributedValues(rand.Next(1, 50), -1000.0, 1000.0);
+        yield return ValueGenerator.GenerateUniformDistributedValues(rand.Next(1, 50), -1000.0, 1000.0, rand);
       }
     }
 
     private IEnumerable<IEnumerable<double>> GetVecotrsOfLenght50(int n) {
       for (int i = 0; i < n; i++) {
-        yield return ValueGenerator.GenerateUniformDistributedValues(50, -1000.0, 1000.0);
+        yield return ValueGenerator.GenerateUniformDistributedValues(50, -1000.0, 1000.0, rand);
       }
     }
 

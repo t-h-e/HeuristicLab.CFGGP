@@ -25,7 +25,6 @@ using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public static class ValueGenerator {
-    private static FastRandom rand = new FastRandom();
 
     //copied from HeuristicLab.Problems.Instances.DataAnalysis.ValueGenerator which is not public
     /// <summary>
@@ -35,7 +34,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     /// <param name="start">The lower value (inclusive)</param>
     /// <param name="end">The upper value (inclusive)</param>
     /// <returns>An enumerable including n values in [start, end]</returns>
-    public static IEnumerable<double> GenerateUniformDistributedValues(int n, double start, double end) {
+    public static IEnumerable<double> GenerateUniformDistributedValues(int n, double start, double end, FastRandom rand) {
       for (int i = 0; i < n; i++) {
         // we need to return a random value including end.
         // so we cannot use rand.NextDouble() as it returns a value strictly smaller than 1.
@@ -44,13 +43,13 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    public static IEnumerable<int> GenerateUniformDistributedValues(int n, int start, int end) {
+    public static IEnumerable<int> GenerateUniformDistributedValues(int n, int start, int end, FastRandom rand) {
       for (int i = 0; i < n; i++) {
         yield return rand.Next(start, end + 1);
       }
     }
 
-    public static IEnumerable<long> GenerateUniformDistributedValues(int n, long start, long end) {
+    public static IEnumerable<long> GenerateUniformDistributedValues(int n, long start, long end, FastRandom rand) {
       for (int i = 0; i < n; i++) {
         double r = rand.NextDouble(); // r \in [0, 1)
         r = r * ((end + 1) - start) + start; // r \in [start, end + 1), the "+ 1" makes sure that it is uniformlly distibuted when using floor in the next line
@@ -58,11 +57,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    public static IEnumerable<T> Shuffle<T>(IEnumerable<T> enumerable) {
+    public static IEnumerable<T> Shuffle<T>(IEnumerable<T> enumerable, FastRandom rand) {
       return enumerable.Shuffle(rand);
     }
 
-    public static IEnumerable<T> SampleRandomWithoutRepetition<T>(IEnumerable<T> enumerable, int count) {
+    public static IEnumerable<T> SampleRandomWithoutRepetition<T>(IEnumerable<T> enumerable, int count, FastRandom rand) {
       return enumerable.SampleRandomWithoutRepetition(rand, count);
     }
 

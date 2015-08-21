@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class CollatzNumbers : CFGArtificialDataDescriptor {
+  public class CollatzNumbers : BenchmarkSuiteDataDescritpor<int> {
     public override string Name { get { return "Collatz Numbers"; } }
     public override string Description {
       get {
@@ -37,13 +37,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 2200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
+    protected override IEnumerable<int> GenerateTraining() {
       var x0 = new List<int>(TrainingPartitionEnd) { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 6171, 6943, 7963, 9257, 9999, 10000 };
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(184, 1, 10000).ToList());
-      x0 = ValueGenerator.Shuffle(x0).ToList();
+      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(184, 1, 10000, rand));
+      return x0;
+    }
 
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(2000, 1, 10000));
+    protected override IEnumerable<int> GenerateTest() {
+      return ValueGenerator.GenerateUniformDistributedValues(2000, 1, 10000, rand);
+    }
 
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {
       var input = x0.Select(x => x.ToString()).ToArray();
       var output = x0.Select(x => CalcCollatz(x).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);

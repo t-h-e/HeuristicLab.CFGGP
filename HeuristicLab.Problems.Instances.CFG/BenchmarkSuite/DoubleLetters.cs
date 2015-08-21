@@ -26,7 +26,7 @@ using HeuristicLab.Random;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class DoubleLetters : CFGArtificialDataDescriptor {
+  public class DoubleLetters : BenchmarkSuiteDataDescritpor<string> {
     public override string Name { get { return "Double Letters"; } }
     public override string Description {
       get {
@@ -39,15 +39,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<string> GenerateTraining() {
       List<string> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(StringValueGenerator.GetRandomStrings(68, 0, 20, rand).ToList());
+      strings.AddRange(StringValueGenerator.GetRandomStrings(68, 0, 20, rand));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<string> GenerateTest() {
+      return StringValueGenerator.GetRandomStrings(1000, 0, 20, rand);
+    }
 
-      strings.AddRange(StringValueGenerator.GetRandomStrings(1000, 0, 20, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(y => y.PrepareStringForPython()).ToArray();
       var output = strings.Select(x => CalcDoubleLetter(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);

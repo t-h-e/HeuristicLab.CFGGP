@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class StringLengthsBackwards : CFGArtificialDataDescriptor {
+  public class StringLengthsBackwards : BenchmarkSuiteDataDescritpor<List<string>> {
     public override string Name { get { return "String Lengths Backwards"; } }
     public override string Description {
       get {
@@ -38,15 +38,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<string>> GenerateTraining() {
       List<List<string>> strings = GetHardcodedTrainingSamples();
       strings.AddRange(GetRandomStringsOfStrings(90, rand).ToList());
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<List<string>> GenerateTest() {
+      return GetRandomStringsOfStrings(1000, rand);
+    }
 
-      strings.AddRange(GetRandomStringsOfStrings(1000, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<string>> strings) {
       var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => String.Join(", ", x.Select(y => y.Length).Reverse())).ToArray();
       return new Tuple<string[], string[]>(input, output);

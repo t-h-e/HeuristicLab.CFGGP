@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BenchmarkSuite\BenchmarkSuiteDataDescritpor.cs" />
     <Compile Include="BenchmarkSuite\BenchmarkSuiteInstanceProvider.cs" />
     <Compile Include="BenchmarkSuite\Grade.cs" />
     <Compile Include="BenchmarkSuite\Median.cs" />

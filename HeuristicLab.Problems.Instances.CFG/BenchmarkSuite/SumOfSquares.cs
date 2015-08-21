@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class SumOfSquares : CFGArtificialDataDescriptor {
@@ -37,13 +38,33 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 50; } }
     protected override int TestPartitionEnd { get { return 100; } }
 
+    private IEnumerable<int> numbers = Enumerable.Range(6, 94);
+
+    //protected override IEnumerable<int> GenerateTraining() {
+    //  var x0 = new List<int>() { 1, 2, 3, 4, 5, 100 };
+    //  x0.AddRange(ValueGenerator.SampleRandomWithoutRepetition(numbers, 44, rand));
+    //  return x0;
+    //}
+
+    //protected override IEnumerable<int> GenerateTest() {
+    //  return numbers.Except(GenerateTraining());
+    //}
+
+    //protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {
+    //  var input = x0.Select(x => x.ToString()).ToArray();
+    //  var output = x0.Select(x => CalcSumOfSquares(x).ToString()).ToArray();
+    //  return new Tuple<string[], string[]>(input, output);
+    //}
+
     protected override Tuple<string[], string[]> GenerateInputOutput() {
+      FastRandom rand = new FastRandom();
       var x0 = new List<int>() { 1, 2, 3, 4, 5, 100 };
-      var numbers = Enumerable.Range(6, 94);
-      x0.AddRange(ValueGenerator.SampleRandomWithoutRepetition(numbers, 44).ToList());
-      x0 = ValueGenerator.Shuffle(x0).ToList();
+      x0.AddRange(ValueGenerator.SampleRandomWithoutRepetition(numbers, 44, rand));
+
+      x0 = x0.Shuffle(rand).ToList();
 
       x0.AddRange(numbers.Except(x0));
+
       var input = x0.Select(x => x.ToString()).ToArray();
       var output = x0.Select(x => CalcSumOfSquares(x).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);

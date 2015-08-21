@@ -25,7 +25,7 @@ using System.Linq;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class EvenSquares : CFGArtificialDataDescriptor {
+  public class EvenSquares : BenchmarkSuiteDataDescritpor<int> {
     public override string Name { get { return "Even Squares"; } }
     public override string Description {
       get {
@@ -38,13 +38,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
+    protected override IEnumerable<int> GenerateTraining() {
       var x0 = new List<int>() { 1, 2, 3, 4, 5, 6, 15, 16, 17, 18, 36, 37, 64, 65, 9600, 9700, 9999 };
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(83, 1, 9999).ToList());
-      x0 = ValueGenerator.Shuffle(x0).ToList();
+      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(83, 1, 9999, rand).ToList());
+      return x0;
+    }
 
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(1000, 1, 9999).ToList());
+    protected override IEnumerable<int> GenerateTest() {
+      return ValueGenerator.GenerateUniformDistributedValues(1000, 1, 9999, rand);
+    }
 
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {
       var input = x0.Select(x => x.ToString()).ToArray();
       var output = x0.Select(x => CalcEvenSquares(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);

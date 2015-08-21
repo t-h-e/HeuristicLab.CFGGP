@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class SuperAnagrams : CFGArtificialDataDescriptor {
+  public class SuperAnagrams : BenchmarkSuiteDataDescritpor<List<string>> {
     public override string Name { get { return "Super Anagrams"; } }
     public override string Description {
       get {
@@ -38,15 +38,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 2200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<string>> GenerateTraining() {
       List<List<string>> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(GetCloseOrSuperAnagrams(170, rand).ToList());
+      strings.AddRange(GetCloseOrSuperAnagrams(170, rand));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<List<string>> GenerateTest() {
+      return GetCloseOrSuperAnagrams(2000, rand);
+    }
 
-      strings.AddRange(GetCloseOrSuperAnagrams(2000, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<string>> strings) {
       var input = strings.Select(x => String.Join(", ", x.Select(y => y.PrepareStringForPython()))).ToArray();
       var output = strings.Select(x => CalcSuperAnagram(x[0], x[1]) ? "True" : "False").ToArray();
       return new Tuple<string[], string[]>(input, output);

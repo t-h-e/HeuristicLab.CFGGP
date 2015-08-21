@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class ScrabbleScore : CFGArtificialDataDescriptor {
+  public class ScrabbleScore : BenchmarkSuiteDataDescritpor<string> {
     public override string Name { get { return "Scrabble Score"; } }
     public override string Description {
       get {
@@ -38,17 +38,19 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 1200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<string> GenerateTraining() {
       List<string> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(GetAllLowerCaseLetters().ToList());
-      strings.AddRange(GetAllUpperCaseLetters().ToList());
-      strings.AddRange(StringValueGenerator.GetRandomStrings(150, 2, 20, rand).ToList());
+      strings.AddRange(GetAllLowerCaseLetters());
+      strings.AddRange(GetAllUpperCaseLetters());
+      strings.AddRange(StringValueGenerator.GetRandomStrings(150, 2, 20, rand));
+      return strings;
+    }
 
-      strings = strings.Shuffle(rand).ToList();
+    protected override IEnumerable<string> GenerateTest() {
+      return StringValueGenerator.GetRandomStrings(974, 2, 20, rand);
+    }
 
-      strings.AddRange(StringValueGenerator.GetRandomStrings(974, 2, 20, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
       var output = strings.Select(x => CalcScrabbleScore(x).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);

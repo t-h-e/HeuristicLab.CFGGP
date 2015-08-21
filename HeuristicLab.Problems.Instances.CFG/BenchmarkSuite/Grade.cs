@@ -26,7 +26,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class Grade : CFGArtificialDataDescriptor {
+  public class Grade : BenchmarkSuiteDataDescritpor<List<int>> {
     public override string Name { get { return "Grade"; } }
     public override string Description {
       get {
@@ -39,14 +39,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 200; } }
     protected override int TestPartitionEnd { get { return 2200; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<int>> GenerateTraining() {
       List<List<int>> grades = GetHardcodedTrainingSamples();
-      grades.AddRange(CreateThresholdsAndGrade(159, rand).ToList());
-      grades = grades.Shuffle(rand).ToList();
+      grades.AddRange(CreateThresholdsAndGrade(159, rand));
+      return grades;
+    }
 
-      grades.AddRange(CreateThresholdsAndGrade(2000, rand).ToList());
+    protected override IEnumerable<List<int>> GenerateTest() {
+      return CreateThresholdsAndGrade(2000, rand);
+    }
 
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> grades) {
       var input = grades.Select(x => String.Join(", ", x)).ToArray();
       var output = grades.Select(x => CalcGrade(x).PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);

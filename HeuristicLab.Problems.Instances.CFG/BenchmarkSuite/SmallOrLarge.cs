@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class SmallOrLarge : CFGArtificialDataDescriptor {
+  public class SmallOrLarge : BenchmarkSuiteDataDescritpor<int> {
     public override string Name { get { return "Small Or Large"; } }
     public override string Description {
       get {
@@ -38,23 +38,22 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
-      //hardcoded train
+    protected override IEnumerable<int> GenerateTraining() {
       var x0 = new List<int>(1100) { -10000, 0, 980, 1020, 1980, 2020, 10000 };
       x0.AddRange(Enumerable.Range(995, 10));
       x0.AddRange(Enumerable.Range(1995, 10));
-      //random train
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(73, -10000, 10000).ToList());
+      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(73, -10000, 10000, rand));
+      return x0;
+    }
 
-      x0 = ValueGenerator.Shuffle(x0).ToList();
-
-      //hardcoded test
-      x0.AddRange(Enumerable.Range(980, 40));
+    protected override IEnumerable<int> GenerateTest() {
+      var x0 = Enumerable.Range(980, 40).ToList();
       x0.AddRange(Enumerable.Range(1980, 40));
-      //random test
-      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(920, -10000, 10000).ToList());
+      x0.AddRange(ValueGenerator.GenerateUniformDistributedValues(920, -10000, 10000, rand));
+      return x0;
+    }
 
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {
       var input = x0.Select(x => x.ToString()).ToArray();
       var output = x0.Select(x => x < 1000 ? "\"small\"" : x >= 2000 ? "\"large\"" : "\"\"").ToArray();
       return new Tuple<string[], string[]>(input, output);

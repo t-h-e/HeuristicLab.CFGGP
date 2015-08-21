@@ -26,7 +26,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class Median : CFGArtificialDataDescriptor {
+  public class Median : BenchmarkSuiteDataDescritpor<List<int>> {
     public override string Name { get { return "Median"; } }
     public override string Description {
       get {
@@ -39,18 +39,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 100; } }
     protected override int TestPartitionEnd { get { return 1100; } }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      FastRandom rand = new FastRandom();
+    protected override IEnumerable<List<int>> GenerateTraining() {
       List<List<int>> median = GetTriple(10, rand).ToList();
-      median.AddRange(GetDoubles(30, rand).ToList());
-      median.AddRange(GetSingles(60, rand).ToList());
+      median.AddRange(GetDoubles(30, rand));
+      median.AddRange(GetSingles(60, rand));
+      return median;
+    }
 
-      median = median.Shuffle(rand).ToList();
+    protected override IEnumerable<List<int>> GenerateTest() {
+      var median = GetTriple(100, rand).ToList();
+      median.AddRange(GetDoubles(300, rand));
+      median.AddRange(GetSingles(600, rand));
+      return median;
+    }
 
-      median.AddRange(GetTriple(100, rand).ToList());
-      median.AddRange(GetDoubles(300, rand).ToList());
-      median.AddRange(GetSingles(600, rand).ToList());
-
+    protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> median) {
       var input = median.Select(x => String.Join(", ", x)).ToArray();
       var output = median.Select(x => { x.Sort(); return x.ElementAt(1).ToString(); }).ToArray();
       return new Tuple<string[], string[]>(input, output);
