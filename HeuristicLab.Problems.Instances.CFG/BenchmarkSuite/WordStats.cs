@@ -20,10 +20,10 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using HeuristicLab.Random;
+using System.Linq;
 using System.Text;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class WordStats : BenchmarkSuiteDataDescritpor<string> {

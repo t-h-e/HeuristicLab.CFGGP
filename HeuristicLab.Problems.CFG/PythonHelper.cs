@@ -21,25 +21,31 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
+using HeuristicLab.Data;
+using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
 
 namespace HeuristicLab.Problems.CFG {
   public class PythonHelper {
     private const String INDENTSPACE = "  ";
-    private static String LINESEPARATOR = Environment.NewLine;
+    private static string LINESEPARATOR = Environment.NewLine;
 
-    private const String LOOPBREAK = "loopBreak";
-    private const String LOOPBREAKUNNUMBERED = "loopBreak%";
-    private const String LOOPBREAK_INITIALISE = "loopBreak% = 0";
-    private const String LOOPBREAK_IF = "if loopBreak% >";
-    private const String LOOPBREAK_INCREMENT = "loopBreak% += 1";
+    private const string LOOPBREAK = "loopBreak";
+    private const string LOOPBREAKUNNUMBERED = "loopBreak%";
+    private const string LOOPBREAK_INITIALISE = "loopBreak% = 0";
+    private const string LOOPBREAK_IF = "if loopBreak% >";
+    private const string LOOPBREAK_INCREMENT = "loopBreak% += 1";
 
-    private const String FUNCTIONSTART = "def evolve():";
+    private const string FUNCTIONSTART = "def evolve():";
 
-    private const String FORCOUNTER = "forCounter";
-    private const String FORCOUNTERUNNUMBERED = "forCounter%";
+    private const string FORCOUNTER = "forCounter";
+    private const string FORCOUNTERUNNUMBERED = "forCounter%";
 
-    public static String convertBracketsToIndent(String code, string additionalIndent = "") {
+    public static string ConvertBracketsToIndent(string code, string additionalIndent = "") {
       StringBuilder stringBuilder = new StringBuilder();
       String[] split = code.Split(new string[] { Environment.NewLine }, StringSplitOptions.None); ;
 
@@ -126,6 +132,116 @@ namespace HeuristicLab.Problems.CFG {
       }
 
       return stringBuilder.ToString();
+    }
+
+    public static string FormatToProgram(ISymbolicExpressionTree tree, StringValue HeaderValue = null, StringValue FooterValue = null) {
+      StringBuilder strBuilder = new StringBuilder();
+      string indent = String.Empty;
+      if (HeaderValue != null) {
+        string header = HeaderValue.Value;
+        strBuilder.Append(header);
+        int lastNewLine = header.LastIndexOf(Environment.NewLine);
+        if (lastNewLine > 0) {
+          indent = header.Substring(lastNewLine + Environment.NewLine.Length, header.Length - lastNewLine - Environment.NewLine.Length);
+        }
+      }
+
+      string program = ConvertBracketsToIndent(
+                       CFGSymbolicExpressionTreeStringFormatter.StaticFormat(
+                       tree), indent);
+
+      strBuilder.Append(program);
+      if (FooterValue != null) {
+        strBuilder.Append(FooterValue.Value);
+      }
+      return strBuilder.ToString();
+    }
+
+    public static Tuple<IEnumerable<bool>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
+      ScriptEngine pyEngine = Python.CreateEngine();
+      ScriptScope scope = pyEngine.CreateScope();
+
+      // set variables in scope
+      scope.SetVariable("stop", false);
+      pyEngine.Execute("inval = " + ConvertToPythonValues(input, indices), scope);
+      pyEngine.Execute("outval = " + ConvertToPythonValues(output, indices), scope);
+
+      // create thread and execute the code
+      ExecutePythonThread pyThread = new ExecutePythonThread(program, pyEngine, scope);
+      Thread thread = new Thread(new ThreadStart(pyThread.Run));
+      thread.Start();
+
+      // wait for thread
+      // if a timeout occures, set variable stop to true to indicate that the python code should stop
+      // then wait until the thread finished (threads cannot be stopped, killed or aboarted)
+      thread.Join(timeout);
+      bool timedout = false;
+      if (thread.IsAlive) {
+        scope.SetVariable("stop", true);
+        thread.Join();
+        timedout = true;
+      }
+
+
+      string exception = String.Empty;
+      if (pyThread.Exception != null || timedout) {
+        exception = pyThread.Exception != null ? pyThread.Exception.Message : "Timeout occurred.";
+      }
+
+      // get return values
+      IEnumerable<bool> cases;
+      if (!scope.TryGetVariable<IEnumerable<bool>>("cases", out cases)) {
+        cases = new List<bool>();
+      }
+
+      double quality;
+      if (!scope.TryGetVariable<double>("quality", out quality)) {
+        if (cases != null) {
+          quality = cases.Where(x => !x).Count();
+        } else {
+          quality = double.PositiveInfinity;
+        }
+      }
+
+      return new Tuple<IEnumerable<bool>, double, string>(cases, quality, exception);
+    }
+
+    private static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {
+      StringBuilder strBuilder = new StringBuilder("[");
+      foreach (int row in indices) {
+        strBuilder.Append("[");
+        strBuilder.Append(array[row]);
+        strBuilder.Append("],");
+      }
+      strBuilder.Append("]");
+      return strBuilder.ToString();
+    }
+
+    /**
+     * Helper class which is used to executes python code in a separate thread
+     **/
+    private class ExecutePythonThread {
+      private string code;
+      private ScriptEngine engine;
+      private ScriptScope scope;
+
+      public Exception Exception { get; private set; }
+
+      public ExecutePythonThread(string code, ScriptEngine engine, ScriptScope scope) {
+        this.code = code;
+        this.engine = engine;
+        this.scope = scope;
+      }
+
+      public void Run() {
+        // execute the script
+        try {
+          engine.Execute(code, scope);
+        }
+        catch (Exception e) {
+          Exception = e;
+        }
+      }
     }
   }
 }

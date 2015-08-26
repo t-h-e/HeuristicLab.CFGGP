@@ -23,7 +23,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class StringDifferences : BenchmarkSuiteDataDescritpor<List<string>> {

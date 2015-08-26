@@ -22,8 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HeuristicLab.Core;
-using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class ForLoopIndex : BenchmarkSuiteDataDescritpor<Tuple<int, int, int>> {

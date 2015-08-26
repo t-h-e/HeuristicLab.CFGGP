@@ -21,29 +21,22 @@
 
 using System;
 using System.Collections.Generic;
-using HeuristicLab.Random;
+using HeuristicLab.Core;
+using HeuristicLab.Data;
 
-namespace HeuristicLab.Problems.Instances.CFG {
-  public abstract class BenchmarkSuiteDataDescritpor<T> : CFGArtificialDataDescriptor {
-    protected static FastRandom rand = new FastRandom();
+namespace HeuristicLab.Problems.CFG {
+  public interface ICFGProblemData : INamedItem {
 
-    protected abstract IEnumerable<T> GenerateTraining();
-    protected abstract IEnumerable<T> GenerateTest();
+    StringArray Input { get; }
+    StringArray Output { get; }
+    IntRange TrainingPartition { get; }
+    IntRange TestPartition { get; }
 
-    protected abstract Tuple<string[], string[]> GenerateInputOutput(IEnumerable<T> trainingAndTest);
+    IEnumerable<int> TrainingIndices { get; }
+    IEnumerable<int> TestIndices { get; }
 
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      var training = GenerateTraining();
-
-      training = training.Shuffle(rand);
-
-      var test = GenerateTest();
-
-      var all = new List<T>();
-      all.AddRange(training);
-      all.AddRange(test);
-
-      return GenerateInputOutput(all);
-    }
+    bool IsTrainingSample(int index);
+    bool IsTestSample(int index);
+    event EventHandler Changed;
   }
 }

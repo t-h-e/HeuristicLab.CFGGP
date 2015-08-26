@@ -45,12 +45,13 @@ using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
+using HeuristicLab.Misc;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
 using HeuristicLab.Selection;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Misc {
   /// <summary>
   /// A lexicase selection operator which considers all successful evaluated training cases for selection.
   /// 

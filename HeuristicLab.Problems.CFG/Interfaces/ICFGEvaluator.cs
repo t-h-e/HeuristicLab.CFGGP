@@ -19,31 +19,17 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using HeuristicLab.Random;
+using HeuristicLab.Core;
+using HeuristicLab.Data;
+using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Misc;
+using HeuristicLab.Optimization;
 
-namespace HeuristicLab.Problems.Instances.CFG {
-  public abstract class BenchmarkSuiteDataDescritpor<T> : CFGArtificialDataDescriptor {
-    protected static FastRandom rand = new FastRandom();
-
-    protected abstract IEnumerable<T> GenerateTraining();
-    protected abstract IEnumerable<T> GenerateTest();
-
-    protected abstract Tuple<string[], string[]> GenerateInputOutput(IEnumerable<T> trainingAndTest);
-
-    protected override Tuple<string[], string[]> GenerateInputOutput() {
-      var training = GenerateTraining();
-
-      training = training.Shuffle(rand);
-
-      var test = GenerateTest();
-
-      var all = new List<T>();
-      all.AddRange(training);
-      all.AddRange(test);
-
-      return GenerateInputOutput(all);
-    }
+namespace HeuristicLab.Problems.CFG {
+  public interface ICFGEvaluator : ISingleObjectiveEvaluator, ICaseEvaluator {
+    ILookupParameter<ISymbolicExpressionTree> ProgramParameter { get; }
+    ILookupParameter<ICFGProblemData> ProblemDataParameter { get; }
+    ILookupParameter<StringValue> HeaderParameter { get; }
+    ILookupParameter<StringValue> FooterParameter { get; }
   }
 }

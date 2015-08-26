@@ -44,7 +44,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Optimization;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Misc {
   public interface ICaseEvaluator : IEvaluator {
     ILookupParameter<BoolArray> SuccessfulCasesParameter { get; }
   }

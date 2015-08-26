@@ -20,9 +20,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using HeuristicLab.Random;
+using System.Linq;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {

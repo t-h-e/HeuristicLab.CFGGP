@@ -19,11 +19,7 @@
  */
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -31,12 +27,10 @@ using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Operators;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
-using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
 
 namespace HeuristicLab.Problems.CFG {
   [StorableClass]
-  public class CFGPythonEvaluator : InstrumentedOperator, ICFGEvaluator {
+  public class CFGPythonEvaluator : InstrumentedOperator, ICFGEvaluator, ICFGPythonOperator {
     #region paramerters
     public IValueParameter<IntValue> TimeoutParameter {
       get { return (IValueParameter<IntValue>)Parameters["Timeout"]; }
@@ -50,17 +44,8 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<StringValue> FooterParameter {
       get { return (ILookupParameter<StringValue>)Parameters["Footer"]; }
     }
-    public ILookupParameter<StringArray> InputParameter {
-      get { return (ILookupParameter<StringArray>)Parameters["Input"]; }
-    }
-    public ILookupParameter<StringArray> OutputParameter {
-      get { return (ILookupParameter<StringArray>)Parameters["Output"]; }
-    }
-    public ILookupParameter<IntRange> TrainingPartitionParameter {
-      get { return (ILookupParameter<IntRange>)Parameters["TrainingPartition"]; }
-    }
-    public ILookupParameter<IntRange> TestPartitionParameter {
-      get { return (ILookupParameter<IntRange>)Parameters["TestPartition"]; }
+    public ILookupParameter<ICFGProblemData> ProblemDataParameter {
+      get { return (ILookupParameter<ICFGProblemData>)Parameters["ProblemData"]; }
     }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
@@ -68,34 +53,37 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<DoubleValue> QualityParameter {
       get { return (ILookupParameter<DoubleValue>)Parameters["Quality"]; }
     }
+    public ILookupParameter<StringValue> ExceptionParameter {
+      get { return (ILookupParameter<StringValue>)Parameters["Exception"]; }
+    }
     #endregion
 
     #region properties
-    public IntRange TrainingPartition { get { return TrainingPartitionParameter.ActualValue; } }
-    public IntRange TestPartition { get { return TestPartitionParameter.ActualValue; } }
+    public ICFGProblemData ProblemData { get { return ProblemDataParameter.ActualValue; } }
     public int Timeout { get { return TimeoutParameter.Value.Value; } }
     public string Program {
       get {
-        StringBuilder strBuilder = new StringBuilder();
-        string indent = String.Empty;
-        if (HeaderParameter.ActualValue != null) {
-          string header = HeaderParameter.ActualValue.Value;
-          strBuilder.Append(header);
-          int lastNewLine = header.LastIndexOf(Environment.NewLine);
-          if (lastNewLine > 0) {
-            indent = header.Substring(lastNewLine + Environment.NewLine.Length, header.Length - lastNewLine - Environment.NewLine.Length);
-          }
-        }
+        return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, HeaderParameter.ActualValue, FooterParameter.ActualValue);
+        //StringBuilder strBuilder = new StringBuilder();
+        //string indent = String.Empty;
+        //if (HeaderParameter.ActualValue != null) {
+        //  string header = HeaderParameter.ActualValue.Value;
+        //  strBuilder.Append(header);
+        //  int lastNewLine = header.LastIndexOf(Environment.NewLine);
+        //  if (lastNewLine > 0) {
+        //    indent = header.Substring(lastNewLine + Environment.NewLine.Length, header.Length - lastNewLine - Environment.NewLine.Length);
+        //  }
+        //}
 
-        string program = PythonHelper.convertBracketsToIndent(
-                         CFGSymbolicExpressionTreeStringFormatter.StaticFormat(
-                         ProgramParameter.ActualValue), indent);
+        //string program = PythonHelper.convertBracketsToIndent(
+        //                 CFGSymbolicExpressionTreeStringFormatter.StaticFormat(
+        //                 ProgramParameter.ActualValue), indent);
 
-        strBuilder.Append(program);
-        if (FooterParameter.ActualValue != null) {
-          strBuilder.Append(FooterParameter.ActualValue.Value);
-        }
-        return strBuilder.ToString();
+        //strBuilder.Append(program);
+        //if (FooterParameter.ActualValue != null) {
+        //  strBuilder.Append(FooterParameter.ActualValue.Value);
+        //}
+        //return strBuilder.ToString();
       }
     }
     #endregion
@@ -108,14 +96,12 @@ namespace HeuristicLab.Problems.CFG {
     public CFGPythonEvaluator() {
       Parameters.Add(new ValueParameter<IntValue>("Timeout", "The amount of time an execution is allowed to take, before it is stopped.", new IntValue(1000)));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
-      Parameters.Add(new LookupParameter<StringArray>("Input", "The input for the program."));
-      Parameters.Add(new LookupParameter<StringArray>("Output", "The output the program should produce."));
-      Parameters.Add(new LookupParameter<IntRange>("TrainingPartition", ""));
-      Parameters.Add(new LookupParameter<IntRange>("TestPartition", ""));
+      Parameters.Add(new LookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
+      Parameters.Add(new LookupParameter<StringValue>("Exception", "Has the exception if any occured or the timeout."));
 
       SuccessfulCasesParameter.Hidden = true;
     }
@@ -126,90 +112,98 @@ namespace HeuristicLab.Problems.CFG {
 
     public override IOperation InstrumentedApply() {
 
-      // create python engine and scope
-      ScriptEngine pyEngine = Python.CreateEngine();
-      ScriptScope scope = pyEngine.CreateScope();
+      var result = PythonHelper.EvaluateProgram(Program, ProblemData.Input, ProblemData.Output, ProblemData.TrainingIndices, Timeout);
 
-      // set variables in scope
-      scope.SetVariable("stop", false);
-      pyEngine.Execute("inval = " + GetPythonTrainingValues(InputParameter.ActualValue), scope);
-      pyEngine.Execute("outval = " + GetPythonTrainingValues(OutputParameter.ActualValue), scope);
+      SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
+      QualityParameter.ActualValue = new DoubleValue(result.Item2);
+      ExceptionParameter.ActualValue = new StringValue(result.Item3);
 
-      // create thread and execute the code
-      ExecutePythonThread pyThread = new ExecutePythonThread(Program, pyEngine, scope);
-      Thread thread = new Thread(new ThreadStart(pyThread.Run));
-      thread.Start();
+      //// create python engine and scope
+      //ScriptEngine pyEngine = Python.CreateEngine();
+      //ScriptScope scope = pyEngine.CreateScope();
 
-      // wait for thread
-      // if a timeout occures, set variable stop to true to indicate that the python code should stop
-      // then wait until the thread finished (threads cannot be stopped, killed or aboarted)
-      thread.Join(Timeout);
-      if (thread.IsAlive) {
-        scope.SetVariable("stop", true);
-        thread.Join();
-      }
+      //// set variables in scope
+      //scope.SetVariable("stop", false);
+      //pyEngine.Execute("inval = " + GetPythonTrainingValues(InputParameter.ActualValue), scope);
+      //pyEngine.Execute("outval = " + GetPythonTrainingValues(OutputParameter.ActualValue), scope);
 
-      // get return values
-      IEnumerable<bool> cases;
-      if (scope.TryGetVariable<IEnumerable<bool>>("cases", out cases)) {
-        SuccessfulCasesParameter.ActualValue = new BoolArray(cases.ToArray());
-      }
+      //// create thread and execute the code
+      //ExecutePythonThread pyThread = new ExecutePythonThread(Program, pyEngine, scope);
+      //Thread thread = new Thread(new ThreadStart(pyThread.Run));
+      //thread.Start();
 
-      double quality;
-      if (scope.TryGetVariable<double>("quality", out quality)) {
-        QualityParameter.ActualValue = new DoubleValue(quality);
-      } else if (cases != null) {
-        QualityParameter.ActualValue = new DoubleValue(cases.Where(x => !x).Count());
-      } else {
-        QualityParameter.ActualValue = new DoubleValue(double.PositiveInfinity);
-      }
+      //// wait for thread
+      //// if a timeout occures, set variable stop to true to indicate that the python code should stop
+      //// then wait until the thread finished (threads cannot be stopped, killed or aboarted)
+      //thread.Join(Timeout);
+      //bool timeout = false;
+      //if (thread.IsAlive) {
+      //  scope.SetVariable("stop", true);
+      //  thread.Join();
+      //  timeout = true;
+      //}
+
+      //if (pyThread.Exception != null || timeout) {
+      //  ExceptionParameter.ActualValue = new StringValue(pyThread.Exception != null ? pyThread.Exception.Message : "Timeout occurred.");
+      //} else {
+      //  ExceptionParameter.ActualValue = new StringValue();
+      //}
+
+      //// get return values
+      //IEnumerable<bool> cases;
+      //if (scope.TryGetVariable<IEnumerable<bool>>("cases", out cases)) {
+      //  SuccessfulCasesParameter.ActualValue = new BoolArray(cases.ToArray());
+      //}
+
+      //double quality;
+      //if (scope.TryGetVariable<double>("quality", out quality)) {
+      //  QualityParameter.ActualValue = new DoubleValue(quality);
+      //} else if (cases != null) {
+      //  QualityParameter.ActualValue = new DoubleValue(cases.Where(x => !x).Count());
+      //} else {
+      //  QualityParameter.ActualValue = new DoubleValue(double.PositiveInfinity);
+      //}
 
 
       return base.InstrumentedApply();
     }
 
-    private string GetPythonTrainingValues(StringArray array) {
-      StringBuilder strBuilder = new StringBuilder("[");
-      foreach (int row in GetTrainingRows()) {
-        strBuilder.Append("[");
-        strBuilder.Append(array[row]);
-        strBuilder.Append("],");
-      }
-      strBuilder.Append("]");
-      return strBuilder.ToString();
-    }
+    //private string GetPythonTrainingValues(StringArray array) {
+    //  StringBuilder strBuilder = new StringBuilder("[");
+    //  foreach (int row in GetTrainingRows()) {
+    //    strBuilder.Append("[");
+    //    strBuilder.Append(array[row]);
+    //    strBuilder.Append("],");
+    //  }
+    //  strBuilder.Append("]");
+    //  return strBuilder.ToString();
+    //}
 
-    private IEnumerable<int> GetTrainingRows() {
-      IEnumerable<int> rows = Enumerable.Range(TrainingPartition.Start, TrainingPartition.End - TrainingPartition.Start)
-                  .Where(i => i < TestPartition.Start || TestPartition.End <= i);
-      return rows;
-    }
+    ///**
+    // * Helper class which is used to executes python code in a separate thread
+    // **/
+    //private class ExecutePythonThread {
+    //  private string code;
+    //  private ScriptEngine engine;
+    //  private ScriptScope scope;
 
-    /**
-     * Helper class which is used to executes python code in a separate thread
-     **/
-    private class ExecutePythonThread {
-      private string code;
-      private ScriptEngine engine;
-      private ScriptScope scope;
+    //  public Exception Exception { get; private set; }
 
-      public Exception Exception { get; private set; }
+    //  public ExecutePythonThread(string code, ScriptEngine engine, ScriptScope scope) {
+    //    this.code = code;
+    //    this.engine = engine;
+    //    this.scope = scope;
+    //  }
 
-      public ExecutePythonThread(string code, ScriptEngine engine, ScriptScope scope) {
-        this.code = code;
-        this.engine = engine;
-        this.scope = scope;
-      }
-
-      public void Run() {
-        // execute the script
-        try {
-          engine.Execute(code, scope);
-        }
-        catch (Exception e) {
-          Exception = e;
-        }
-      }
-    }
+    //  public void Run() {
+    //    // execute the script
+    //    try {
+    //      engine.Execute(code, scope);
+    //    }
+    //    catch (Exception e) {
+    //      Exception = e;
+    //    }
+    //  }
+    //}
   }
 }

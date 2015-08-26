@@ -44,7 +44,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Optimization;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Misc {
   /// <summary>
   /// An interface which represents a selection operator for selecting solutions of single-objective optimization problems.
   /// </summary>
