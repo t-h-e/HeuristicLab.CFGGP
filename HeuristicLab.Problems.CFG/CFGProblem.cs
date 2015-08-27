@@ -219,12 +219,15 @@ namespace HeuristicLab.Problems.CFG {
       foreach (var op in operators.OfType<ISymbolicExpressionTreeAnalyzer>()) {
         op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       }
-      foreach (var op in operators.OfType<ICFGPythonOperator>()) {
-        op.HeaderParameter.ActualName = HeaderParameter.Name;
-        op.FooterParameter.ActualName = FooterParameter.Name;
-      }
       foreach (var op in operators.OfType<ICFGAnalyzer>()) {
         op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+        op.HeaderParameter.ActualName = HeaderParameter.Name;
+        op.FooterParameter.ActualName = FooterParameter.Name;
+        op.ProblemDataParameter.ActualName = ProblemDataParameter.Name;
+      }
+      foreach (var op in operators.OfType<ICFGPythonAnalyzer>()) {
+        ICFGPythonEvaluator eval = Evaluator as ICFGPythonEvaluator;
+        if (eval != null) op.TimeoutParameter.ActualName = eval.TimeoutParameter.Name;
       }
     }
     #endregion

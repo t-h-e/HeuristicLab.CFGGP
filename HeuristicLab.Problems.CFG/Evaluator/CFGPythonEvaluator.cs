@@ -30,7 +30,7 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG {
   [StorableClass]
-  public class CFGPythonEvaluator : InstrumentedOperator, ICFGEvaluator, ICFGPythonOperator {
+  public class CFGPythonEvaluator : InstrumentedOperator, ICFGPythonEvaluator {
     #region paramerters
     public IValueParameter<IntValue> TimeoutParameter {
       get { return (IValueParameter<IntValue>)Parameters["Timeout"]; }

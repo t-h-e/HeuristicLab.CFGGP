@@ -23,8 +23,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Data;
 
 namespace HeuristicLab.Problems.CFG {
-  public interface ICFGPythonOperator : IOperator {
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
+  public interface ICFGPythonEvaluator : ICFGEvaluator {
+    IValueParameter<IntValue> TimeoutParameter { get; }
   }
 }

@@ -21,15 +21,9 @@
 
 using HeuristicLab.Core;
 using HeuristicLab.Data;
-using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using HeuristicLab.Optimization;
 
 namespace HeuristicLab.Problems.CFG {
-  public interface ICFGAnalyzer : IAnalyzer {
-    IScopeTreeLookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter { get; }
-    ILookupParameter<ResultCollection> ResultCollectionParameter { get; }
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
-    ILookupParameter<ICFGProblemData> ProblemDataParameter { get; }
+  public interface ICFGPythonAnalyzer : ICFGAnalyzer {
+    ILookupParameter<IntValue> TimeoutParameter { get; }
   }
 }

@@ -57,6 +57,7 @@
     <Reference Include="HeuristicLab.Common.Resources-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Common.Resources-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Core-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -145,10 +146,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzer\CaseAnalyzer.cs" />
     <Compile Include="Analyzer\CFGPythonExceptionAnalyzer.cs" />
     <Compile Include="Analyzer\CFGPythonTrainingBestSolutionAnalyzer.cs" />
     <Compile Include="CFGProblemData.cs" />
+    <Compile Include="Interfaces\ICFGPythonEvaluator.cs" />
     <Compile Include="Interfaces\ICFGProblemData.cs" />
     <Compile Include="Interfaces\ICFGAnalyzer.cs" />
     <Compile Include="CFGExpressionGrammar.cs" />
@@ -156,7 +157,7 @@
     <Compile Include="CFGProblem.cs" />
     <Compile Include="CFGPythonSolution.cs" />
     <Compile Include="CFGSymbolicExpressionTreeStringFormatter.cs" />
-    <Compile Include="Interfaces\ICFGPythonOperator.cs" />
+    <Compile Include="Interfaces\ICFGPythonAnalyzer.cs" />
     <Compile Include="Symbols\CFGProduction.cs" />
     <Compile Include="Symbols\CFGSymbol.cs" />
     <Compile Include="Evaluator\CFGPythonEvaluator.cs" />

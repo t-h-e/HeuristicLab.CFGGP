@@ -35,7 +35,7 @@ namespace HeuristicLab.Problems.CFG {
   /// </summary>
   [Item("CFGPythonTrainingBestSolutionAnalyzer", "An operator that analyzes the training best context free grammar solution.")]
   [StorableClass]
-  public class CFGPythonTrainingBestSolutionAnalyzer : SingleSuccessorOperator, IIterationBasedOperator, ICFGAnalyzer, ICFGPythonOperator {
+  public class CFGPythonTrainingBestSolutionAnalyzer : SingleSuccessorOperator, IIterationBasedOperator, ICFGPythonAnalyzer {
     private const string TrainingBestSolutionParameterName = "Best training solution";
     private const string TrainingBestSolutionQualityParameterName = "Best training solution quality";
     private const string TrainingBestSolutionGenerationParameterName = "Best training solution generation";
