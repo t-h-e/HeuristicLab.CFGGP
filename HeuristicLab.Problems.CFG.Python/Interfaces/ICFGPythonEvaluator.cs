@@ -22,8 +22,8 @@
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Problems.CFG.Python {
   public interface ICFGPythonEvaluator : ICFGEvaluator {
-    IValueParameter<IntValue> TimeoutParameter { get; }
+    ILookupParameter<IntValue> TimeoutParameter { get; }
   }
 }

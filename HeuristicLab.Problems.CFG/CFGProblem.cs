@@ -34,11 +34,10 @@ using HeuristicLab.Problems.Instances;
 using HeuristicLab.Problems.Instances.CFG;
 
 namespace HeuristicLab.Problems.CFG {
-  [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
-  [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 140)]
-  [StorableClass]
-  public class CFGProblem : SingleObjectiveHeuristicOptimizationProblem<ICFGEvaluator, ISymbolicExpressionTreeCreator>, IStorableContent,
-    IProblemInstanceConsumer<CFGData> {
+  public abstract class CFGProblem<T> : SingleObjectiveHeuristicOptimizationProblem<T, ISymbolicExpressionTreeCreator>, IStorableContent,
+    IProblemInstanceConsumer<CFGData>
+    where T : class, ICFGEvaluator {
+
     private const string ProblemDataParameterName = "CFGProblemData";
     private const string ProblemDataParameterDescription = "The data set, target variable and input variables of the context free grammar problem.";
 
@@ -50,7 +49,6 @@ namespace HeuristicLab.Problems.CFG {
     public IValueParameter<CFGProblemData> ProblemDataParameter {
       get { return (IValueParameter<CFGProblemData>)Parameters[ProblemDataParameterName]; }
     }
-
     public IFixedValueParameter<TextValue> GrammarBNFParameter {
       get { return (IFixedValueParameter<TextValue>)Parameters["GrammarBNF"]; }
     }
@@ -97,13 +95,22 @@ namespace HeuristicLab.Problems.CFG {
     [StorableConstructor]
     protected CFGProblem(bool deserializing) : base(deserializing) { }
 
-    protected CFGProblem(CFGProblem original, Cloner cloner)
+    protected CFGProblem(CFGProblem<T> original, Cloner cloner)
       : base(original, cloner) {
       RegisterEventHandlers();
     }
 
     public CFGProblem()
-      : base(new CFGPythonEvaluator(), new ProbabilisticTreeCreator()) {
+      : base(new CFGProgrammableEvaluator() as T, new ProbabilisticTreeCreator()) {
+      Initialize();
+    }
+
+    public CFGProblem(T evaluator, ISymbolicExpressionTreeCreator creator)
+      : base(evaluator, creator) {
+      Initialize();
+    }
+
+    private void Initialize() {
       Parameters.Add(new ValueParameter<CFGProblemData>(ProblemDataParameterName, ProblemDataParameterDescription, CFGProblemData.EmptyProblemData));
       Parameters.Add(new FixedValueParameter<TextValue>("GrammarBNF", "Grammar in BNF Form.", new TextValue()));
       Parameters.Add(new FixedValueParameter<TextValue>("EmbedCode", "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue()));
@@ -129,10 +136,6 @@ namespace HeuristicLab.Problems.CFG {
       ParameterizeEvaluator();
     }
 
-    public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGProblem(this, cloner);
-    }
-
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
       RegisterEventHandlers();
@@ -146,9 +149,7 @@ namespace HeuristicLab.Problems.CFG {
       SetCodeHeaderAndFooter();
     }
     protected override void OnEvaluatorChanged() {
-      ParameterizeEvaluator();
-    }
-    private void Partition_ValueChanged(object sender, EventArgs e) {
+      base.OnEvaluatorChanged();
       ParameterizeEvaluator();
     }
     #endregion
@@ -183,8 +184,6 @@ namespace HeuristicLab.Problems.CFG {
       Operators.Add(new SymbolicExpressionSymbolFrequencyAnalyzer());
       Operators.Add(new SymbolicExpressionTreeLengthAnalyzer());
       Operators.Add(new CaseAnalyzer());
-      Operators.Add(new CFGPythonExceptionAnalyzer());
-      Operators.Add(new CFGPythonTrainingBestSolutionAnalyzer());
       ParameterizeOperators();
     }
     private void ParameterizeEvaluator() {
@@ -224,10 +223,6 @@ namespace HeuristicLab.Problems.CFG {
         op.HeaderParameter.ActualName = HeaderParameter.Name;
         op.FooterParameter.ActualName = FooterParameter.Name;
         op.ProblemDataParameter.ActualName = ProblemDataParameter.Name;
-      }
-      foreach (var op in operators.OfType<ICFGPythonAnalyzer>()) {
-        ICFGPythonEvaluator eval = Evaluator as ICFGPythonEvaluator;
-        if (eval != null) op.TimeoutParameter.ActualName = eval.TimeoutParameter.Name;
       }
     }
     #endregion
@@ -273,6 +268,22 @@ namespace HeuristicLab.Problems.CFG {
       ProblemDataParameter.Value = problemData;
       GrammarBNF.Value = data.Grammar;
       EmbedCode.Value = data.Embed;
+    }
+  }
+
+  [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
+  [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 140)]
+  [StorableClass]
+  public class CFGProblem : CFGProblem<CFGProgrammableEvaluator> {
+    [StorableConstructor]
+    protected CFGProblem(bool deserializing) : base(deserializing) { }
+
+    protected CFGProblem(CFGProblem original, Cloner cloner)
+      : base(original, cloner) {
+    }
+    public CFGProblem() : base() { }
+    public override IDeepCloneable Clone(Cloner cloner) {
+      return new CFGProblem(this, cloner);
     }
   }
 }

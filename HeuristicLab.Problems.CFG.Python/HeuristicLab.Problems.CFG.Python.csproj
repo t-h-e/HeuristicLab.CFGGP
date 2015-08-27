@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0C90F665-57A1-4773-8C6E-28E73B8968BC}</ProjectGuid>
+    <ProjectGuid>{CF97234D-9B43-405F-AFEA-DB13685B48EF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HeuristicLab.Problems.CFG</RootNamespace>
-    <AssemblyName>HeuristicLab.Problems.CFG</AssemblyName>
+    <RootNamespace>HeuristicLab.Problems.CFG.Python</RootNamespace>
+    <AssemblyName>HeuristicLab.Problems.CFG.Python</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +28,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -79,19 +76,9 @@
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Operators-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="HeuristicLab.Operators.Programmable-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Operators.Programmable-3.3.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="HeuristicLab.Optimization-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Optimization-3.3.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="HeuristicLab.Optimization.Operators-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Optimization.Operators-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Parameters-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
@@ -114,14 +101,14 @@
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Problems.Instances-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="HeuristicLab.Random-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
+    <Reference Include="IronPython, Version=2.7.5.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Random-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\IronPython.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="HeuristicLab.Selection-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Selection-3.3.dll</HintPath>
+      <HintPath>..\..\HeuristicLab\bin\Microsoft.Scripting.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -129,27 +116,21 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp">
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CFGProblemData.cs" />
-    <Compile Include="Interfaces\ICFGProblemData.cs" />
-    <Compile Include="Interfaces\ICFGAnalyzer.cs" />
-    <Compile Include="CFGExpressionGrammar.cs" />
-    <Compile Include="CFGParser.cs" />
-    <Compile Include="CFGProblem.cs" />
-    <Compile Include="CFGSymbolicExpressionTreeStringFormatter.cs" />
-    <Compile Include="Symbols\CFGProduction.cs" />
-    <Compile Include="Symbols\CFGSymbol.cs" />
-    <Compile Include="Interfaces\ICFGEvaluator.cs" />
-    <Compile Include="Evaluator\CFGProgrammableEvaluator.cs" />
+    <Compile Include="Analyzer\CFGPythonExceptionAnalyzer.cs" />
+    <Compile Include="Analyzer\CFGPythonTrainingBestSolutionAnalyzer.cs" />
+    <Compile Include="CFGPythonProblem.cs" />
+    <Compile Include="CFGPythonSolution.cs" />
+    <Compile Include="Evaluator\CFGPythonEvaluator.cs" />
+    <Compile Include="Interfaces\ICFGPythonAnalyzer.cs" />
+    <Compile Include="Interfaces\ICFGPythonEvaluator.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SymbolicExpressionTreeTerminalNodeStringFormatter.cs" />
+    <Compile Include="PythonHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HeuristicLab.snk" />
@@ -160,13 +141,12 @@
       <Name>HeuristicLab.Misc</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\HeuristicLab.Problems.Instances.CFG\HeuristicLab.Problems.Instances.CFG.csproj">
-      <Project>{4996fdbe-c9f3-4a0b-a1f1-8a1a5a1780e1}</Project>
-      <Name>HeuristicLab.Problems.Instances.CFG</Name>
+    <ProjectReference Include="..\HeuristicLab.Problems.CFG\HeuristicLab.Problems.CFG.csproj">
+      <Project>{0c90f665-57a1-4773-8c6e-28e73b8968bc}</Project>
+      <Name>HeuristicLab.Problems.CFG</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

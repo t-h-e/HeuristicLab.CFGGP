@@ -29,7 +29,7 @@ using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Problems.CFG.Python {
   /// <summary>
   /// An operator that analyzes the training best context free grammar solution.
   /// </summary>

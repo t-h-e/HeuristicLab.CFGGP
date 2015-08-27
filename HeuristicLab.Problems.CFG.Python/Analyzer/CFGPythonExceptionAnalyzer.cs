@@ -30,7 +30,7 @@ using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Problems.CFG.Python {
   /// <summary>
   /// An operator that tracks the frequencies of distinct exceptions during the evaluation.
   /// </summary>

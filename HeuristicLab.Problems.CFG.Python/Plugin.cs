@@ -21,24 +21,24 @@
 
 using HeuristicLab.PluginInfrastructure;
 
-namespace HeuristicLab.Problems.CFG {
-  [Plugin("HeuristicLab.Problems.CFG", "Provides classes to create grammar based problems", "3.3.12.0")]
-  [PluginFile("HeuristicLab.Problems.CFG.dll", PluginFileType.Assembly)]
+namespace HeuristicLab.Problems.CFG.Python {
+  [Plugin("HeuristicLab.Problems.CFG.Python", "Provides classes to create grammar based problems in python", "3.3.12.0")]
+  [PluginFile("HeuristicLab.Problems.CFG.Python.dll", PluginFileType.Assembly)]
+  [PluginDependency("HeuristicLab.Analysis", "3.3")]
   [PluginDependency("HeuristicLab.Collections", "3.3")]
   [PluginDependency("HeuristicLab.Common", "3.3")]
+  [PluginDependency("HeuristicLab.Common.Resources", "3.3")]
   [PluginDependency("HeuristicLab.Core", "3.3")]
   [PluginDependency("HeuristicLab.Data", "3.3")]
   [PluginDependency("HeuristicLab.Encodings.SymbolicExpressionTreeEncoding", "3.4")]
+  [PluginDependency("HeuristicLab.IronPython", "2.7.5")]
   [PluginDependency("HeuristicLab.Misc", "3.3")]
   [PluginDependency("HeuristicLab.Operators", "3.3")]
-  [PluginDependency("HeuristicLab.Operators.Programmable", "3.3")]
   [PluginDependency("HeuristicLab.Optimization", "3.3")]
-  [PluginDependency("HeuristicLab.Optimization.Operators", "3.3")]
   [PluginDependency("HeuristicLab.Parameters", "3.3")]
   [PluginDependency("HeuristicLab.Persistence", "3.3")]
+  [PluginDependency("HeuristicLab.Problems.CFG", "3.3")]
   [PluginDependency("HeuristicLab.Problems.Instances", "3.3")]
-  [PluginDependency("HeuristicLab.Random", "3.3")]
-  [PluginDependency("HeuristicLab.Selection", "3.3")]
   public class Plugin : PluginBase {
   }
 }

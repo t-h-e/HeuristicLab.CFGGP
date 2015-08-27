@@ -30,7 +30,7 @@ using HeuristicLab.Misc;
 using HeuristicLab.Optimization;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Problems.CFG.Python {
   /// <summary>
   /// CFG solution
   /// </summary>
@@ -42,6 +42,7 @@ namespace HeuristicLab.Problems.CFG {
 
     private const string ModelResultName = "Model";
     private const string CodeResultName = "Code";
+    private const string ProgramResultName = "Program";
 
     private const string TrainingException = "Training Exception";
     private const string TrainingQuality = "Training Quality";
@@ -76,27 +77,29 @@ namespace HeuristicLab.Problems.CFG {
 
       Add(new Result(ModelResultName, "The cfg model.", tree));
       string program = PythonHelper.FormatToProgram(tree, header, footer);
-      Add(new Result(CodeResultName, "The code with header and footer", new TextValue(program)));
+      Add(new Result(ProgramResultName, "The program with header and footer", new TextValue(program)));
+      string code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
+      Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));
 
       var training = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, timeout.Value);
       var test = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, timeout.Value);
 
       if (String.IsNullOrEmpty(training.Item3)) {
-        Add(new Result(TrainingException, "Exception occured during training", new TextValue(program)));
-      } else {
         Add(new Result(TrainingQuality, "Training quality", new DoubleValue(training.Item2)));
         var cases = training.Item1.ToArray();
         Add(new Result(TrainingSolvedCases, "Training cases which have been solved", new BoolArray(cases)));
-        Add(new Result(TrainingSolvedCasesPercentage, "Percentage of training cases which have been solved", new PercentValue((double)cases.Length / (double)cases.Count(x => x))));
+        Add(new Result(TrainingSolvedCasesPercentage, "Percentage of training cases which have been solved", new PercentValue((double)cases.Count(x => x) / (double)cases.Length)));
+      } else {
+        Add(new Result(TrainingException, "Exception occured during training", new TextValue(training.Item3)));
       }
 
       if (String.IsNullOrEmpty(test.Item3)) {
-        Add(new Result(TestException, "Exception occured during test", new TextValue(program)));
-      } else {
         Add(new Result(TestQuality, "Test quality", new DoubleValue(test.Item2)));
         var cases = test.Item1.ToArray();
         Add(new Result(TestSolvedCases, "Test cases which have been solved", new BoolArray(cases)));
-        Add(new Result(TestSolvedCasesPercentage, "Percentage of test cases which have been solved", new PercentValue((double)cases.Length / (double)cases.Count(x => x))));
+        Add(new Result(TestSolvedCasesPercentage, "Percentage of test cases which have been solved", new PercentValue((double)cases.Count(x => x) / (double)cases.Length)));
+      } else {
+        Add(new Result(TestException, "Exception occured during test", new TextValue(test.Item3)));
       }
     }
 

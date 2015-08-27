@@ -26,10 +26,9 @@ using System.Text;
 using System.Threading;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
 
-namespace HeuristicLab.Problems.CFG {
+namespace HeuristicLab.Problems.CFG.Python {
   public class PythonHelper {
     private const String INDENTSPACE = "  ";
     private static string LINESEPARATOR = Environment.NewLine;
@@ -158,7 +157,7 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     public static Tuple<IEnumerable<bool>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
-      ScriptEngine pyEngine = Python.CreateEngine();
+      ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine();
       ScriptScope scope = pyEngine.CreateScope();
 
       // set variables in scope
