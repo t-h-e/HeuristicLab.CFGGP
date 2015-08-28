@@ -132,7 +132,7 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Selector\LexicaseSelector.cs" />
-    <Compile Include="Selector\LexicaseWithFallbackSelector.cs" />
+    <Compile Include="Selector\CaseWithFallbackSelector.cs" />
     <Compile Include="Selector\MultiSelector.cs">
       <SubType>Code</SubType>
     </Compile>

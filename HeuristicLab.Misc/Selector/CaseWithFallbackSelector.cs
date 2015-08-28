@@ -104,7 +104,7 @@ namespace HeuristicLab.Misc.Selector {
       Parameters.Add(new ValueLookupParameter<IntValue>("NumberOfSelectedSubScopes", "The number of scopes that should be selected."));
       Parameters.Add(new ValueLookupParameter<BoolValue>("CopySelected", "True if the scopes should be copied, false if they should be moved.", new BoolValue(true)));
       Parameters.Add(new LookupParameter<IRandom>("Random", "The random number generator to use."));
-      Parameters.Add(new ValueParameter<ISelector>("CaseSelector", "A Case Selector"));
+      Parameters.Add(new ValueParameter<ICaseSingleObjectiveSelector>("CaseSelector", "A Case Selector"));
       Parameters.Add(new ValueParameter<ISelector>("FallbackSelector", "Fallback selector"));
       Parameters.Add(new ScopeTreeLookupParameter<BoolArray>("Cases", "The successful evaluated cases."));
       Parameters.Add(new ValueParameter<BoolValue>("AtLeastOneCaseSolved", "If at least one case has been solved by any individual, lexicase selection will be applied."));
