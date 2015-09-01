@@ -1,0 +1,50 @@
+// *****************************************************************************
+// list grammar for int list
+// *****************************************************************************
+//
+// depends on: int (int, int_var)
+// return: list of int
+//         int (optional)
+//         bool (optional)
+// *****************************************************************************
+
+<list_int_var> ::= 'listvar_int'
+
+<list_int_assign> ::= <list_int_var>' = '<list_int>
+
+<list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
+<list_int_slice> ::= <list_int>'['<int>':'<int>']' | <list_int>'[:'<int>']' | <list_int>'['<int>':]'
+<list_int_range> ::= 'list(range('<int>','<int>'))'
+
+<getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
+<setListIndexToCall_int> ::= 'setListIndexTo('<list_int>', '<int>', '<int>')'
+
+// Add to
+
+<call> ::= <list_int_var>'.append('<int>')'
+         | <list_int_var>'.insert('<int>','<int>')'
+         | <deleteListItemCall>
+         | <setListIndexToCall>
+
+<for> ::= <loop-header>'for forCounter% in '<list_int><loop-block>
+        | <loop-header>'for '<int_var>' in '<list_int><loop-block>
+
+// Generic for all
+
+<in_list_comp_op> ::= 'in'|'not in'
+<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
+
+// Return int
+
+<ret_int> ::= <getListIndexCall_int>
+
+// Return bool
+
+<ret_bool> ::= <int> <in_list_comp_op> <list_int>
+
+// *****************************************************************************
+// Helper Code
+def getIndexIntList(curList, index):
+  if not curList:
+    return int()
+  return curList[index % len(curList)]

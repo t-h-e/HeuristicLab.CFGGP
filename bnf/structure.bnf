@@ -1,0 +1,39 @@
+// *****************************************************************************
+// Grammar containing the python structure
+// *****************************************************************************
+//
+// depends on: int
+//             bool
+// *****************************************************************************
+
+<predefined> ::= 'a = int()'
+                 'x = bool()'
+                 'res = int()'
+                 <code>
+
+<code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'
+
+<statement> ::= <simple_stmt> | <compound_stmt>
+<simple_stmt> ::= <call> | <assign>
+<compound_stmt> ::= <if> | <while> | <for>
+
+<call> ::= //call statements
+
+<assign> ::= <int_assing>
+			| <bool_assign>
+
+<if> ::= <if-then> | <if-then><else>
+
+<if-then> ::= 'if '<bool><block>
+<else> ::= 'else'<block>
+
+<block> ::= ':{:\n'<code>'\n:}\n'
+
+
+<while> ::= <loop-header>'while '<bool><loop-block>
+<for> ::= <loop-header>'for forCounter% in '<list><loop-block>
+        | <loop-header>'for '<int_var>' in '<list><loop-block>
+
+<loop-header> ::= 'loopBreak% = 0\n'
+// stop is set by outer code to break immediately
+<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop:{:\nbreak\n:}\nloopBreak% += 1:}\n'

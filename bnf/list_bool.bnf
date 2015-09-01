@@ -1,0 +1,44 @@
+// *****************************************************************************
+// list grammar for bool list
+// *****************************************************************************
+//
+// depends on: bool (bool, bool_var)
+// return: list of int
+//         bool (optional)
+// *****************************************************************************
+
+<list_bool_var> ::= 'listvar_bool'
+
+<list_bool_assign> ::= <list_bool_var>' = '<list_bool>
+
+<list_bool> ::= <list_bool_var> | <list_bool_slice>
+<list_bool_slice> ::= <list>'['<int>':'<int>']' | <list>'[:'<int>']' | <list>'['<int>':]'
+
+<getListIndexCall_bool> ::= 'getIndexBoolList('<list_bool>', '<int>')'
+<setListIndexToCall_bool> ::= 'setListIndexTo('<list_bool>', '<int>', '<bool>')'
+
+// Add to
+
+<call> ::= <list_bool_var>'.append('<int>')'
+         | <list_bool_var>'.insert('<int>','<bool>')'
+         | <deleteListItemCall>
+         | <setListIndexToCall>
+
+<for> ::= <loop-header>'for forCounter% in '<list_bool><loop-block>
+        | <loop-header>'for '<bool_var>' in '<list_bool><loop-block>
+
+// Generic for all
+
+<in_list_comp_op> ::= 'in'|'not in'
+<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
+
+// Return bool
+
+<ret_bool> ::= <getListIndexCall_bool> | <bool> <in_list_comp_op> <list_bool>
+
+// *****************************************************************************
+// Helper Code
+def getIndexBoolList(curList, index):
+  if not curList:
+    return bool()
+  return curList[index % len(curList)]

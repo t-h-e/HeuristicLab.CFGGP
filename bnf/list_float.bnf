@@ -1,0 +1,49 @@
+// *****************************************************************************
+// list grammar for float list
+// *****************************************************************************
+//
+// depends on: float (float, float_var)
+// return: list of int
+//         float (optional)
+//         bool (optional)
+// *****************************************************************************
+
+<list_float_var> ::= 'listvar_float'
+
+<list_float_assign> ::= <list_float_var>' = '<list_float>
+
+<list_float> ::= <list_float_var> | <list_float_slice>
+<list_float_slice> ::= <list>'['<int>':'<int>']' | <list>'[:'<int>']' | <list>'['<int>':]'
+
+<getListIndexCall_float> ::= 'getIndexFloatList('<list_float>', '<int>')'
+<setListIndexToCall_float> ::= 'setListIndexTo('<list_float>', '<int>', '<float>')'
+
+// Add to
+
+<call> ::= <list_float_var>'.append('<int>')'
+         | <list_float_var>'.insert('<int>','<float>')'
+         | <deleteListItemCall>
+         | <setListIndexToCall>
+
+<for> ::= <loop-header>'for forCounter% in '<list_float><loop-block>
+        | <loop-header>'for '<float_var>' in '<list_float><loop-block>
+
+// Generic for all
+
+<in_list_comp_op> ::= 'in'|'not in'
+<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
+
+// Return float
+
+<ret_float> ::= <getListIndexCall_float>
+
+// Return bool
+
+<ret_bool> ::= <float> <in_list_comp_op> <list_float>
+
+// *****************************************************************************
+// Helper Code
+def getIndexFloatList(curList, index):
+  if not curList:
+    return float()
+  return curList[index % len(curList)]

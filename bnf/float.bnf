@@ -1,0 +1,42 @@
+// *****************************************************************************
+// float grammar
+// *****************************************************************************
+//
+// import math
+//
+// depends on: int
+// return: bool (optional)
+//         int (optional)
+// *****************************************************************************
+
+<float_var> ::= 'fl'
+
+<float_assing> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
+
+<float> ::= <float_var> | <float_const> | <int>
+        | <arith_prefix><float>
+        | '(' <float> <arith_ops> <float> ')' | '(' <int> <arith_ops> <float> ')' | '(' <float> <arith_ops> <int> ')'
+        | <arith_ops_protected>'('<float>','<float>')' | <arith_ops_protected>'('<int>','<float>')' | <arith_ops_protected>'('<float>','<int>')'
+        | 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
+        | 'min('<float>', '<float>')' | 'min('<int>', '<float>')' | 'min('<float>', '<int>')'
+        | 'max('<float>', '<float>')' | 'max('<int>', '<float>')' | 'max('<float>', '<int>')'
+        | 'abs('<float>')'
+
+// cannot use <int_const>.<int_const>, because int_const cannot have leading zeros
+<float_const> = <float_const_part>.<float_const_part>
+<float_const_part> ::= <float_const_part><num+zero> | <num+zero>
+<num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+// Return int
+
+<ret_int> ::= 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
+
+// Return bool
+
+<ret_bool> ::= <float> <comp_op> <float> | <int> <comp_op> <float> | <float> <comp_op> <int>
+
+ceil
+floor
+min
+max (also for list and int?)
+abs (also for int?)
