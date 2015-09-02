@@ -47,7 +47,7 @@
       this.valueTextBox.Name = "valueTextBox";
       this.valueTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
       this.valueTextBox.Size = new System.Drawing.Size(128, 61);
-      this.valueTextBox.TabIndex = 4;
+      this.valueTextBox.TabIndex = 2;
       this.valueTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.valueTextBox_KeyDown);
       this.valueTextBox.Validated += new System.EventHandler(this.valueTextBox_Validated);
       // 

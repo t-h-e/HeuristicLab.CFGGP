@@ -109,6 +109,7 @@ namespace HeuristicLab.Misc.Selector {
       Parameters.Add(new ScopeTreeLookupParameter<BoolArray>("Cases", "The successful evaluated cases."));
       Parameters.Add(new ValueParameter<BoolValue>("AtLeastOneCaseSolved", "If at least one case has been solved by any individual, lexicase selection will be applied."));
       CopySelectedParameter.Hidden = true;
+      AtLeastOneCaseSolvedParameter.Hidden = true;
       #endregion
 
       #region Create operators

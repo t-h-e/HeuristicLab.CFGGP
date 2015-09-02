@@ -41,6 +41,16 @@ namespace HeuristicLab.Problems.CFG {
     private GroupSymbol ruleSymbols;
 
     public CFGExpressionGrammar readGrammarBNF(String bnf) {
+      try {
+        return readGrammarBNFPrivate(bnf);
+      }
+      catch (Exception e) {
+        Console.WriteLine(e.StackTrace);
+        return new CFGExpressionGrammar();
+      }
+    }
+
+    private CFGExpressionGrammar readGrammarBNFPrivate(String bnf) {
       treeGrammar = new CFGExpressionGrammar();
       ruleSymbols = new GroupSymbol();
       ruleSymbols.Name = "Rule symbols";

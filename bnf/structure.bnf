@@ -19,8 +19,7 @@
 
 <call> ::= //call statements
 
-<assign> ::= <int_assing>
-			| <bool_assign>
+<assign> ::= // assign statements
 
 <if> ::= <if-then> | <if-then><else>
 
@@ -31,8 +30,7 @@
 
 
 <while> ::= <loop-header>'while '<bool><loop-block>
-<for> ::= <loop-header>'for forCounter% in '<list><loop-block>
-        | <loop-header>'for '<int_var>' in '<list><loop-block>
+<for> ::= // for statements depend on lists or use range
 
 <loop-header> ::= 'loopBreak% = 0\n'
 // stop is set by outer code to break immediately

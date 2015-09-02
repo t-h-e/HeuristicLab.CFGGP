@@ -8,22 +8,24 @@
 //         bool (optional)
 // *****************************************************************************
 
-<list_string_var> ::= 'listvar_string'
+<list_string_var> ::= 'list_string'
 
 <list_string_assign> ::= <list_string_var>' = '<list_string>
 
 <list_string> ::= <list_string_var> | <list_string_slice>
-<list_string_slice> ::= <list>'['<int>':'<int>']' | <list>'[:'<int>']' | <list>'['<int>':]'
+                | <string>'.split()' | <string>'.split('<string>')'
+<list_string_slice> ::= <list_string>'['<int>':'<int>']' | <list_string>'[:'<int>']' | <list_string>'['<int>':]'
 
 <getListIndexCall_string> ::= 'getIndexStringList('<list_string>', '<int>')'
 <setListIndexToCall_string> ::= 'setListIndexTo('<list_string>', '<int>', '<string>')'
+<deleteListItemCall_string> ::= 'deleteListItem('<list_string>', '<int>')'
 
 // Add to
 
-<call> ::= <list_string_var>'.append('<int>')'
+<call> ::= <list_string_var>'.append('<string>')'
          | <list_string_var>'.insert('<int>','<string>')'
-         | <deleteListItemCall>
-         | <setListIndexToCall>
+         | <deleteListItemCall_string>
+         | <setListIndexToCall_string>
 
 <for> ::= <loop-header>'for forCounter% in '<list_string><loop-block>
         | <loop-header>'for '<string_var>' in '<list_string><loop-block>
@@ -31,11 +33,13 @@
 // Generic for all
 
 <in_list_comp_op> ::= 'in'|'not in'
-<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
 
 // Return string
 
 <ret_string> ::= <getListIndexCall_string>
+             | 'min('<list_string>')'
+             | 'max('<list_string>')'
+             | <string>'.join('<list_string>')'
 
 // Return bool
 
@@ -43,6 +47,8 @@
 
 // *****************************************************************************
 // Helper Code
+// *****************************************************************************
+
 def getIndexStringList(curList, index):
   if not curList:
     return str()

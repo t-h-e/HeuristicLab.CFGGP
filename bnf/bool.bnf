@@ -5,12 +5,12 @@
 // depends on: nothing
 // *****************************************************************************
 
-<bool_var> ::= 'x'
+<bool_var> ::= 'b'
 
 <bool_assign> ::= <bool_var>' = '<bool>
 
 <bool> ::= <bool_var> | <bool_const>
-         | <bool_pre><bool>
+         | <bool_pre> <bool>
          | '(' <bool> <bool_op> <bool> ')'
 
 <bool_op> ::= 'and' | 'or'

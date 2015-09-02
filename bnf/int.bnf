@@ -6,14 +6,17 @@
 // return: bool (optional)
 // *****************************************************************************
 
-<int_var> ::= 'a'
+<int_var> ::= 'i'
 
-<int_assing> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
+<int_assign> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
 
 <int> ::= <int_var> | <int_const>
         | <arith_prefix><int>
         | '(' <int> <arith_ops> <int> ')'
         | <arith_ops_protected>'('<int>','<int>')'
+        | 'min('<int>', '<int>')'
+        | 'max('<int>', '<int>')'
+        | 'abs('<int>')'
 
 // avoid leading zeros, which lead to a syntax error
 <int_const>   ::= <num><int_const_2> | <num+zero>
@@ -38,6 +41,7 @@
 
 // *****************************************************************************
 // Helper Code
+// *****************************************************************************
 
 def div(nom, denom):
   if denom <= 0.00001:

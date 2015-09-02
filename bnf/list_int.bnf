@@ -8,7 +8,7 @@
 //         bool (optional)
 // *****************************************************************************
 
-<list_int_var> ::= 'listvar_int'
+<list_int_var> ::= 'list_int'
 
 <list_int_assign> ::= <list_int_var>' = '<list_int>
 
@@ -18,13 +18,14 @@
 
 <getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
 <setListIndexToCall_int> ::= 'setListIndexTo('<list_int>', '<int>', '<int>')'
+<deleteListItemCall_int> ::= 'deleteListItem('<list_int>', '<int>')'
 
 // Add to
 
 <call> ::= <list_int_var>'.append('<int>')'
          | <list_int_var>'.insert('<int>','<int>')'
-         | <deleteListItemCall>
-         | <setListIndexToCall>
+         | <deleteListItemCall_int>
+         | <setListIndexToCall_int>
 
 <for> ::= <loop-header>'for forCounter% in '<list_int><loop-block>
         | <loop-header>'for '<int_var>' in '<list_int><loop-block>
@@ -32,11 +33,12 @@
 // Generic for all
 
 <in_list_comp_op> ::= 'in'|'not in'
-<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
 
 // Return int
 
 <ret_int> ::= <getListIndexCall_int>
+             | 'min('<list_int>')'
+             | 'max('<list_int>')'
 
 // Return bool
 
@@ -44,6 +46,8 @@
 
 // *****************************************************************************
 // Helper Code
+// *****************************************************************************
+
 def getIndexIntList(curList, index):
   if not curList:
     return int()

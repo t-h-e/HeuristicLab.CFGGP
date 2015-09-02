@@ -9,9 +9,9 @@
 //         int (optional)
 // *****************************************************************************
 
-<float_var> ::= 'fl'
+<float_var> ::= 'f'
 
-<float_assing> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
+<float_assign> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
 
 <float> ::= <float_var> | <float_const> | <int>
         | <arith_prefix><float>
@@ -23,8 +23,10 @@
         | 'abs('<float>')'
 
 // cannot use <int_const>.<int_const>, because int_const cannot have leading zeros
-<float_const> = <float_const_part>.<float_const_part>
+<float_const> ::= <float_const_part>'.'<float_const_part>
 <float_const_part> ::= <float_const_part><num+zero> | <num+zero>
+
+// already contained in int
 <num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 // Return int
@@ -34,9 +36,3 @@
 // Return bool
 
 <ret_bool> ::= <float> <comp_op> <float> | <int> <comp_op> <float> | <float> <comp_op> <int>
-
-ceil
-floor
-min
-max (also for list and int?)
-abs (also for int?)

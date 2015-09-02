@@ -8,22 +8,23 @@
 //         bool (optional)
 // *****************************************************************************
 
-<list_float_var> ::= 'listvar_float'
+<list_float_var> ::= 'list_float'
 
 <list_float_assign> ::= <list_float_var>' = '<list_float>
 
 <list_float> ::= <list_float_var> | <list_float_slice>
-<list_float_slice> ::= <list>'['<int>':'<int>']' | <list>'[:'<int>']' | <list>'['<int>':]'
+<list_float_slice> ::= <list_float>'['<int>':'<int>']' | <list_float>'[:'<int>']' | <list_float>'['<int>':]'
 
 <getListIndexCall_float> ::= 'getIndexFloatList('<list_float>', '<int>')'
 <setListIndexToCall_float> ::= 'setListIndexTo('<list_float>', '<int>', '<float>')'
+<deleteListItemCall_float> ::= 'deleteListItem('<list_float>', '<int>')'
 
 // Add to
 
-<call> ::= <list_float_var>'.append('<int>')'
+<call> ::= <list_float_var>'.append('<float>')'
          | <list_float_var>'.insert('<int>','<float>')'
-         | <deleteListItemCall>
-         | <setListIndexToCall>
+         | <deleteListItemCall_float>
+         | <setListIndexToCall_float>
 
 <for> ::= <loop-header>'for forCounter% in '<list_float><loop-block>
         | <loop-header>'for '<float_var>' in '<list_float><loop-block>
@@ -31,11 +32,12 @@
 // Generic for all
 
 <in_list_comp_op> ::= 'in'|'not in'
-<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
 
 // Return float
 
 <ret_float> ::= <getListIndexCall_float>
+             | 'min('<list_float>')'
+             | 'max('<list_float>')'
 
 // Return bool
 
@@ -43,6 +45,8 @@
 
 // *****************************************************************************
 // Helper Code
+// *****************************************************************************
+
 def getIndexFloatList(curList, index):
   if not curList:
     return float()

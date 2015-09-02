@@ -7,22 +7,23 @@
 //         bool (optional)
 // *****************************************************************************
 
-<list_bool_var> ::= 'listvar_bool'
+<list_bool_var> ::= 'list_bool'
 
 <list_bool_assign> ::= <list_bool_var>' = '<list_bool>
 
 <list_bool> ::= <list_bool_var> | <list_bool_slice>
-<list_bool_slice> ::= <list>'['<int>':'<int>']' | <list>'[:'<int>']' | <list>'['<int>':]'
+<list_bool_slice> ::= <list_bool>'['<int>':'<int>']' | <list_bool>'[:'<int>']' | <list_bool>'['<int>':]'
 
 <getListIndexCall_bool> ::= 'getIndexBoolList('<list_bool>', '<int>')'
 <setListIndexToCall_bool> ::= 'setListIndexTo('<list_bool>', '<int>', '<bool>')'
+<deleteListItemCall_bool> ::= 'deleteListItem('<list_bool>', '<int>')'
 
 // Add to
 
-<call> ::= <list_bool_var>'.append('<int>')'
+<call> ::= <list_bool_var>'.append('<bool>')'
          | <list_bool_var>'.insert('<int>','<bool>')'
-         | <deleteListItemCall>
-         | <setListIndexToCall>
+         | <deleteListItemCall_bool>
+         | <setListIndexToCall_bool>
 
 <for> ::= <loop-header>'for forCounter% in '<list_bool><loop-block>
         | <loop-header>'for '<bool_var>' in '<list_bool><loop-block>
@@ -30,14 +31,17 @@
 // Generic for all
 
 <in_list_comp_op> ::= 'in'|'not in'
-<deleteListItemCall> ::= 'deleteListItem('<list>', '<int>')'
 
 // Return bool
 
 <ret_bool> ::= <getListIndexCall_bool> | <bool> <in_list_comp_op> <list_bool>
+             | 'min('<list_bool>')'
+             | 'max('<list_bool>')'
 
 // *****************************************************************************
 // Helper Code
+// *****************************************************************************
+
 def getIndexBoolList(curList, index):
   if not curList:
     return bool()
