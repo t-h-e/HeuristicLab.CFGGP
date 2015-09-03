@@ -11,9 +11,10 @@
 
 <string_assign> ::= <string_var>' = '<string>
 
-<string> ::= <string_var> | <string_const> | <string> + <string>
+<string> ::= <string_var> | <string_const>
+           | '('<string>' + '<string>')'
            //may not be used
-           | <string> * <int>
+           | '('<string>' * '<int>')'
            | <string_slice>
            | <getStringIndexCall>
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
@@ -21,10 +22,11 @@
 
 <string_slice> ::= <string>'['<int>':'<int>']' | <string>'[:'<int>']' | <string>'['<int>':]'
 
-<getStringIndexCall> ::= 'getIndex('<string>', '<int>')'
+<getStringIndexCall> ::= 'getCharFromString('<string>', '<int>')'
 
-<string_const> ::= <string_const><string_literal> | <string_literal><string_const> | <string_literal>
-<string_literal> ::= '' | '\n' | '\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
+<string_const> ::= "'"<string_const_part>"'"
+<string_const_part> ::= <string_const_part><string_literal> | <string_literal><string_const_part> | <string_literal> | <string_literal>
+<string_literal> ::= '' | '\\n' | '\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
 
 <saveChr> ::= 'saveChr('<int>')'
 <saveOrd> ::= 'saveOrd('<string>')'
@@ -42,10 +44,15 @@
 // Helper Code
 // *****************************************************************************
 
+def getCharFromString(curString, index):
+  if not curString:
+    return ''
+  return curString[index % len(curString)]
+
 def saveChr(number):
     return chr(number % 1114111)
 
 def saveOrd(literal):
-    if len(literal < 0):
-        return ' '
+    if len(literal) <= 0:
+        return 32
     return ord(literal[0])

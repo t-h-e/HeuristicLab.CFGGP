@@ -3,8 +3,8 @@
 // *****************************************************************************
 //
 // depends on: bool (bool, bool_var)
-// return: list of int
-//         bool (optional)
+// return: bool
+//         int
 // *****************************************************************************
 
 <list_bool_var> ::= 'list_bool'
@@ -32,11 +32,13 @@
 
 <in_list_comp_op> ::= 'in'|'not in'
 
+// Return int
+
+<ret_int> ::= 'len('<list_bool>')'
+
 // Return bool
 
 <ret_bool> ::= <getListIndexCall_bool> | <bool> <in_list_comp_op> <list_bool>
-             | 'min('<list_bool>')'
-             | 'max('<list_bool>')'
 
 // *****************************************************************************
 // Helper Code

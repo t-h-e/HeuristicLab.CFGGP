@@ -34,6 +34,7 @@ using HeuristicLab.Problems.Instances;
 using HeuristicLab.Problems.Instances.CFG;
 
 namespace HeuristicLab.Problems.CFG {
+  [StorableClass]
   public abstract class CFGProblem<T> : SingleObjectiveHeuristicOptimizationProblem<T, ISymbolicExpressionTreeCreator>, IStorableContent,
     IProblemInstanceConsumer<CFGData>
     where T : class, ICFGEvaluator {
@@ -272,7 +273,7 @@ namespace HeuristicLab.Problems.CFG {
   }
 
   [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
-  [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 140)]
+  [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 151)]
   [StorableClass]
   public class CFGProblem : CFGProblem<CFGProgrammableEvaluator> {
     [StorableConstructor]

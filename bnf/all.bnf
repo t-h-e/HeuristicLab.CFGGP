@@ -102,8 +102,6 @@
          | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
          // from list_bool
          | <getListIndexCall_bool> | <bool> <in_list_comp_op> <list_bool>
-         | 'min('<list_bool>')'
-         | 'max('<list_bool>')'
          // from list_int
          | <int> <in_list_comp_op> <list_int>
          // from list_float
@@ -130,13 +128,18 @@
         | 'max('<int>', '<int>')'
         | 'abs('<int>')'
         // from float
-        | 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
+        | 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))'
         // from string
         | 'len('<string>')' | <saveOrd>
+        // from list_bool
+        | 'len('<list_bool>')'
         // from list_int
         | <getListIndexCall_int>
-        | 'min('<list_int>')'
-        | 'max('<list_int>')'
+        | 'len('<list_int>')'
+        // from list_float
+        | 'len('<list_float>')'
+        // from list_string
+        | 'len('<list_string>')'
 
 // avoid leading zeros, which lead to a syntax error
 <int_const>   ::= <num><int_const_2> | <num+zero>
@@ -171,8 +174,6 @@
         | 'abs('<float>')'
         // from list_float
         | <getListIndexCall_float>
-        | 'min('<list_float>')'
-        | 'max('<list_float>')'
 
 // cannot use <int_const>.<int_const>, because int_const cannot have leading zeros
 <float_const> ::= <float_const_part>'.'<float_const_part>
@@ -184,26 +185,25 @@
 
 <string_assign> ::= <string_var>' = '<string>
 
-<string> ::= <string_var> | <string_const> | <string> + <string>
+<string> ::= <string_var> | <string_const>
+           | '('<string>' + '<string>')'
            //may not be used
-           | <string> * <int>
+           | '('<string>' * '<int>')'
            | <string_slice>
            | <getStringIndexCall>
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
            | <string>'.capitalize()'
            // from list_string
            | <getListIndexCall_string>
-           | 'min('<list_string>')'
-           | 'max('<list_string>')'
            | <string>'.join('<list_string>')'
 
 <string_slice> ::= <string>'['<int>':'<int>']' | <string>'[:'<int>']' | <string>'['<int>':]'
 
-<getStringIndexCall> ::= 'getIndex('<string>', '<int>')'
+<getStringIndexCall> ::= 'getCharFromString('<string>', '<int>')'
 
-<string_const> ::= <string_const><string_literal> | <string_literal><string_const> | <string_literal>
-<string_literal> ::= "'blub'"
-//<string_literal> ::= '' | '\n' | '\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
+<string_const> ::= "'"<string_const_part>"'"
+<string_const_part> ::= <string_const_part><string_literal> | <string_literal><string_const_part> | <string_literal> | <string_literal>
+<string_literal> ::= '' | '\\n' | '\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
 
 <saveChr> ::= 'saveChr('<int>')'
 <saveOrd> ::= 'saveOrd('<string>')'
@@ -259,7 +259,7 @@
 <list_string_assign> ::= <list_string_var>' = '<list_string>
 
 <list_string> ::= <list_string_var> | <list_string_slice>
-                | <string>'.split()' | <string>'.split('<string>')'
+                | 'saveSplit('<string>','<string>')'
 <list_string_slice> ::= <list_string>'['<int>':'<int>']' | <list_string>'[:'<int>']' | <list_string>'['<int>':]'
 
 <getListIndexCall_string> ::= 'getIndexStringList('<list_string>', '<int>')'

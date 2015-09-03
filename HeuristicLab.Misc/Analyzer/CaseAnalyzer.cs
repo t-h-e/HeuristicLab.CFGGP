@@ -73,6 +73,11 @@ namespace HeuristicLab.Misc {
 
     public override IOperation Apply() {
       ItemArray<BoolArray> cases = CasesTreeParameter.ActualValue;
+      int length = cases.First().Length;
+      if (cases.Any(x => x.Length != length)) {
+        throw new ArgumentException("Every individual has to have the same number of cases.");
+      }
+
       double count = cases.Count();
       int rows = cases.First().Length;
       ResultCollection results = ResultsParameter.ActualValue;

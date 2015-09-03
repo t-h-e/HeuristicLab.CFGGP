@@ -190,7 +190,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       // get return values
       IEnumerable<bool> cases;
       if (!scope.TryGetVariable<IEnumerable<bool>>("cases", out cases)) {
-        cases = new List<bool>();
+        cases = Enumerable.Repeat(false, indices.Count());
       }
 
       double quality;

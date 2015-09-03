@@ -3,9 +3,8 @@
 // *****************************************************************************
 //
 // depends on: int (int, int_var)
-// return: list of int
-//         int (optional)
-//         bool (optional)
+// return: int
+//         bool
 // *****************************************************************************
 
 <list_int_var> ::= 'list_int'
@@ -37,8 +36,7 @@
 // Return int
 
 <ret_int> ::= <getListIndexCall_int>
-             | 'min('<list_int>')'
-             | 'max('<list_int>')'
+            | 'len('<list_int>')'
 
 // Return bool
 

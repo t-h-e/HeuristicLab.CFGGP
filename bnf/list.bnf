@@ -3,9 +3,9 @@
 // *****************************************************************************
 //
 // depends on: type (type, type_var)
-// return: list of int
-//         type (optional)
-//         bool (optional)
+// return: type
+//         bool
+//         int
 // *****************************************************************************
 
 <list_type_var> ::= 'list_type'
@@ -37,8 +37,10 @@
 // Return type
 
 <ret_type> ::= <getListIndexCall_type>
-             | 'min('<list_type>')'
-             | 'max('<list_type>')'
+
+// Return int
+
+<ret_int> ::= 'len('<list_type>')'
 
 // Return bool
 

@@ -3,9 +3,9 @@
 // *****************************************************************************
 //
 // depends on: string (string, string_var)
-// return: list of int
-//         string (optional)
-//         bool (optional)
+// return: string
+//         bool
+//         int
 // *****************************************************************************
 
 <list_string_var> ::= 'list_string'
@@ -13,7 +13,7 @@
 <list_string_assign> ::= <list_string_var>' = '<list_string>
 
 <list_string> ::= <list_string_var> | <list_string_slice>
-                | <string>'.split()' | <string>'.split('<string>')'
+                | 'saveSplit('<string>','<string>')'
 <list_string_slice> ::= <list_string>'['<int>':'<int>']' | <list_string>'[:'<int>']' | <list_string>'['<int>':]'
 
 <getListIndexCall_string> ::= 'getIndexStringList('<list_string>', '<int>')'
@@ -34,11 +34,13 @@
 
 <in_list_comp_op> ::= 'in'|'not in'
 
+// Return int
+
+<ret_int> ::= 'len('<list_string>')'
+
 // Return string
 
 <ret_string> ::= <getListIndexCall_string>
-             | 'min('<list_string>')'
-             | 'max('<list_string>')'
              | <string>'.join('<list_string>')'
 
 // Return bool
@@ -48,6 +50,12 @@
 // *****************************************************************************
 // Helper Code
 // *****************************************************************************
+
+def saveSplit(curString, separator):
+  if not separator:
+    return []
+  return curString.split(separator)
+
 
 def getIndexStringList(curList, index):
   if not curList:

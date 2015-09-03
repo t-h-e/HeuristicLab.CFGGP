@@ -59,14 +59,26 @@ def getIndexStringList(curList, index):
     return str()
   return curList[index % len(curList)]
 
+def getCharFromString(curString, index):
+  if not curString:
+    return ''
+  return curString[index % len(curString)]
+
 
 def saveChr(number):
     return chr(number % 1114111)
 
+
 def saveOrd(literal):
-    if len(literal < 0):
-        return ' '
+    if len(literal) <= 0:
+        return 32
     return ord(literal[0])
+
+
+def saveSplit(curString, separator):
+  if not separator:
+    return []
+  return curString.split(separator)
 
 # *****************************************************************************
 

@@ -31,7 +31,8 @@
 
 // Return int
 
-<ret_int> ::= 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
+// have to call int() for python 2.7.5 (which is run by IronPython)
+<ret_int> ::= 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))'
 
 // Return bool
 
