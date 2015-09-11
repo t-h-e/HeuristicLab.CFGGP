@@ -114,17 +114,21 @@ namespace HeuristicLab.Problems.CFG {
       int swaps = 400;
 
       int LONGSIZE = 64;
-      int N_SORTING_NETWORK = 10;
+      int N_SORTING_NETWORK = 4;
+
+      long fitnessCases = (long)Math.Pow(2, N_SORTING_NETWORK);
+      int arrayLength = (int)(fitnessCases / LONGSIZE);
+      arrayLength = (fitnessCases % LONGSIZE) != 0
+              ? arrayLength + 1
+              : arrayLength;
 
       // create data
-      if (InputParameter.ActualValue == null || OutputParameter.ActualValue == null) {
+      if (InputParameter.ActualValue == null || OutputParameter.ActualValue == null
+        || InputParameter.ActualValue.Rows != N_SORTING_NETWORK || InputParameter.ActualValue.Columns != arrayLength
+        || OutputParameter.ActualValue.Rows != N_SORTING_NETWORK || OutputParameter.ActualValue.Columns != arrayLength) {
         long[,] helpInputs;
         long[,] helpOutputs;
-        long fitnessCases = (long)Math.Pow(2, N_SORTING_NETWORK);
-        int arrayLength = (int)(fitnessCases / LONGSIZE);
-        arrayLength = (fitnessCases % LONGSIZE) != 0
-                ? arrayLength + 1
-                : arrayLength;
+
         helpInputs = new long[N_SORTING_NETWORK, arrayLength];
         helpOutputs = new long[N_SORTING_NETWORK, arrayLength];
 
@@ -150,8 +154,8 @@ namespace HeuristicLab.Problems.CFG {
         OutputParameter.Value = new LongMatrix(helpOutputs);
       }
 
-      LongMatrix inputs = InputParameter.ActualValue;
-      LongMatrix outputs = OutputParameter.ActualValue;
+      LongMatrix inputs = (LongMatrix)InputParameter.ActualValue.Clone();
+      LongMatrix outputs = (LongMatrix)OutputParameter.ActualValue.Clone();
 
       string phenotype = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(ProgramParameter.ActualValue);
 
@@ -217,12 +221,15 @@ namespace HeuristicLab.Problems.CFG {
       }
 
       double fitness = 0;
-      bool[] cases = new bool[N_SORTING_NETWORK * LONGSIZE + LONGSIZE];
-      for (int j = 0; j < sorting.Rows; j++) {
-        for (int k = 0; k < LONGSIZE; k++) {
+      bool[] cases = new bool[fitnessCases];
+      for (int j = 0; j < sorting.Columns; j++) {
+        int k = 0;
+        while ((j + 1 >= sorting.Columns && k < fitnessCases % LONGSIZE)
+          || (j + 1 < sorting.Columns && k < LONGSIZE)) {
           cases[j * LONGSIZE + k] = (sorting[0, j] & (1 << k)) != 0;
           if (cases[j * LONGSIZE + k]) fitness++;
 
+          k++;
         }
       }
 
