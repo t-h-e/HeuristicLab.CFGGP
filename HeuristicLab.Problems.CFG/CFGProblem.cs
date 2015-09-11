@@ -275,7 +275,7 @@ namespace HeuristicLab.Problems.CFG {
   [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 151)]
   [StorableClass]
-  public class CFGProblem : CFGProblem<CFGProgrammableEvaluator> {
+  public class CFGProblem : CFGProblem<ICFGEvaluator> {
     [StorableConstructor]
     protected CFGProblem(bool deserializing) : base(deserializing) { }
 

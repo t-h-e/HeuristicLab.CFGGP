@@ -129,6 +129,7 @@
     <Compile Include="Analyzer\CaseAnalyzer.cs" />
     <Compile Include="Interfaces\ICaseEvaluator.cs" />
     <Compile Include="Interfaces\ICaseSingleObjectiveSelector.cs" />
+    <Compile Include="LongMatrix.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Selector\LexicaseSelector.cs" />

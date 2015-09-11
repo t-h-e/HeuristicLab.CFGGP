@@ -62,7 +62,7 @@ namespace HeuristicLab.Problems.CFG {
       GroupSymbol curRuleSymbolGroup = null;
       String productionRuleName = null;
       List<string> productionRuleParts = new List<string>();
-      List<CFGSymbol> productionsForRule = new List<CFGSymbol>();
+      ICollection<CFGSymbol> productionsForRule = new HashSet<CFGSymbol>();
       List<CFGSymbol> symbolsForProduction = new List<CFGSymbol>();
 
       string[] lines = bnf.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
@@ -244,13 +244,8 @@ namespace HeuristicLab.Problems.CFG {
       return treeGrammar;
     }
 
-    private void CreateRule(CFGSymbol rule, List<CFGSymbol> productions) {
-      //treeGrammar.SetSubtreeCount(rule, 1, 1);
-      var frequencies = productions.GroupBy(x => x.Name).Select(x => new { Symbol = productions.First(y => y.Name == x.Key), Frequency = x.Count() });
-      foreach (var production in frequencies) {
-        production.Symbol.InitialFrequency = production.Frequency;
-      }
-      ruleDictionary.Add(rule.Name, productions.Select(x => x.Name).Distinct().Select(x => productions.First(y => y.Name == x)).ToList());
+    private void CreateRule(CFGSymbol rule, ICollection<CFGSymbol> productions) {
+      ruleDictionary.Add(rule.Name, productions.ToList());
       productions.Clear();
     }
 
@@ -261,11 +256,17 @@ namespace HeuristicLab.Problems.CFG {
       if (parts.Count - 1 != symbols.Count) {
         throw new ArgumentException("ParserError: Should not happen.");
       }
-      CFGSymbol production = new CFGProduction(name, parts);
-      curRuleSymbolGroup.SymbolsCollection.Add(production);
-      treeGrammar.SetSubtreeCount(production, symbols.Count, symbols.Count);
-      for (int i = 0; i < symbols.Count; i++) {
-        treeGrammar.AddAllowedChildSymbol(production, symbols[i], i);
+      CFGSymbol production = null;
+      if (!curRuleSymbolGroup.SymbolsCollection.Any(x => x.Name.Equals(name))) {
+        production = new CFGProduction(name, parts);
+        curRuleSymbolGroup.SymbolsCollection.Add(production);
+        treeGrammar.SetSubtreeCount(production, symbols.Count, symbols.Count);
+        for (int i = 0; i < symbols.Count; i++) {
+          treeGrammar.AddAllowedChildSymbol(production, symbols[i], i);
+        }
+      } else {
+        production = (CFGSymbol)curRuleSymbolGroup.SymbolsCollection.First(x => x.Name.Equals(name));
+        production.InitialFrequency++;
       }
       symbols.Clear();
       return production;

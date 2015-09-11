@@ -4,16 +4,28 @@
 
 // structure
 
-<predefined> ::= 'b = bool()'
-                 'i = int()'
-                 'f = float()'
-                 's = str()'
-                 'list_bool = []'
-                 'list_int = []'
-                 'list_float = []'
-                 'list_string = []'
+<predefined> ::= 'b0 = b1 = b2 = bool()'
+                 'i0 = i1 = i2 = int()'
+                 'f0 = f1 = f2 = float()'
+                 's0 = s1 = s2 = str()'
+                 'list_bool0 = list_bool1 = list_bool2 = []'
+                 'list_int0 = list_int1 = list_int2 = []'
+                 'list_float0 = list_float1 = list_float2 = []'
+                 'list_string0 = list_string1 = list_string2 = []'
                  'res = int()'
                  <code>
+
+// *****************************************************************************
+<bool_var> ::= 'b0' | 'b1' | 'b2'
+<int_var> ::= 'i0' | 'i1' | 'i2'
+<float_var> ::= 'f0' | 'f1' | 'f2'
+<string_var> ::= 's0' | 's1' | 's2'
+<list_bool_var> ::= 'list_bool0' | 'list_bool1' | 'list_bool2'
+<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2'
+<list_float_var> ::= 'list_float0' | 'list_float1' | 'list_float2'
+<list_string_var> ::= 'list_string0' | 'list_string1' | 'list_string2'
+// *****************************************************************************
+
 
 <code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'
 
@@ -86,8 +98,6 @@
 
 // bool
 
-<bool_var> ::= 'b'
-
 <bool_assign> ::= <bool_var>' = '<bool>
 
 <bool> ::= <bool_var> | <bool_const>
@@ -115,8 +125,6 @@
 <bool_const> ::= 'True' | 'False'
 
 // int
-
-<int_var> ::= 'i'
 
 <int_assign> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
 
@@ -160,8 +168,6 @@
 
 // float
 
-<float_var> ::= 'f'
-
 <float_assign> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
 
 <float> ::= <float_var> | <float_const> | <int>
@@ -180,8 +186,6 @@
 <float_const_part> ::= <float_const_part><num+zero> | <num+zero>
 
 // from string
-
-<string_var> ::= 's'
 
 <string_assign> ::= <string_var>' = '<string>
 
@@ -214,8 +218,6 @@
 
 // from list_bool
 
-<list_bool_var> ::= 'list_bool'
-
 <list_bool_assign> ::= <list_bool_var>' = '<list_bool>
 
 <list_bool> ::= <list_bool_var> | <list_bool_slice>
@@ -226,8 +228,6 @@
 <deleteListItemCall_bool> ::= 'deleteListItem('<list_bool>', '<int>')'
 
 // from list_int
-
-<list_int_var> ::= 'list_int'
 
 <list_int_assign> ::= <list_int_var>' = '<list_int>
 
@@ -241,8 +241,6 @@
 
 // from list_float
 
-<list_float_var> ::= 'list_float'
-
 <list_float_assign> ::= <list_float_var>' = '<list_float>
 
 <list_float> ::= <list_float_var> | <list_float_slice>
@@ -253,8 +251,6 @@
 <deleteListItemCall_float> ::= 'deleteListItem('<list_float>', '<int>')'
 
 // from list_string
-
-<list_string_var> ::= 'list_string'
 
 <list_string_assign> ::= <list_string_var>' = '<list_string>
 

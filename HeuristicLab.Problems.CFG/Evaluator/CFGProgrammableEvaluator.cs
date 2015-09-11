@@ -94,6 +94,9 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
       Parameters.ForEach(x => x.Hidden = false);
 
+      SelectNamespace("HeuristicLab.Encodings.SymbolicExpressionTreeEncoding");
+      SelectNamespace("HeuristicLab.Misc");
+      SelectNamespace("HeuristicLab.Problems.CFG");
       SelectNamespace("HeuristicLab.Optimization");
       SelectNamespace("HeuristicLab.Optimization.Operators");
       Assemblies[typeof(HeuristicLab.Optimization.ResultCollection).Assembly] = true;
