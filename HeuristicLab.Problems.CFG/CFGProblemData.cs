@@ -156,6 +156,8 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     private void RegisterEventHandlers() {
+      InputParameter.ValueChanged += new EventHandler(Parameter_ValueChanged);
+      OutputParameter.ValueChanged += new EventHandler(Parameter_ValueChanged);
       InputParameter.Value.ItemChanged += new EventHandler<EventArgs<int>>(Value_ItemChanged);
       OutputParameter.Value.ItemChanged += new EventHandler<EventArgs<int>>(Value_ItemChanged);
       TrainingPartition.ValueChanged += new EventHandler(Parameter_ValueChanged);

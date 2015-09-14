@@ -42,6 +42,8 @@ namespace HeuristicLab.Problems.CFG {
     private const string ProblemDataParameterName = "CFGProblemData";
     private const string ProblemDataParameterDescription = "The data set, target variable and input variables of the context free grammar problem.";
 
+    private const string SolutionName = "Program";
+
     public string Filename { get; set; }
 
     private const string INSERTCODE = "<insertCodeHere>";
@@ -128,13 +130,13 @@ namespace HeuristicLab.Problems.CFG {
       HeaderParameter.Hidden = true;
       FooterParameter.Hidden = true;
 
-      SolutionCreator.SymbolicExpressionTreeParameter.ActualName = "Program";
-
       CreateTreeFromGrammar();
 
       RegisterEventHandlers();
-      InitializeOperators();
+
+      ParameterizeSolutionCreator();
       ParameterizeEvaluator();
+      InitializeOperators();
     }
 
     [StorableHook(HookType.AfterDeserialization)]
@@ -153,6 +155,11 @@ namespace HeuristicLab.Problems.CFG {
       base.OnEvaluatorChanged();
       ParameterizeEvaluator();
     }
+
+    protected override void OnSolutionCreatorChanged() {
+      base.OnSolutionCreatorChanged();
+      ParameterizeSolutionCreator();
+    }
     #endregion
 
     private void RegisterEventHandlers() {
@@ -168,7 +175,7 @@ namespace HeuristicLab.Problems.CFG {
       OnReset();
     }
 
-    private void ProblemData_Changed(object sender, EventArgs e) {
+    protected virtual void ProblemData_Changed(object sender, EventArgs e) {
       OnReset();
     }
 
@@ -185,6 +192,7 @@ namespace HeuristicLab.Problems.CFG {
       Operators.Add(new SymbolicExpressionSymbolFrequencyAnalyzer());
       Operators.Add(new SymbolicExpressionTreeLengthAnalyzer());
       Operators.Add(new CaseAnalyzer());
+      Operators.Add(new CFGTrainingBestSolutionAnalyzer());
       ParameterizeOperators();
     }
     private void ParameterizeEvaluator() {
@@ -193,6 +201,15 @@ namespace HeuristicLab.Problems.CFG {
         Evaluator.ProblemDataParameter.ActualName = ProblemDataParameterName;
         Evaluator.HeaderParameter.ActualName = HeaderParameter.Name;
         Evaluator.FooterParameter.ActualName = FooterParameter.Name;
+      }
+    }
+
+    private void ParameterizeSolutionCreator() {
+      if (SolutionCreator != null) {
+        SolutionCreator.SymbolicExpressionTreeGrammarParameter.ActualName = GrammarParameter.Name;
+        SolutionCreator.SymbolicExpressionTreeParameter.ActualName = SolutionName;
+        SolutionCreator.MaximumSymbolicExpressionTreeDepthParameter.ActualName = MaximumSymbolicExpressionTreeDepthParameter.Name;
+        SolutionCreator.MaximumSymbolicExpressionTreeLengthParameter.ActualName = MaximumSymbolicExpressionTreeLengthParameter.Name;
       }
     }
 

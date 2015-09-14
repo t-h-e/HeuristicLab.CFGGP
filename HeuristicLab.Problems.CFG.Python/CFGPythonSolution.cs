@@ -20,7 +20,6 @@
 #endregion
 
 using System;
-using System.Drawing;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -32,15 +31,11 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG.Python {
   /// <summary>
-  /// CFG solution
+  /// Python CFG solution
   /// </summary>
   [StorableClass]
-  [Item(Name = "CFGSolution", Description = "Represents a context free grammar solution and attributes of the solution like accuracy and complexity.")]
-  public class CFGPythonSolution : ResultCollection, INamedItem, IStorableContent {
-    private const string ModelLengthResultName = "Model Length";
-    private const string ModelDepthResultName = "Model Depth";
-
-    private const string ModelResultName = "Model";
+  [Item(Name = "CFGPythonSolution", Description = "Represents a Python context free grammar solution and attributes of the solution like accuracy and complexity.")]
+  public class CFGPythonSolution : CFGSolution {
     private const string CodeResultName = "Code";
     private const string ProgramResultName = "Program";
 
@@ -54,12 +49,6 @@ namespace HeuristicLab.Problems.CFG.Python {
     private const string TestSolvedCases = "Test Solved Cases";
     private const string TestSolvedCasesPercentage = "Test Solved Cases Percentage";
 
-    public string Filename { get; set; }
-
-    public static new Image StaticItemImage {
-      get { return HeuristicLab.Common.Resources.VSImageLibrary.Function; }
-    }
-
     [StorableConstructor]
     protected CFGPythonSolution(bool deserializing) : base(deserializing) { }
     protected CFGPythonSolution(CFGPythonSolution original, Cloner cloner)
@@ -68,14 +57,10 @@ namespace HeuristicLab.Problems.CFG.Python {
       description = original.Description;
     }
     public CFGPythonSolution(ISymbolicExpressionTree tree, ICFGProblemData problemData, IntValue timeout, StringValue header = null, StringValue footer = null)
-      : base() {
+      : base(tree, problemData) {
       name = ItemName;
       description = ItemDescription;
 
-      Add(new Result(ModelLengthResultName, "Length of the symbolic regression model.", new IntValue(tree.Length)));
-      Add(new Result(ModelDepthResultName, "Depth of the symbolic regression model.", new IntValue(tree.Depth)));
-
-      Add(new Result(ModelResultName, "The cfg model.", tree));
       string program = PythonHelper.FormatToProgram(tree, header, footer);
       Add(new Result(ProgramResultName, "The program with header and footer", new TextValue(program)));
       string code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
@@ -102,65 +87,5 @@ namespace HeuristicLab.Problems.CFG.Python {
         Add(new Result(TestException, "Exception occured during test", new TextValue(test.Item3)));
       }
     }
-
-    #region INamedItem Members
-    [Storable]
-    protected string name;
-    public string Name {
-      get { return name; }
-      set {
-        if (!CanChangeName) throw new NotSupportedException("Name cannot be changed.");
-        if (!(name.Equals(value) || (value == null) && (name == string.Empty))) {
-          CancelEventArgs<string> e = value == null ? new CancelEventArgs<string>(string.Empty) : new CancelEventArgs<string>(value);
-          OnNameChanging(e);
-          if (!e.Cancel) {
-            name = value == null ? string.Empty : value;
-            OnNameChanged();
-          }
-        }
-      }
-    }
-    public virtual bool CanChangeName {
-      get { return true; }
-    }
-    [Storable]
-    protected string description;
-    public string Description {
-      get { return description; }
-      set {
-        if (!CanChangeDescription) throw new NotSupportedException("Description cannot be changed.");
-        if (!(description.Equals(value) || (value == null) && (description == string.Empty))) {
-          description = value == null ? string.Empty : value;
-          OnDescriptionChanged();
-        }
-      }
-    }
-    public virtual bool CanChangeDescription {
-      get { return true; }
-    }
-
-    public override string ToString() {
-      return Name;
-    }
-
-    public event EventHandler<CancelEventArgs<string>> NameChanging;
-    protected virtual void OnNameChanging(CancelEventArgs<string> e) {
-      var handler = NameChanging;
-      if (handler != null) handler(this, e);
-    }
-
-    public event EventHandler NameChanged;
-    protected virtual void OnNameChanged() {
-      var handler = NameChanged;
-      if (handler != null) handler(this, EventArgs.Empty);
-      OnToStringChanged();
-    }
-
-    public event EventHandler DescriptionChanged;
-    protected virtual void OnDescriptionChanged() {
-      var handler = DescriptionChanged;
-      if (handler != null) handler(this, EventArgs.Empty);
-    }
-    #endregion
   }
 }

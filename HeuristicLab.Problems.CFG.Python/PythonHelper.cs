@@ -157,13 +157,18 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public static Tuple<IEnumerable<bool>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
-      ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine();
+      return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
+    }
+    
+    private static ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine();
+
+    public static Tuple<IEnumerable<bool>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
       ScriptScope scope = pyEngine.CreateScope();
 
       // set variables in scope
       scope.SetVariable("stop", false);
-      pyEngine.Execute("inval = " + ConvertToPythonValues(input, indices), scope);
-      pyEngine.Execute("outval = " + ConvertToPythonValues(output, indices), scope);
+      pyEngine.Execute("inval = " + input, scope);
+      pyEngine.Execute("outval = " + output, scope);
 
       // create thread and execute the code
       ExecutePythonThread pyThread = new ExecutePythonThread(program, pyEngine, scope);
@@ -205,7 +210,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       return new Tuple<IEnumerable<bool>, double, string>(cases, quality, exception);
     }
 
-    private static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {
+    public static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {
       StringBuilder strBuilder = new StringBuilder("[");
       foreach (int row in indices) {
         strBuilder.Append("[");

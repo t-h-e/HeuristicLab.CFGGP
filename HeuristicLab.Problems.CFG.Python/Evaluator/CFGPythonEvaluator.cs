@@ -31,6 +31,7 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG.Python {
   [StorableClass]
   public class CFGPythonEvaluator : InstrumentedOperator, ICFGPythonEvaluator {
+
     #region paramerters
     public ILookupParameter<IntValue> TimeoutParameter {
       get { return (ILookupParameter<IntValue>)Parameters["Timeout"]; }
@@ -56,6 +57,13 @@ namespace HeuristicLab.Problems.CFG.Python {
     public ILookupParameter<StringValue> ExceptionParameter {
       get { return (ILookupParameter<StringValue>)Parameters["Exception"]; }
     }
+
+    public IValueLookupParameter<StringValue> InputParameter {
+      get { return (IValueLookupParameter<StringValue>)Parameters["PythonInputCache"]; }
+    }
+    public IValueLookupParameter<StringValue> OutputParameter {
+      get { return (IValueLookupParameter<StringValue>)Parameters["PythonOutputCache"]; }
+    }
     #endregion
 
     #region properties
@@ -64,6 +72,22 @@ namespace HeuristicLab.Problems.CFG.Python {
     public string Program {
       get {
         return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, HeaderParameter.ActualValue, FooterParameter.ActualValue);
+      }
+    }
+    public string Input {
+      get {
+        if (InputParameter.ActualValue == null) {
+          InputParameter.Value = new StringValue(PythonHelper.ConvertToPythonValues(ProblemData.Input, ProblemData.TrainingIndices));
+        }
+        return InputParameter.ActualValue.Value;
+      }
+    }
+    public string Output {
+      get {
+        if (OutputParameter.ActualValue == null) {
+          OutputParameter.Value = new StringValue(PythonHelper.ConvertToPythonValues(ProblemData.Output, ProblemData.TrainingIndices));
+        }
+        return OutputParameter.ActualValue.Value;
       }
     }
     #endregion
@@ -83,7 +107,15 @@ namespace HeuristicLab.Problems.CFG.Python {
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
       Parameters.Add(new LookupParameter<StringValue>("Exception", "Has the exception if any occured or the timeout."));
 
+      Parameters.Add(new ValueLookupParameter<StringValue>("PythonInputCache", "Cache python input"));
+      Parameters.Add(new ValueLookupParameter<StringValue>("PythonOutputCache", "Cache python output"));
+
       SuccessfulCasesParameter.Hidden = true;
+    }
+
+    public virtual void ClearCachedValues() {
+      InputParameter.Value = null;
+      OutputParameter.Value = null;
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -91,7 +123,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public override IOperation InstrumentedApply() {
-      var result = PythonHelper.EvaluateProgram(Program, ProblemData.Input, ProblemData.Output, ProblemData.TrainingIndices, Timeout);
+      var result = PythonHelper.EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       QualityParameter.ActualValue = new DoubleValue(result.Item2);

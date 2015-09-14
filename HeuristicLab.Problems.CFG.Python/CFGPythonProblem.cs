@@ -64,6 +64,11 @@ namespace HeuristicLab.Problems.CFG.Python {
       base.OnEvaluatorChanged();
       ParameterizeEvaluator();
     }
+
+    protected override void OnReset() {
+      base.OnReset();
+      Evaluator.ClearCachedValues();
+    }
     #endregion
 
     #region Helpers
