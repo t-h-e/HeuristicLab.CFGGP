@@ -14,7 +14,7 @@
 <int_var> ::= 'i0' | 'i1' | 'i2' | 'inList[0]' | 'inList[1]' | 'inList[2]' | 'res'
 // *****************************************************************************
 
-<code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'
+<code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'<code><statement>'\n' | <statement>'\n'
 
 <statement> ::= <assign> | <compound_stmt>
 <compound_stmt> ::= <if> | <while>
