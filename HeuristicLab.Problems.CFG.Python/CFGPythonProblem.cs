@@ -73,8 +73,9 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     #region Helpers
     private void InitializeOperators() {
-      Operators.Add(new CFGPythonExceptionAnalyzer());
+      Operators.RemoveAll(x => x is CFGTrainingBestSolutionAnalyzer);
       Operators.Add(new CFGPythonTrainingBestSolutionAnalyzer());
+      Operators.Add(new CFGPythonExceptionAnalyzer());
       ParameterizeOperators();
     }
 

@@ -67,7 +67,12 @@ namespace HeuristicLab.Problems.CFG.Python {
       Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));
 
       var training = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, timeout.Value);
-      var test = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, timeout.Value);
+
+      // test timeout should be proportionally bigger than training timeout
+      var testTimeout = (int)((double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * timeout.Value);
+      testTimeout = testTimeout > timeout.Value ? testTimeout : timeout.Value;
+
+      var test = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
 
       if (String.IsNullOrEmpty(training.Item3)) {
         Add(new Result(TrainingQuality, "Training quality", new DoubleValue(training.Item2)));
@@ -76,6 +81,9 @@ namespace HeuristicLab.Problems.CFG.Python {
         Add(new Result(TrainingSolvedCasesPercentage, "Percentage of training cases which have been solved", new PercentValue((double)cases.Count(x => x) / (double)cases.Length)));
       } else {
         Add(new Result(TrainingException, "Exception occured during training", new TextValue(training.Item3)));
+        Add(new Result(TrainingQuality, "Training quality", new DoubleValue(Double.NaN)));
+        Add(new Result(TrainingSolvedCases, "Training cases which have been solved", new BoolArray(problemData.TrainingIndices.Count())));
+        Add(new Result(TrainingSolvedCasesPercentage, "Percentage of training cases which have been solved", new PercentValue(0)));
       }
 
       if (String.IsNullOrEmpty(test.Item3)) {
@@ -85,6 +93,9 @@ namespace HeuristicLab.Problems.CFG.Python {
         Add(new Result(TestSolvedCasesPercentage, "Percentage of test cases which have been solved", new PercentValue((double)cases.Count(x => x) / (double)cases.Length)));
       } else {
         Add(new Result(TestException, "Exception occured during test", new TextValue(test.Item3)));
+        Add(new Result(TestQuality, "Test quality", new DoubleValue(Double.NaN)));
+        Add(new Result(TestSolvedCases, "Test cases which have been solved", new BoolArray(problemData.TestIndices.Count())));
+        Add(new Result(TestSolvedCasesPercentage, "Percentage of test cases which have been solved", new PercentValue(0)));
       }
     }
   }
