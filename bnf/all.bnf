@@ -118,6 +118,8 @@
          | <float> <in_list_comp_op> <list_float>
          // from list_string
          | <string> <in_list_comp_op> <list_string>
+         | <string>' == '<string> | <string>' != '<string>
+         | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
 
 <bool_op> ::= 'and' | 'or'
 <bool_pre> ::= 'not'

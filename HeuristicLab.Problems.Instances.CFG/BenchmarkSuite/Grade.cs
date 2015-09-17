@@ -22,7 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HeuristicLab.Core;
+using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class Grade : BenchmarkSuiteDataDescritpor<List<int>> {
@@ -63,14 +63,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
       else return "F";
     }
 
-    private IEnumerable<List<int>> CreateThresholdsAndGrade(int n, IRandom rand) {
+    private IEnumerable<List<int>> CreateThresholdsAndGrade(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int a = rand.Next(4, 101);
-        int b = rand.Next(3, a);
-        int c = rand.Next(2, b);
-        int d = rand.Next(1, c);
-        int grade = rand.Next(0, 101);
-        yield return new List<int>(5) { a, b, c, d, grade };
+        List<int> grades = Enumerable.Range(0, 101).SampleRandomWithoutRepetition(rand, 4).Reverse().ToList();
+        grades.Add(rand.Next(0, 101));
+        yield return grades;
       }
     }
 

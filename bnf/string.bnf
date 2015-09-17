@@ -38,6 +38,7 @@
 // Return bool
 
 <ret_bool> ::= <string>' in '<string> | <string>' not in '<string>
+             | <string>' == '<string> | <string>' != '<string>
              | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
 
 // *****************************************************************************

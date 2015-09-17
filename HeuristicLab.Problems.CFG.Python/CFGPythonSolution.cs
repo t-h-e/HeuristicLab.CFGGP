@@ -66,10 +66,11 @@ namespace HeuristicLab.Problems.CFG.Python {
       string code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
       Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));
 
-      var training = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, timeout.Value);
+      var trainingTimeout = timeout.Value * 2;  // increase timeout to make sure it finishes
+      var training = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, trainingTimeout);
 
       // test timeout should be proportionally bigger than training timeout
-      var testTimeout = (int)((double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * timeout.Value);
+      var testTimeout = (int)((double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * trainingTimeout);
       testTimeout = testTimeout > timeout.Value ? testTimeout : timeout.Value;
 
       var test = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);

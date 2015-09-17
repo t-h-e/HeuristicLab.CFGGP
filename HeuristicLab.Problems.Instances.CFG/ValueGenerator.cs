@@ -57,10 +57,6 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    public static IEnumerable<T> Shuffle<T>(IEnumerable<T> enumerable, FastRandom rand) {
-      return enumerable.Shuffle(rand);
-    }
-
     public static IEnumerable<T> SampleRandomWithoutRepetition<T>(IEnumerable<T> enumerable, int count, FastRandom rand) {
       return enumerable.SampleRandomWithoutRepetition(rand, count);
     }

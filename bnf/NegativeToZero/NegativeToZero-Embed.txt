@@ -1,0 +1,127 @@
+import math
+
+# *****************************************************************************
+# Helper Code
+# *****************************************************************************
+
+def div(nom, denom):
+  if denom <= 0.00001:
+    return nom
+  else:
+    return nom / denom
+
+
+def divInt(nom, denom):
+  if denom <= 0.00001:
+    return nom
+  else:
+    return nom // denom
+
+
+def mod(nom, denom):
+  if denom <= 0.00001:
+    return nom
+  else:
+    return nom % denom
+
+def deleteListItem(curList, index):
+  if not curList:
+    return
+  del curList[index % len(curList)]
+
+
+def setListIndexTo(curList, index, value):
+  if not curList:
+    return
+  curList[index % len(curList)] = value
+
+
+def getIndexBoolList(curList, index):
+  if not curList:
+    return bool()
+  return curList[index % len(curList)]
+
+
+def getIndexFloatList(curList, index):
+  if not curList:
+    return float()
+  return curList[index % len(curList)]
+
+
+def getIndexIntList(curList, index):
+  if not curList:
+    return int()
+  return curList[index % len(curList)]
+
+
+def getIndexStringList(curList, index):
+  if not curList:
+    return str()
+  return curList[index % len(curList)]
+
+def getCharFromString(curString, index):
+  if not curString:
+    return ''
+  return curString[index % len(curString)]
+
+
+def saveChr(number):
+    return chr(number % 1114111)
+
+
+def saveOrd(literal):
+    if len(literal) <= 0:
+        return 32
+    return ord(literal[0])
+
+
+def saveSplit(curString, separator):
+  if not separator:
+    return []
+  return curString.split(separator)
+
+# *****************************************************************************
+
+#  evolved function
+def evolve(inList):
+  # constant defines allowed maximum number of all loops performed
+  loopBreakConst = 1500
+  # initialises variable which should be used to count the number of loop iterations
+  loopBreak = 0
+  # stop is a boolean flag which should be used to check if the EA wants the program to stop
+  <insertCodeHere>
+  return res
+
+
+def fitnessTrainingCase(i, o):
+  eval = evolve(i)
+
+  calc = 0
+  first = min(len(o[0]), len(eval))
+  for a in range(0, first):
+      calc += abs(o[0][a] - eval[a])
+
+  if len(o[0]) < len(eval):
+    for a in range(0, len(eval)):
+        calc += abs(eval[a])
+  elif len(o[0]) > len(eval):
+    for a in range(0, len(o[0])):
+        calc += abs(o[0][a])
+  return calc
+
+
+#  function to evaluate fitness
+def fitness():
+  error = []
+  cases = []
+  for (i, o) in zip(inval, outval):
+    value = fitnessTrainingCase(i, o)
+    error.append(value)
+    cases.append(value < 0.000000001)
+
+  return sum(error), cases
+
+
+import sys
+quality = sys.maxsize
+quality, cases = fitness()
