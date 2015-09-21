@@ -66,7 +66,15 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private IEnumerable<List<int>> CreateThresholdsAndGrade(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
         List<int> grades = Enumerable.Range(0, 101).SampleRandomWithoutRepetition(rand, 4).Reverse().ToList();
-        grades.Add(rand.Next(0, 101));
+
+        // perfect uniform distribution (as close to perfect as possible)
+        if (i % 5 < 3) {
+          grades.Add(rand.Next(grades[(i % 5) + 1], grades[i % 5]));
+        } else if (i % 5 == 3) {
+          grades.Add(rand.Next(0, grades[3]));
+        } else {
+          grades.Add(rand.Next(grades[0], 101));
+        }
         yield return grades;
       }
     }

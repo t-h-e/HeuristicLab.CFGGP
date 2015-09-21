@@ -102,9 +102,7 @@
     <Compile Include="BenchmarkSuite\NumberIO.cs" />
     <Compile Include="CFGArtificialDataDescriptor.cs" />
     <Compile Include="CFGArtificialInstanceProvider.cs" />
-    <Compile Include="CFGZipDataDescriptor.cs" />
     <Compile Include="CFGInstanceProvider.cs" />
-    <Compile Include="CFGZipInstanceProvider.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -114,7 +112,6 @@
     <Compile Include="ValueGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Data\ProgramSynthesis.zip" />
     <EmbeddedResource Include="Data\BenchmarkSuite.zip" />
     <None Include="HeuristicLab.snk" />
   </ItemGroup>

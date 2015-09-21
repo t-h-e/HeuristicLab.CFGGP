@@ -33,14 +33,14 @@
 <if-then> ::= 'if '<bool><block>
 <else> ::= 'else'<block>
 
-<block> ::= ':{:\n'<code>'\n:}\n'
+<block> ::= ':{:\n'<code>':}'
 
 
 <while> ::= <loop-header>'while '<bool><loop-block>
 
 <loop-header> ::= 'loopBreak% = 0\n'
 // stop is set by outer code to break immediately
-<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop:{:\nbreak\n:}\nloopBreak% += 1:}\n'
+<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop:{:\nbreak\n:}\nloopBreak% += 1:}'
 
 // bool
 
