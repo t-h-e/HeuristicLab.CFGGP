@@ -73,6 +73,9 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
     }
+    public ILookupParameter<DoubleArray> CaseQualitiesParameter {
+      get { return (ILookupParameter<DoubleArray>)Parameters["CaseQualities"]; }
+    }
     public ILookupParameter<DoubleValue> QualityParameter {
       get { return (ILookupParameter<DoubleValue>)Parameters["Quality"]; }
     }
@@ -91,6 +94,7 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
+      Parameters.Add(new LookupParameter<BoolArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
       Parameters.ForEach(x => x.Hidden = false);
 
@@ -101,6 +105,7 @@ namespace HeuristicLab.Problems.CFG {
       Assemblies[typeof(HeuristicLab.Optimization.ResultCollection).Assembly] = true;
       Assemblies[typeof(HeuristicLab.Problems.CFG.CFGProgrammableEvaluator).Assembly] = true;
       Assemblies[typeof(HeuristicLab.Encodings.SymbolicExpressionTreeEncoding.SymbolicExpressionTree).Assembly] = true;
+      Assemblies[typeof(HeuristicLab.Misc.ICaseEvaluator).Assembly] = true;
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {

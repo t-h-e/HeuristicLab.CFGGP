@@ -16,7 +16,7 @@
 <float> ::= <float_var> | <float_const> | <int>
         | <arith_prefix><float>
         | '(' <float> <arith_ops> <float> ')' | '(' <int> <arith_ops> <float> ')' | '(' <float> <arith_ops> <int> ')'
-        | <arith_ops_protected>'('<float>','<float>')' | <arith_ops_protected>'('<int>','<float>')' | <arith_ops_protected>'('<float>','<int>')'
+        | <float_arith_ops_protected>'('<float>','<float>')' | <float_arith_ops_protected>'('<int>','<float>')' | <float_arith_ops_protected>'('<float>','<int>')'
         | 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
         | 'min('<float>', '<float>')' | 'min('<int>', '<float>')' | 'min('<float>', '<int>')'
         | 'max('<float>', '<float>')' | 'max('<int>', '<float>')' | 'max('<float>', '<int>')'
@@ -26,13 +26,15 @@
 <float_const> ::= <float_const_part>'.'<float_const_part>
 <float_const_part> ::= <float_const_part><num+zero> | <num+zero>
 
+<float_arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
+
 // already contained in int
 <num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 // Return int
 
 // have to call int() for python 2.7.5 (which is run by IronPython)
-<ret_int> ::= 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))'
+<ret_int> ::= 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))' | 'int('<float>')'
 
 // Return bool
 

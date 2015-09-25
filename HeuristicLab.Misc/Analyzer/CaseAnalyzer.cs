@@ -38,11 +38,17 @@ namespace HeuristicLab.Misc {
   [StorableClass]
   public class CaseAnalyzer : SingleSuccessorOperator, IAnalyzer {
     #region parameter properties
-    public IScopeTreeLookupParameter<BoolArray> CasesTreeParameter {
+    public IScopeTreeLookupParameter<BoolArray> CasesParameter {
       get { return (IScopeTreeLookupParameter<BoolArray>)Parameters["Cases"]; }
+    }
+    public IScopeTreeLookupParameter<DoubleArray> CaseQualitiesParameter {
+      get { return (IScopeTreeLookupParameter<DoubleArray>)Parameters["CaseQualities"]; }
     }
     public ILookupParameter<DataTable> CasesSolvedFrequenciesParameter {
       get { return (ILookupParameter<DataTable>)Parameters["CasesSolved"]; }
+    }
+    public ILookupParameter<DataTable> SummedCaseQualitiesParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["SummedCaseQualities"]; }
     }
     public ILookupParameter<ResultCollection> ResultsParameter {
       get { return (ILookupParameter<ResultCollection>)Parameters["Results"]; }
@@ -63,7 +69,9 @@ namespace HeuristicLab.Misc {
     public CaseAnalyzer()
       : base() {
       Parameters.Add(new ScopeTreeLookupParameter<BoolArray>("Cases", "The cases to analyze."));
+      Parameters.Add(new ScopeTreeLookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DataTable>("CasesSolved", "The string matrix which represents the solved cases"));
+      Parameters.Add(new LookupParameter<DataTable>("SummedCaseQualities", "The string matrix which represents the quality of each cases summed over all individuals"));
       Parameters.Add(new LookupParameter<ResultCollection>("Results", "The result collection where the cases solved frequencies should be stored."));
     }
 
@@ -72,9 +80,10 @@ namespace HeuristicLab.Misc {
     }
 
     public override IOperation Apply() {
-      ItemArray<BoolArray> cases = CasesTreeParameter.ActualValue;
+      ItemArray<BoolArray> cases = CasesParameter.ActualValue;
+      ItemArray<DoubleArray> caseQualities = CaseQualitiesParameter.ActualValue;
       int length = cases.First().Length;
-      if (cases.Any(x => x.Length != length)) {
+      if (cases.Any(x => x.Length != length) || caseQualities.Any(x => x.Length != length)) {
         throw new ArgumentException("Every individual has to have the same number of cases.");
       }
 
@@ -82,30 +91,37 @@ namespace HeuristicLab.Misc {
       int rows = cases.First().Length;
       ResultCollection results = ResultsParameter.ActualValue;
       DataTable casesSolvedFrequencies = CasesSolvedFrequenciesParameter.ActualValue;
-      if (casesSolvedFrequencies == null) {
+      DataTable summedCaseQualities = SummedCaseQualitiesParameter.ActualValue;
+      if (casesSolvedFrequencies == null || summedCaseQualities == null) {
         casesSolvedFrequencies = new DataTable("Cases solved", "Absolute frequency of cases solved aggregated over the whole population.");
         casesSolvedFrequencies.VisualProperties.YAxisTitle = "Absolute Cases Solved Frequency";
+        summedCaseQualities = new DataTable("Summed case qualities", "Absolute frequency of cases solved aggregated over the whole population.");
+        summedCaseQualities.VisualProperties.YAxisTitle = "Summed Cases Qualities";
+
 
         CasesSolvedFrequenciesParameter.ActualValue = casesSolvedFrequencies;
+        SummedCaseQualitiesParameter.ActualValue = summedCaseQualities;
         results.Add(new Result("Cases solved", casesSolvedFrequencies));
+        results.Add(new Result("Summed cases qualities", summedCaseQualities));
       }
 
       // all rows must have the same number of values so we can just take the first
       int numberOfValues = casesSolvedFrequencies.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
 
-      foreach (var pair in Enumerable.Range(0, cases[0].Length).Select(i => new Tuple<string, int>("Case " + i, cases.Count(caseArray => caseArray[i])))) {
-        if (!casesSolvedFrequencies.Rows.ContainsKey(pair.Item1)) {
+      foreach (var triple in Enumerable.Range(0, cases[0].Length).Select(i => new Tuple<string, int, double>("Case " + i, cases.Count(caseArray => caseArray[i]), caseQualities.Sum(casesQualityArray => casesQualityArray[i])))) {
+        if (!casesSolvedFrequencies.Rows.ContainsKey(triple.Item1)) {
           // initialize a new row for the symbol and pad with zeros
-          DataRow row = new DataRow(pair.Item1, "", Enumerable.Repeat(0.0, numberOfValues));
+          DataRow row = new DataRow(triple.Item1, "", Enumerable.Repeat(0.0, numberOfValues));
           row.VisualProperties.StartIndexZero = true;
           casesSolvedFrequencies.Rows.Add(row);
-        }
-        casesSolvedFrequencies.Rows[pair.Item1].Values.Add(pair.Item2);
-      }
 
-      // add a zero for each data row that was not modified in the previous loop 
-      foreach (var row in casesSolvedFrequencies.Rows.Where(r => r.Values.Count != numberOfValues + 1))
-        row.Values.Add(0.0);
+          row = new DataRow(triple.Item1, "", Enumerable.Repeat(0.0, numberOfValues));
+          row.VisualProperties.StartIndexZero = true;
+          summedCaseQualities.Rows.Add(row);
+        }
+        casesSolvedFrequencies.Rows[triple.Item1].Values.Add(triple.Item2);
+        summedCaseQualities.Rows[triple.Item1].Values.Add(triple.Item3);
+      }
       return base.Apply();
     }
   }

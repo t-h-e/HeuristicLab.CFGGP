@@ -50,8 +50,8 @@ namespace HeuristicLab.Misc {
     protected IValueLookupParameter<BoolValue> CopySelectedParameter {
       get { return (IValueLookupParameter<BoolValue>)Parameters["CopySelected"]; }
     }
-    public ILookupParameter<ItemArray<BoolArray>> CasesParameter {
-      get { return (ILookupParameter<ItemArray<BoolArray>>)Parameters["Cases"]; }
+    public ILookupParameter<ItemArray<DoubleArray>> CaseQualitiesParameter {
+      get { return (ILookupParameter<ItemArray<DoubleArray>>)Parameters["CaseQualities"]; }
     }
     public ILookupParameter<IRandom> RandomParameter {
       get { return (ILookupParameter<IRandom>)Parameters["Random"]; }
@@ -101,7 +101,7 @@ namespace HeuristicLab.Misc {
       #region Create parameters
       Parameters.Add(new ValueLookupParameter<BoolValue>("Maximization", "True if the problem is a maximization problem."));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>("Quality", "The quality of the solutions."));
-      Parameters.Add(new ScopeTreeLookupParameter<BoolArray>("Cases", "The successful evaluated cases."));
+      Parameters.Add(new ScopeTreeLookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual."));
       Parameters.Add(new ValueLookupParameter<IntValue>("NumberOfSelectedSubScopes", "The number of scopes that should be selected."));
       Parameters.Add(new ValueLookupParameter<BoolValue>("CopySelected", "True if the scopes should be copied, false if they should be moved.", new BoolValue(true)));
       Parameters.Add(new ValueParameter<ICheckedItemList<ISelector>>("Selectors", "The selection operators."));
@@ -218,7 +218,7 @@ namespace HeuristicLab.Misc {
         selector.MaximizationParameter.ActualName = MaximizationParameter.Name;
       }
       foreach (var selector in Selectors.OfType<ICaseSingleObjectiveSelector>()) {
-        selector.CasesParameter.ActualName = CasesParameter.Name;
+        selector.CaseQualitiesParameter.ActualName = CaseQualitiesParameter.Name;
       }
     }
 

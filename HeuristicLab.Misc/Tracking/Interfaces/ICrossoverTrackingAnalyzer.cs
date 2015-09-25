@@ -1,4 +1,4 @@
-#region License Information
+﻿#region License Information
 /* HeuristicLab
  * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
@@ -41,12 +41,12 @@
 #endregion
 
 using HeuristicLab.Core;
-using HeuristicLab.Data;
 using HeuristicLab.Optimization;
 
 namespace HeuristicLab.Misc {
-  public interface ICaseEvaluator : IEvaluator {
-    ILookupParameter<BoolArray> SuccessfulCasesParameter { get; }
-    ILookupParameter<DoubleArray> CaseQualitiesParameter { get; }
+  public interface ICrossoverTrackingAnalyzer<T> : IAnalyzer where T : class,IItem {
+    IScopeTreeLookupParameter<T> ChildParameter { get; }
+
+    IScopeTreeLookupParameter<ItemArray<T>> CrossoverParentsParameter { get; }
   }
 }

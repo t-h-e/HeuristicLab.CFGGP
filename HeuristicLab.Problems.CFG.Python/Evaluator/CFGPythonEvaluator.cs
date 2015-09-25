@@ -51,6 +51,9 @@ namespace HeuristicLab.Problems.CFG.Python {
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
     }
+    public ILookupParameter<DoubleArray> CaseQualitiesParameter {
+      get { return (ILookupParameter<DoubleArray>)Parameters["CaseQualities"]; }
+    }
     public ILookupParameter<DoubleValue> QualityParameter {
       get { return (ILookupParameter<DoubleValue>)Parameters["Quality"]; }
     }
@@ -104,6 +107,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
+      Parameters.Add(new LookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
       Parameters.Add(new LookupParameter<StringValue>("Exception", "Has the exception if any occured or the timeout."));
 
@@ -111,6 +115,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       Parameters.Add(new ValueLookupParameter<StringValue>("PythonOutputCache", "Cache python output"));
 
       SuccessfulCasesParameter.Hidden = true;
+      CaseQualitiesParameter.Hidden = true;
     }
 
     public virtual void ClearCachedValues() {
@@ -126,8 +131,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       var result = PythonHelper.EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
-      QualityParameter.ActualValue = new DoubleValue(result.Item2);
-      ExceptionParameter.ActualValue = new StringValue(result.Item3);
+      CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());
+      QualityParameter.ActualValue = new DoubleValue(result.Item3);
+      ExceptionParameter.ActualValue = new StringValue(result.Item4);
 
       return base.InstrumentedApply();
     }

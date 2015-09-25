@@ -1,57 +1,44 @@
 // *****************************************************************************
-// Smallest grammar
+// VectorSummed grammar
 // *****************************************************************************
 
 // structure
 
-<predefined> ::= 'b0 = b1 = b2 = bool()'
-                 'i0 = i1 = i2 = int()'
-                 'res = int()'
+<predefined> ::= 'i0 = i1 = i2 = int()'
+                 'li0 = li1 = li2 = []'
+                 'res = []'
                  <code>
 
 // *****************************************************************************
-<bool_var> ::= 'b0' | 'b1' | 'b2'
-<int_var> ::= 'i0' | 'i1' | 'i2' | 'inList[0]' | 'inList[1]' | 'inList[2]' | 'inList[3]' | 'res'
+<int_var> ::= 'i0' | 'i1' | 'i2'
+<list_int_var> ::= 'li0' | 'li1' | 'li2' | 'inList[0]' | 'inList[1]' | 'res'
 // *****************************************************************************
 
 <code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'<code><statement>'\n' | <statement>'\n'
 
-<statement> ::= <assign> | <compound_stmt>
-<compound_stmt> ::= <if> | <while>
+<statement> ::= <simple_stmt> | <for>
+<simple_stmt> ::= <call> | <assign>
 
-            // from bool
-<assign> ::= <bool_assign>
-           // from int
-           | <int_assign>
+            // from int
+<assign> ::= <int_assign>
+           // from list_int
+           | <list_int_assign>
 
-<if> ::= <if-then> | <if-then><else>
-
-<if-then> ::= 'if '<bool><block>
-<else> ::= 'else'<block>
+          // from list_int
+<call> ::= <list_int_var>'.append('<int>')'
+         | <list_int_var>'.insert('<int>','<int>')'
+         | <deleteListItemCall_int>
+         | <setListIndexToCall_int>
 
 <block> ::= ':{:\n'<code>':}'
 
-
-<while> ::= <loop-header>'while '<bool><loop-block>
+        // from list_float
+<for> ::= <loop-header>'for forCounter% in '<list_int><loop-block>
+        | <loop-header>'for '<int_var>' in '<list_int><loop-block>
 
 <loop-header> ::= 'loopBreak% = 0\n'
 // stop is set by outer code to break immediately
 <loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop:{:\nbreak\n:}\nloopBreak% += 1:}'
-
-// bool
-
-<bool_assign> ::= <bool_var>' = '<bool>
-
-<bool> ::= <bool_var> | <bool_const>
-         | <bool_pre> <bool>
-         | '(' <bool> <bool_op> <bool> ')'
-         // from int
-         | <int> <comp_op> <int>
-
-<bool_op> ::= 'and' | 'or'
-<bool_pre> ::= 'not'
-
-<bool_const> ::= 'True' | 'False'
 
 // int
 
@@ -64,6 +51,9 @@
         | 'min('<int>', '<int>')'
         | 'max('<int>', '<int>')'
         | 'abs('<int>')'
+        // from list_int
+        | <getListIndexCall_int>
+        | 'len('<list_float>')'
 
 // avoid leading zeros, which lead to a syntax error
 <int_const>   ::= <num><int_const_2> | <num+zero>
@@ -81,3 +71,15 @@
 //|'~'
 
 <comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
+
+// list_int
+
+<list_int_assign> ::= <list_int_var>' = '<list_int>
+
+<list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
+<list_int_slice> ::= <list_int>'['<int>':'<int>']' | <list_int>'[:'<int>']' | <list_int>'['<int>':]'
+<list_int_range> ::= 'list(range('<int>','<int>'))'
+
+<getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
+<setListIndexToCall_int> ::= 'setListIndexTo('<list_int>', '<int>', '<int>')'
+<deleteListItemCall_int> ::= 'deleteListItem('<list_int>', '<int>')'

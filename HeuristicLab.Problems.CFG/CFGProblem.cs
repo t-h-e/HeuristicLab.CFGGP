@@ -26,6 +26,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Misc;
+using HeuristicLab.Operators;
 using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
@@ -193,6 +194,7 @@ namespace HeuristicLab.Problems.CFG {
       Operators.Add(new SymbolicExpressionTreeLengthAnalyzer());
       Operators.Add(new CaseAnalyzer());
       Operators.Add(new CFGTrainingBestSolutionAnalyzer());
+      Operators.Add(new SymbolicExpressionTreeCrossoverTrackingAnalyzer());
       ParameterizeOperators();
     }
     private void ParameterizeEvaluator() {
@@ -241,6 +243,63 @@ namespace HeuristicLab.Problems.CFG {
         op.HeaderParameter.ActualName = HeaderParameter.Name;
         op.FooterParameter.ActualName = FooterParameter.Name;
         op.ProblemDataParameter.ActualName = ProblemDataParameter.Name;
+      }
+
+      ParameterizeOperatorsForTracking();
+    }
+
+    protected virtual void ParameterizeOperatorsForTracking() {
+      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
+
+      var trackingCrossover = operators.Where(x => x.GetType()
+         .GetInterfaces()
+         .Any(i => i.IsGenericType
+                   && (i.GetGenericTypeDefinition() == typeof(ICrossoverTrackingAnalyzer<>))
+                   && (i.GetGenericArguments().First() == typeof(ISymbolicExpressionTree)))).Cast<ICrossoverTrackingAnalyzer<ISymbolicExpressionTree>>();
+
+      var trackingManipulator = operators.Where(x => x.GetType()
+         .GetInterfaces()
+         .Any(i => i.IsGenericType
+                   && (i.GetGenericTypeDefinition() == typeof(IManipulatorTrackingAnalyzer<>))
+                   && (i.GetGenericArguments().First() == typeof(ISymbolicExpressionTree)))).Cast<IManipulatorTrackingAnalyzer<ISymbolicExpressionTree>>();
+
+
+      if (trackingCrossover.Any()) {
+        var beforeXO = new BeforeCrossoverOperator<SymbolicExpressionTree>();
+        beforeXO.ParentsParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.Name;
+        foreach (var op in operators.OfType<ISymbolicExpressionTreeCrossover>()) {
+          var instrumentedXO = op as InstrumentedOperator;
+          if (instrumentedXO != null) {
+            instrumentedXO.BeforeExecutionOperators.Add(beforeXO);
+          }
+        }
+
+        var crossover = operators.OfType<ISymbolicExpressionTreeCrossover>().FirstOrDefault();
+        if (crossover != null) {
+          foreach (var op in trackingCrossover) {
+            op.ChildParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+            op.CrossoverParentsParameter.ActualName = beforeXO.CrossoverParentsParameter.Name;
+          }
+        }
+      }
+
+      if (trackingManipulator.Any()) {
+        var beforeMU = new BeforeManipulatorOperator<SymbolicExpressionTree>();
+        beforeMU.ChildParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+        foreach (var op in operators.OfType<ISymbolicExpressionTreeManipulator>()) {
+          var instrumentedMU = op as InstrumentedOperator;
+          if (instrumentedMU != null) {
+            instrumentedMU.BeforeExecutionOperators.Add(beforeMU);
+          }
+        }
+
+        var manipulator = operators.OfType<ISymbolicExpressionTreeManipulator>().FirstOrDefault();
+        if (manipulator != null) {
+          foreach (var op in trackingManipulator) {
+            op.ChildParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+            op.ManipulatorParentParameter.ActualName = beforeMU.ManipulatorParentParameter.Name;
+          }
+        }
       }
     }
     #endregion

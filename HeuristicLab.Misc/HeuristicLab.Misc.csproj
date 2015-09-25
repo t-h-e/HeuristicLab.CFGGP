@@ -66,6 +66,10 @@
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Data-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4, Version=3.4.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4.dll</HintPath>
+    </Reference>
     <Reference Include="HeuristicLab.Operators-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Operators-3.3.dll</HintPath>
@@ -127,18 +131,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzer\CaseAnalyzer.cs" />
+    <Compile Include="SymbolicExpressionTreeEncoding\SymbolicExpressionTreeCrossoverTrackingAnalyzer.cs" />
     <Compile Include="Interfaces\ICaseEvaluator.cs" />
     <Compile Include="Interfaces\ICaseSingleObjectiveSelector.cs" />
     <Compile Include="LongMatrix.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Selector\LexicaseSelector.cs" />
-    <Compile Include="Selector\CaseWithFallbackSelector.cs" />
     <Compile Include="Selector\MultiSelector.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Selector\MultiProportionalSelector.cs" />
     <Compile Include="TextValue.cs" />
+    <Compile Include="Tracking\BeforeCrossoverOperator.cs" />
+    <Compile Include="Tracking\BeforeMutationOperator.cs" />
+    <Compile Include="Tracking\Interfaces\IManipulatorTrackingAnalyzer.cs" />
+    <Compile Include="Tracking\Interfaces\ICrossoverTrackingAnalyzer.cs" />
+    <Compile Include="Tracking\Interfaces\ITrackingCrossoverOperator.cs" />
+    <Compile Include="Tracking\Interfaces\ITrackingManipulatorOperator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HeuristicLab.snk" />

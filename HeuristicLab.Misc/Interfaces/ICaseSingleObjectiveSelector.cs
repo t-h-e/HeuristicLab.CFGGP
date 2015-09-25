@@ -49,6 +49,6 @@ namespace HeuristicLab.Misc {
   /// An interface which represents a selection operator for selecting solutions of single-objective optimization problems.
   /// </summary>
   public interface ICaseSingleObjectiveSelector : ISingleObjectiveSelector {
-    ILookupParameter<ItemArray<BoolArray>> CasesParameter { get; }
+    ILookupParameter<ItemArray<DoubleArray>> CaseQualitiesParameter { get; }
   }
 }

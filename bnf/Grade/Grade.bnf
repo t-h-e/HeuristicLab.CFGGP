@@ -1,5 +1,5 @@
 // *****************************************************************************
-// combination of all types of grammars
+// Grade grammar
 // *****************************************************************************
 
 // structure
@@ -68,7 +68,7 @@
 <int> ::= <int_var> | <int_const>
         | <arith_prefix><int>
         | '(' <int> <arith_ops> <int> ')'
-        | <arith_ops_protected>'('<int>','<int>')'
+        | <int_arith_ops_protected>'('<int>','<int>')'
         | 'min('<int>', '<int>')'
         | 'max('<int>', '<int>')'
         | 'abs('<int>')'
@@ -86,7 +86,7 @@
 // ** raises ZeroDivision error when 'a = 0; a ** ~a'
 // |'**'
 
-<arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
+<int_arith_ops_protected> ::= 'divInt' | 'mod'
 <arith_prefix> ::= '+'|'-'
 //|'~'
 

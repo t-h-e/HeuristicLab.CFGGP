@@ -57,8 +57,8 @@ namespace HeuristicLab.Misc {
     public ILookupParameter<ItemArray<DoubleValue>> QualityParameter {
       get { return (ILookupParameter<ItemArray<DoubleValue>>)Parameters["Quality"]; }
     }
-    public ILookupParameter<ItemArray<BoolArray>> CasesParameter {
-      get { return (ILookupParameter<ItemArray<BoolArray>>)Parameters["Cases"]; }
+    public ILookupParameter<ItemArray<DoubleArray>> CaseQualitiesParameter {
+      get { return (ILookupParameter<ItemArray<DoubleArray>>)Parameters["CaseQualities"]; }
     }
     #endregion
 
@@ -81,7 +81,7 @@ namespace HeuristicLab.Misc {
       Parameters.Add(new ValueLookupParameter<IntValue>("NumberOfSelectedSubScopes", "The number of sub-scopes which should be selected."));
       Parameters.Add(new ValueLookupParameter<BoolValue>("Maximization", "True if the current problem is a maximization problem, otherwise false."));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>("Quality", "The quality value contained in each sub-scope which is used for selection."));
-      Parameters.Add(new ScopeTreeLookupParameter<BoolArray>("Cases", "The successful evaluated cases."));
+      Parameters.Add(new ScopeTreeLookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual."));
       CopySelectedParameter.Hidden = true;
 
       List<ISelector> list = new List<ISelector>();
@@ -125,7 +125,7 @@ namespace HeuristicLab.Misc {
         selector.MaximizationParameter.ActualName = MaximizationParameter.Name;
       }
       foreach (var selector in Operators.OfType<ICaseSingleObjectiveSelector>()) {
-        selector.CasesParameter.ActualName = CasesParameter.Name;
+        selector.CaseQualitiesParameter.ActualName = CaseQualitiesParameter.Name;
       }
     }
   }

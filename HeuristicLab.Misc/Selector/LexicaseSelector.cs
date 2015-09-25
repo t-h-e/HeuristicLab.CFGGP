@@ -19,27 +19,6 @@
  */
 #endregion
 
-#region License Information
-/* HeuristicLab
- * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
- *
- * This file is part of HeuristicLab.
- *
- * HeuristicLab is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * HeuristicLab is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with HeuristicLab. If not, see <http://www.gnu.org/licenses/>.
- */
-#endregion
-
 using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
@@ -59,8 +38,8 @@ namespace HeuristicLab.Misc {
   [Item("LexicaseSelector", "A lexicase selection operator which considers all successful evaluated training cases for selection.")]
   [StorableClass]
   public sealed class LexicaseSelector : StochasticSingleObjectiveSelector, ICaseSingleObjectiveSelector {
-    public ILookupParameter<ItemArray<BoolArray>> CasesParameter {
-      get { return (ILookupParameter<ItemArray<BoolArray>>)Parameters["Cases"]; }
+    public ILookupParameter<ItemArray<DoubleArray>> CaseQualitiesParameter {
+      get { return (ILookupParameter<ItemArray<DoubleArray>>)Parameters["CaseQualities"]; }
     }
 
     [StorableConstructor]
@@ -72,20 +51,21 @@ namespace HeuristicLab.Misc {
 
     public LexicaseSelector()
       : base() {
-      Parameters.Add(new ScopeTreeLookupParameter<BoolArray>("Cases", "The successful evaluated cases."));
+      Parameters.Add(new ScopeTreeLookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual."));
     }
 
     protected override IScope[] Select(List<IScope> scopes) {
       int count = NumberOfSelectedSubScopesParameter.ActualValue.Value;
       bool copy = CopySelectedParameter.Value.Value;
       IRandom random = RandomParameter.ActualValue;
+      bool maximization = MaximizationParameter.ActualValue.Value;
       List<double> qualities = QualityParameter.ActualValue.Where(x => IsValidQuality(x.Value)).Select(x => x.Value).ToList();
-      ItemArray<BoolArray> cases = CasesParameter.ActualValue;
+      List<DoubleArray> caseQualities = CaseQualitiesParameter.ActualValue.ToList();
 
       IScope[] selected = new IScope[count];
 
       for (int i = 0; i < count; i++) {
-        int index = LexicaseSelect(cases, RandomParameter.ActualValue);
+        int index = LexicaseSelect(caseQualities, RandomParameter.ActualValue, maximization);
 
         if (copy)
           selected[i] = (IScope)scopes[index].Clone();
@@ -93,22 +73,32 @@ namespace HeuristicLab.Misc {
           selected[i] = scopes[index];
           scopes.RemoveAt(index);
           qualities.RemoveAt(index);
+          caseQualities.RemoveAt(index);
         }
       }
       return selected;
     }
 
-    private int LexicaseSelect(ItemArray<BoolArray> cases, IRandom random) {
-
-      IList<int> candidates = Enumerable.Range(0, cases.Count()).ToList();
-      IEnumerable<int> order = Enumerable.Range(0, cases[0].Count()).Shuffle(random);
+    private int LexicaseSelect(List<DoubleArray> caseQualities, IRandom random, bool maximization) {
+      IList<int> candidates = Enumerable.Range(0, caseQualities.Count()).ToList();
+      IEnumerable<int> order = Enumerable.Range(0, caseQualities[0].Count()).Shuffle(random);
 
       foreach (int curCase in order) {
         List<int> nextCandidates = new List<int>();
+        double best = maximization ? double.NegativeInfinity : double.PositiveInfinity;
         foreach (int candidate in candidates) {
-          if (cases[candidate][curCase] == true) {
+          if (caseQualities[candidate][curCase].IsAlmost(best)) {
+            // if the individuals is as good as the best one, add it
             nextCandidates.Add(candidate);
+          } else if (((maximization) && (caseQualities[candidate][curCase] > best)) ||
+             ((!maximization) && (caseQualities[candidate][curCase] < best))) {
+            // if the individuals is better than the best one, remove all previous candidates and add the new one
+            nextCandidates.Clear();
+            nextCandidates.Add(candidate);
+            // also set the nes best quality value
+            best = caseQualities[candidate][curCase];
           }
+          // else {do nothing}
         }
 
         if (nextCandidates.Count == 1) {

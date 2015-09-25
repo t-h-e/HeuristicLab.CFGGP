@@ -156,13 +156,13 @@ namespace HeuristicLab.Problems.CFG.Python {
       return strBuilder.ToString();
     }
 
-    public static Tuple<IEnumerable<bool>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
+    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
       return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
     }
-    
+
     private static ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine();
 
-    public static Tuple<IEnumerable<bool>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
+    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
       ScriptScope scope = pyEngine.CreateScope();
 
       // set variables in scope
@@ -198,16 +198,22 @@ namespace HeuristicLab.Problems.CFG.Python {
         cases = Enumerable.Repeat(false, indices.Count());
       }
 
-      double quality;
-      if (!scope.TryGetVariable<double>("quality", out quality)) {
-        if (cases != null) {
-          quality = cases.Where(x => !x).Count();
-        } else {
-          quality = double.PositiveInfinity;
-        }
+      IEnumerable<double> caseQualities;
+      if (!scope.TryGetVariable<IEnumerable<double>>("caseQuality", out caseQualities)) {
+        caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count());
       }
 
-      return new Tuple<IEnumerable<bool>, double, string>(cases, quality, exception);
+      double quality;
+      if (!scope.TryGetVariable<double>("quality", out quality)) {
+        quality = Double.MaxValue;
+        //if (cases != null) {
+        //  quality = cases.Where(x => !x).Count();
+        //} else {
+        //  quality = double.PositiveInfinity;
+        //}
+      }
+
+      return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
     }
 
     public static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {

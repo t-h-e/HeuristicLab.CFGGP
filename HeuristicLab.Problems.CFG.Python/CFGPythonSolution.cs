@@ -43,11 +43,13 @@ namespace HeuristicLab.Problems.CFG.Python {
     private const string TrainingQuality = "Training Quality";
     private const string TrainingSolvedCases = "Training Solved Cases";
     private const string TrainingSolvedCasesPercentage = "Training Solved Cases Percentage";
+    private const string TrainingSolvedCaseQualities = "Training Case Qualities";
 
     private const string TestException = "Test Exception";
     private const string TestQuality = "Test Quality";
     private const string TestSolvedCases = "Test Solved Cases";
     private const string TestSolvedCasesPercentage = "Test Solved Cases Percentage";
+    private const string TestSolvedCaseQualities = "Test Case Qualities";
 
     [StorableConstructor]
     protected CFGPythonSolution(bool deserializing) : base(deserializing) { }
@@ -75,28 +77,32 @@ namespace HeuristicLab.Problems.CFG.Python {
 
       var test = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
 
-      if (String.IsNullOrEmpty(training.Item3)) {
-        Add(new Result(TrainingQuality, "Training quality", new DoubleValue(training.Item2)));
+      if (String.IsNullOrEmpty(training.Item4)) {
+        Add(new Result(TrainingQuality, "Training quality", new DoubleValue(training.Item3)));
         var cases = training.Item1.ToArray();
         Add(new Result(TrainingSolvedCases, "Training cases which have been solved", new BoolArray(cases)));
         Add(new Result(TrainingSolvedCasesPercentage, "Percentage of training cases which have been solved", new PercentValue((double)cases.Count(x => x) / (double)cases.Length)));
+        Add(new Result(TrainingSolvedCaseQualities, "The quality of each training case", new DoubleArray(training.Item2.ToArray())));
       } else {
-        Add(new Result(TrainingException, "Exception occured during training", new TextValue(training.Item3)));
+        Add(new Result(TrainingException, "Exception occured during training", new TextValue(training.Item4)));
         Add(new Result(TrainingQuality, "Training quality", new DoubleValue(Double.NaN)));
         Add(new Result(TrainingSolvedCases, "Training cases which have been solved", new BoolArray(problemData.TrainingIndices.Count())));
         Add(new Result(TrainingSolvedCasesPercentage, "Percentage of training cases which have been solved", new PercentValue(0)));
+        Add(new Result(TrainingSolvedCaseQualities, "The quality of each training case", new DoubleArray(Enumerable.Repeat(Double.NaN, problemData.TrainingIndices.Count()).ToArray())));
       }
 
-      if (String.IsNullOrEmpty(test.Item3)) {
-        Add(new Result(TestQuality, "Test quality", new DoubleValue(test.Item2)));
+      if (String.IsNullOrEmpty(test.Item4)) {
+        Add(new Result(TestQuality, "Test quality", new DoubleValue(test.Item3)));
         var cases = test.Item1.ToArray();
         Add(new Result(TestSolvedCases, "Test cases which have been solved", new BoolArray(cases)));
         Add(new Result(TestSolvedCasesPercentage, "Percentage of test cases which have been solved", new PercentValue((double)cases.Count(x => x) / (double)cases.Length)));
+        Add(new Result(TestSolvedCaseQualities, "The quality of each test case", new DoubleArray(test.Item2.ToArray())));
       } else {
-        Add(new Result(TestException, "Exception occured during test", new TextValue(test.Item3)));
+        Add(new Result(TestException, "Exception occured during test", new TextValue(test.Item4)));
         Add(new Result(TestQuality, "Test quality", new DoubleValue(Double.NaN)));
         Add(new Result(TestSolvedCases, "Test cases which have been solved", new BoolArray(problemData.TestIndices.Count())));
         Add(new Result(TestSolvedCasesPercentage, "Percentage of test cases which have been solved", new PercentValue(0)));
+        Add(new Result(TestSolvedCaseQualities, "The quality of each test case", new DoubleArray(Enumerable.Repeat(Double.NaN, problemData.TestIndices.Count()).ToArray())));
       }
     }
   }

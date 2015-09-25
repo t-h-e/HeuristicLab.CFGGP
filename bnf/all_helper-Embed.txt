@@ -113,4 +113,5 @@ def fitness():
 
 import sys
 quality = sys.maxsize
-quality, cases = fitness()
+caseQuality, cases = fitness()
+quality = sum(caseQuality)

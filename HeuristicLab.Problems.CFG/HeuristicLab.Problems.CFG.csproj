@@ -139,7 +139,6 @@
     <Compile Include="Analyzer\CFGTrainingBestSolutionAnalyzer.cs" />
     <Compile Include="CFGProblemData.cs" />
     <Compile Include="CFGSolution.cs" />
-    <Compile Include="Evaluator\CFGSortingNetworkEvaluator.cs" />
     <Compile Include="Interfaces\ICFGProblemData.cs" />
     <Compile Include="Interfaces\ICFGAnalyzer.cs" />
     <Compile Include="CFGExpressionGrammar.cs" />

@@ -96,11 +96,8 @@ def evolve(inList):
 def fitnessTrainingCase(i, o):
   eval = evolve(i)
 
-  if len(eval) != len(o[0]):
-    return 6  # maximum difference between ord('F') - ord('A'), plus 1
-
-  res = abs(ord(eval) - ord(o[0]))
-  return res
+  // add 2000 extra error for length difference, because that's the maximum difference between two elements
+  return sum([abs(x[0] - x[1]) for x in zip(eval,o[0])]) + abs(len(eval) - len(o[0])) * 2000
 
 
 #  function to evaluate fitness

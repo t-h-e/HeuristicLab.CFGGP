@@ -119,9 +119,10 @@ def fitness():
     error.append(value)
     cases.append(value < 0.000000001)
 
-  return sum(error), cases
+  return error, cases
 
 
 import sys
 quality = sys.maxsize
-quality, cases = fitness()
+caseQuality, cases = fitness()
+quality = sum(caseQuality)
