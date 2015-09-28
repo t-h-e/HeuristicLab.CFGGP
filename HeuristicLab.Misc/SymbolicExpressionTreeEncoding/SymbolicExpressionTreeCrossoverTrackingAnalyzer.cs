@@ -58,11 +58,9 @@ namespace HeuristicLab.Misc {
       get { return (IValueParameter<BoolValue>)Parameters[AggregateSymbolsWithDifferentSubtreeCountParameterName]; }
     }
 
-
     public IScopeTreeLookupParameter<ISymbolicExpressionTree> ChildParameter {
       get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["Child"]; }
     }
-
     public IScopeTreeLookupParameter<ItemArray<ISymbolicExpressionTree>> CrossoverParentsParameter {
       get { return (IScopeTreeLookupParameter<ItemArray<ISymbolicExpressionTree>>)Parameters["CrossoverParents"]; }
     }
@@ -97,6 +95,8 @@ namespace HeuristicLab.Misc {
     public override IOperation Apply() {
       //first generation only
       if (CrossoverParentsParameter.ActualValue.Count() == 0) return base.Apply();
+
+      if (CrossoverParentsParameter.ActualValue.Length != ChildParameter.ActualValue.Length) throw new ArgumentException("Number of children and crossover parents does not match. A reason might be that elitism was used.");
 
       ItemArray<ISymbolicExpressionTree> expressions = SymbolicExpressionTreeParameter.ActualValue;
       ResultCollection results = ResultsParameter.ActualValue;

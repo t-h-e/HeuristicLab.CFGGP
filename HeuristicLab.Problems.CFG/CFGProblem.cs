@@ -265,7 +265,7 @@ namespace HeuristicLab.Problems.CFG {
 
 
       if (trackingCrossover.Any()) {
-        var beforeXO = new BeforeCrossoverOperator<SymbolicExpressionTree>();
+        var beforeXO = new BeforeCrossoverOperator<ISymbolicExpressionTree>();
         beforeXO.ParentsParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.Name;
         foreach (var op in operators.OfType<ISymbolicExpressionTreeCrossover>()) {
           var instrumentedXO = op as InstrumentedOperator;
@@ -284,7 +284,7 @@ namespace HeuristicLab.Problems.CFG {
       }
 
       if (trackingManipulator.Any()) {
-        var beforeMU = new BeforeManipulatorOperator<SymbolicExpressionTree>();
+        var beforeMU = new BeforeManipulatorOperator<ISymbolicExpressionTree>();
         beforeMU.ChildParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
         foreach (var op in operators.OfType<ISymbolicExpressionTreeManipulator>()) {
           var instrumentedMU = op as InstrumentedOperator;

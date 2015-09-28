@@ -94,7 +94,7 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
-      Parameters.Add(new LookupParameter<BoolArray>("CaseQualities", "The quality of every single training case for each individual"));
+      Parameters.Add(new LookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
       Parameters.ForEach(x => x.Hidden = false);
 
