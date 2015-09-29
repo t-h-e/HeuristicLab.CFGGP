@@ -52,7 +52,7 @@ namespace HeuristicLab.Misc {
 
     public BeforeManipulatorOperator() {
       Parameters.Add(new LookupParameter<T>(ChildParameterName));
-      Parameters.Add(new ValueParameter<T>(ChildParameterName));
+      Parameters.Add(new ValueParameter<T>(ManipulatorParentName));
     }
 
     public override IOperation Apply() {

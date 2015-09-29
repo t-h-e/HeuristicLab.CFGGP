@@ -114,6 +114,14 @@ namespace HeuristicLab.Problems.CFG {
       Initialize();
     }
 
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      RegisterEventHandlers();
+    }
+
+
+
+    #region Helpers
     private void Initialize() {
       Parameters.Add(new ValueParameter<CFGProblemData>(ProblemDataParameterName, ProblemDataParameterDescription, CFGProblemData.EmptyProblemData));
       Parameters.Add(new FixedValueParameter<TextValue>("GrammarBNF", "Grammar in BNF Form.", new TextValue()));
@@ -140,29 +148,6 @@ namespace HeuristicLab.Problems.CFG {
       InitializeOperators();
     }
 
-    [StorableHook(HookType.AfterDeserialization)]
-    private void AfterDeserialization() {
-      RegisterEventHandlers();
-    }
-
-    #region Events
-    private void GrammarBNFParameter_Value_ValueChanged(object sender, EventArgs e) {
-      CreateTreeFromGrammar();
-    }
-    private void EmbedCodeFilePathParameter_Value_ValueChanged(object sender, EventArgs e) {
-      SetCodeHeaderAndFooter();
-    }
-    protected override void OnEvaluatorChanged() {
-      base.OnEvaluatorChanged();
-      ParameterizeEvaluator();
-    }
-
-    protected override void OnSolutionCreatorChanged() {
-      base.OnSolutionCreatorChanged();
-      ParameterizeSolutionCreator();
-    }
-    #endregion
-
     private void RegisterEventHandlers() {
       GrammarBNFParameter.Value.ValueChanged += new EventHandler(GrammarBNFParameter_Value_ValueChanged);
       EmbedCodeParameter.Value.ValueChanged += new EventHandler(EmbedCodeFilePathParameter_Value_ValueChanged);
@@ -170,23 +155,6 @@ namespace HeuristicLab.Problems.CFG {
       if (ProblemDataParameter.Value != null) ProblemDataParameter.Value.Changed += new EventHandler(ProblemData_Changed);
     }
 
-    private void ProblemDataParameter_ValueChanged(object sender, EventArgs e) {
-      ProblemDataParameter.Value.Changed += new EventHandler(ProblemData_Changed);
-      OnProblemDataChanged();
-      OnReset();
-    }
-
-    protected virtual void ProblemData_Changed(object sender, EventArgs e) {
-      OnReset();
-    }
-
-    public event EventHandler ProblemDataChanged;
-    protected virtual void OnProblemDataChanged() {
-      var handler = ProblemDataChanged;
-      if (handler != null) handler(this, EventArgs.Empty);
-    }
-
-    #region Helpers
     private void InitializeOperators() {
       Operators.AddRange(ApplicationManager.Manager.GetInstances<ISymbolicExpressionTreeOperator>());
       Operators.Add(new MinAverageMaxSymbolicExpressionTreeLengthAnalyzer());
@@ -195,8 +163,10 @@ namespace HeuristicLab.Problems.CFG {
       Operators.Add(new CaseAnalyzer());
       Operators.Add(new CFGTrainingBestSolutionAnalyzer());
       Operators.Add(new SymbolicExpressionTreeCrossoverTrackingAnalyzer());
+      Operators.Add(new SymbolicExpressionTreeManipulatorTrackingAnalyzer());
       ParameterizeOperators();
     }
+
     private void ParameterizeEvaluator() {
       if (Evaluator != null) {
         Evaluator.ProgramParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
@@ -235,6 +205,13 @@ namespace HeuristicLab.Problems.CFG {
       foreach (var op in operators.OfType<ISymbolicExpressionTreeCreator>()) {
         op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       }
+
+      ParameterizeAnalyzers();
+    }
+
+    private void ParameterizeAnalyzers() {
+      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
+
       foreach (var op in operators.OfType<ISymbolicExpressionTreeAnalyzer>()) {
         op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       }
@@ -301,6 +278,40 @@ namespace HeuristicLab.Problems.CFG {
           }
         }
       }
+    }
+    #endregion
+
+    #region Events
+    private void GrammarBNFParameter_Value_ValueChanged(object sender, EventArgs e) {
+      CreateTreeFromGrammar();
+    }
+    private void EmbedCodeFilePathParameter_Value_ValueChanged(object sender, EventArgs e) {
+      SetCodeHeaderAndFooter();
+    }
+    protected override void OnEvaluatorChanged() {
+      base.OnEvaluatorChanged();
+      ParameterizeEvaluator();
+    }
+
+    protected override void OnSolutionCreatorChanged() {
+      base.OnSolutionCreatorChanged();
+      ParameterizeSolutionCreator();
+    }
+
+    private void ProblemDataParameter_ValueChanged(object sender, EventArgs e) {
+      ProblemDataParameter.Value.Changed += new EventHandler(ProblemData_Changed);
+      OnProblemDataChanged();
+      OnReset();
+    }
+
+    protected virtual void ProblemData_Changed(object sender, EventArgs e) {
+      OnReset();
+    }
+
+    public event EventHandler ProblemDataChanged;
+    protected virtual void OnProblemDataChanged() {
+      var handler = ProblemDataChanged;
+      if (handler != null) handler(this, EventArgs.Empty);
     }
     #endregion
 

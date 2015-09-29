@@ -131,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzer\CaseAnalyzer.cs" />
+    <Compile Include="SymbolicExpressionTreeEncoding\SymbolicExpressionTreeManipulatorTrackingAnalyzer.cs" />
     <Compile Include="SymbolicExpressionTreeEncoding\SymbolicExpressionTreeCrossoverTrackingAnalyzer.cs" />
     <Compile Include="Interfaces\ICaseEvaluator.cs" />
     <Compile Include="Interfaces\ICaseSingleObjectiveSelector.cs" />
@@ -144,7 +145,7 @@
     <Compile Include="Selector\MultiProportionalSelector.cs" />
     <Compile Include="TextValue.cs" />
     <Compile Include="Tracking\BeforeCrossoverOperator.cs" />
-    <Compile Include="Tracking\BeforeMutationOperator.cs" />
+    <Compile Include="Tracking\BeforeManipulatorOperator.cs" />
     <Compile Include="Tracking\Interfaces\IManipulatorTrackingAnalyzer.cs" />
     <Compile Include="Tracking\Interfaces\ICrossoverTrackingAnalyzer.cs" />
     <Compile Include="Tracking\Interfaces\ITrackingCrossoverOperator.cs" />
