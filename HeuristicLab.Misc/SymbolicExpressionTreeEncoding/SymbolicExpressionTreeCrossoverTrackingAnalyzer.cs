@@ -25,6 +25,7 @@ using System.Linq;
 using HeuristicLab.Analysis;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
+using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Operators;
 using HeuristicLab.Optimization;
@@ -40,8 +41,6 @@ namespace HeuristicLab.Misc {
   public class SymbolicExpressionTreeCrossoverTrackingAnalyzer : SingleSuccessorOperator, ISymbolicExpressionTreeAnalyzer, ICrossoverTrackingAnalyzer<ISymbolicExpressionTree> {
     private const string SymbolicExpressionTreeParameterName = "SymbolicExpressionTree";
     private const string ResultsParameterName = "Results";
-    private const string SymbolFrequenciesParameterName = "SymbolFrequencies";
-    private const string AggregateSymbolsWithDifferentSubtreeCountParameterName = "AggregateSymbolsWithDifferentSubtreeCount";
 
     #region parameter properties
     public IScopeTreeLookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter {
@@ -51,6 +50,13 @@ namespace HeuristicLab.Misc {
       get { return (ILookupParameter<ResultCollection>)Parameters[ResultsParameterName]; }
     }
 
+    public ILookupParameter<ISymbolicExpressionGrammar> SymbolicExpressionGrammarParameter {
+      get { return (ILookupParameter<ISymbolicExpressionGrammar>)Parameters["Grammar"]; }
+    }
+    public IValueParameter<BoolValue> IncludeTerminalsParameter {
+      get { return (IValueParameter<BoolValue>)Parameters["IncludeTerminals"]; }
+    }
+
     public IScopeTreeLookupParameter<ISymbolicExpressionTree> ChildParameter {
       get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["Child"]; }
     }
@@ -58,25 +64,29 @@ namespace HeuristicLab.Misc {
       get { return (IScopeTreeLookupParameter<ItemArray<ISymbolicExpressionTree>>)Parameters["CrossoverParents"]; }
     }
 
-    public ILookupParameter<DataTable> CrossocerGeneticMaterialDepthPerGenerationParameter {
-      get { return (ILookupParameter<DataTable>)Parameters["CrossocerGeneticMaterialDepthPerGeneration"]; }
+    public ILookupParameter<DataTable> CrossoverGeneticMaterialDepthPerGenerationParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverGeneticMaterialDepthPerGeneration"]; }
     }
-    public ILookupParameter<DataTable> CrossocerGeneticMaterialLengthPerGenerationParameter {
-      get { return (ILookupParameter<DataTable>)Parameters["CrossocerGeneticMaterialLengthPerGeneration"]; }
+    public ILookupParameter<DataTable> CrossoverGeneticMaterialLengthPerGenerationParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverGeneticMaterialLengthPerGeneration"]; }
     }
-    public ILookupParameter<DataTable> CrossocerDepthPerGenerationParameter {
-      get { return (ILookupParameter<DataTable>)Parameters["CrossocerDepthPerGeneration"]; }
+    public ILookupParameter<DataTable> CrossoverDepthPerGenerationParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverDepthPerGeneration"]; }
     }
 
 
-    public ILookupParameter<DataTable> CrossocerSymbolGeneticMaterialDepthParameter {
-      get { return (ILookupParameter<DataTable>)Parameters["CrossocerSymbolGeneticMaterialDepth"]; }
+    public ILookupParameter<DataTable> CrossoverSymbolGeneticMaterialDepthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverSymbolGeneticMaterialDepth"]; }
     }
-    public ILookupParameter<DataTable> CrossocerSymbolGeneticMaterialLengthParameter {
-      get { return (ILookupParameter<DataTable>)Parameters["CrossocerSymbolGeneticMaterialLength"]; }
+    public ILookupParameter<DataTable> CrossoverSymbolGeneticMaterialLengthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverSymbolGeneticMaterialLength"]; }
     }
-    public ILookupParameter<DataTable> CrossocerSymbolDepthParameter {
-      get { return (ILookupParameter<DataTable>)Parameters["CrossocerSymbolDepth"]; }
+    public ILookupParameter<DataTable> CrossoverSymbolDepthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverSymbolDepth"]; }
+    }
+
+    public ILookupParameter<DataTable> CrossoverAbsolutePerSymbolParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverAbsolutePerSymbol"]; }
     }
     #endregion
 
@@ -91,17 +101,21 @@ namespace HeuristicLab.Misc {
       : base() {
       Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>(SymbolicExpressionTreeParameterName, "The symbolic expression trees to analyze."));
       Parameters.Add(new LookupParameter<ResultCollection>(ResultsParameterName, "The result collection where the symbol frequencies should be stored."));
+      Parameters.Add(new LookupParameter<ISymbolicExpressionGrammar>("Grammar", ""));
+      Parameters.Add(new ValueParameter<BoolValue>("IncludeTerminals", "", new BoolValue(true)));
 
       Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("Child", ""));
       Parameters.Add(new ScopeTreeLookupParameter<ItemArray<ISymbolicExpressionTree>>("CrossoverParents", ""));
 
-      Parameters.Add(new LookupParameter<DataTable>("CrossocerGeneticMaterialDepthPerGeneration", ""));
-      Parameters.Add(new LookupParameter<DataTable>("CrossocerGeneticMaterialLengthPerGeneration", ""));
-      Parameters.Add(new LookupParameter<DataTable>("CrossocerDepthPerGeneration", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverGeneticMaterialDepthPerGeneration", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverGeneticMaterialLengthPerGeneration", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverDepthPerGeneration", ""));
 
-      Parameters.Add(new LookupParameter<DataTable>("CrossocerSymbolGeneticMaterialDepth", ""));
-      Parameters.Add(new LookupParameter<DataTable>("CrossocerSymbolGeneticMaterialLength", ""));
-      Parameters.Add(new LookupParameter<DataTable>("CrossocerSymbolDepth", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverSymbolGeneticMaterialDepth", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverSymbolGeneticMaterialLength", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverSymbolDepth", ""));
+
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverAbsolutePerSymbol", ""));
     }
     public override IDeepCloneable Clone(Cloner cloner) {
       return new SymbolicExpressionTreeCrossoverTrackingAnalyzer(this, cloner);
@@ -127,25 +141,36 @@ namespace HeuristicLab.Misc {
     }
 
     private void CreateTables(List<Tuple<string, int, int, int>> values) {
-      CreatePerGenerationTable(CrossocerGeneticMaterialDepthPerGenerationParameter, values.Average(x => x.Item2), "Crossover genetic material depth");
-      CreatePerGenerationTable(CrossocerGeneticMaterialLengthPerGenerationParameter, values.Average(x => x.Item3), "Crossover genetic material length");
-      CreatePerGenerationTable(CrossocerDepthPerGenerationParameter, values.Average(x => x.Item4), "Crossover depth");
+      var valuesWithChange = values.Where(x => !x.Item1.Equals("No change"));
 
-      CreatePerSymbolAndGenerationTable(values.Select(x => new Tuple<string, double>(x.Item1, x.Item2)), CrossocerSymbolGeneticMaterialDepthParameter, "Crossover per symbol genetic material depth");
-      CreatePerSymbolAndGenerationTable(values.Select(x => new Tuple<string, double>(x.Item1, x.Item3)), CrossocerSymbolGeneticMaterialLengthParameter, "Crossover per symbol genetic material length");
-      CreatePerSymbolAndGenerationTable(values.Select(x => new Tuple<string, double>(x.Item1, x.Item4)), CrossocerSymbolDepthParameter, "Crossover symbol depth");
+      if (!IncludeTerminalsParameter.Value.Value) {
+        var terminalSymbolNames = SymbolicExpressionGrammarParameter.ActualValue.Symbols.Where(x => x.MinimumArity > 0).Select(x => x.Name);
+        values = values.Where(x => terminalSymbolNames.Contains(x.Item1) || "No change".Equals(x.Item1)).ToList();
+        valuesWithChange = valuesWithChange.Where(x => terminalSymbolNames.Contains(x.Item1)).ToList();
+      }
+
+      CreatePerGenerationTable(CrossoverGeneticMaterialDepthPerGenerationParameter, valuesWithChange.Average(x => x.Item2), "Crossover genetic material depth");
+      CreatePerGenerationTable(CrossoverGeneticMaterialLengthPerGenerationParameter, valuesWithChange.Average(x => x.Item3), "Crossover genetic material length");
+      CreatePerGenerationTable(CrossoverDepthPerGenerationParameter, valuesWithChange.Average(x => x.Item4), "Crossover depth");
+
+      CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item2)), CrossoverSymbolGeneticMaterialDepthParameter, "Crossover per symbol genetic material depth");
+      CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item3)), CrossoverSymbolGeneticMaterialLengthParameter, "Crossover per symbol genetic material length");
+      CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item4)), CrossoverSymbolDepthParameter, "Crossover symbol depth");
+
+      CreateAbsoluteCrossoverTable(values);
     }
 
-    private void CreatePerSymbolAndGenerationTable(IEnumerable<Tuple<string, double>> values, ILookupParameter<DataTable> dataTableParameter, string title, string description = "") {
+    private void CreateAbsoluteCrossoverTable(List<Tuple<string, int, int, int>> values) {
       ResultCollection results = ResultsParameter.ActualValue;
-      DataTable dataTable = dataTableParameter.ActualValue;
+      DataTable dataTable = CrossoverAbsolutePerSymbolParameter.ActualValue;
 
       if (dataTable == null) {
-        dataTable = new DataTable(title, description);
-        dataTable.VisualProperties.YAxisTitle = title;
+        dataTable = new DataTable("Crossover per symbol", description);
+        dataTable.VisualProperties.YAxisTitle = "Crossover per symbol";
+        dataTable.VisualProperties.XAxisTitle = "Generation";
 
-        dataTableParameter.ActualValue = dataTable;
-        results.Add(new Result(title, dataTable));
+        CrossoverAbsolutePerSymbolParameter.ActualValue = dataTable;
+        results.Add(new Result("Crossover per symbol", dataTable));
       }
 
       // all rows must have the same number of values so we can just take the first
@@ -158,7 +183,7 @@ namespace HeuristicLab.Misc {
           row.VisualProperties.StartIndexZero = true;
           dataTable.Rows.Add(row);
         }
-        dataTable.Rows[pair.Key].Values.Add(Math.Round(pair.Average(x => x.Item2), 3));
+        dataTable.Rows[pair.Key].Values.Add(pair.Count());
       }
 
       // add a zero for each data row that was not modified in the previous loop 
@@ -166,25 +191,56 @@ namespace HeuristicLab.Misc {
         row.Values.Add(0.0);
     }
 
-    private const string generationalRowKey = "generationalRowKey";
+    private void CreatePerSymbolAndGenerationTable(IEnumerable<Tuple<string, double>> values, ILookupParameter<DataTable> dataTableParameter, string title, string description = "") {
+      ResultCollection results = ResultsParameter.ActualValue;
+      DataTable dataTable = dataTableParameter.ActualValue;
+
+      if (dataTable == null) {
+        dataTable = new DataTable(title, description);
+        dataTable.VisualProperties.YAxisTitle = title;
+        dataTable.VisualProperties.XAxisTitle = "Generation";
+
+        dataTableParameter.ActualValue = dataTable;
+        results.Add(new Result(title, dataTable));
+      }
+
+      // all rows must have the same number of values so we can just take the first
+      int numberOfValues = dataTable.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
+
+      foreach (var pair in values.GroupBy(x => x.Item1, x => x)) {
+        if (!dataTable.Rows.ContainsKey(pair.Key)) {
+          // initialize a new row for the symbol and pad with zeros
+          DataRow row = new DataRow(pair.Key, "", Enumerable.Repeat(double.NaN, numberOfValues));
+          row.VisualProperties.StartIndexZero = true;
+          dataTable.Rows.Add(row);
+        }
+        dataTable.Rows[pair.Key].Values.Add(Math.Round(pair.Average(x => x.Item2), 3));
+      }
+
+      // add a zero for each data row that was not modified in the previous loop 
+      foreach (var row in dataTable.Rows.Where(r => r.Values.Count != numberOfValues + 1))
+        row.Values.Add(double.NaN);
+    }
+
     private void CreatePerGenerationTable(ILookupParameter<DataTable> generationalDataTableParameter, double value, string title, string description = "") {
       ResultCollection results = ResultsParameter.ActualValue;
       DataTable generationalDataTable = generationalDataTableParameter.ActualValue;
       if (generationalDataTable == null) {
         generationalDataTable = new DataTable(title, description);
         generationalDataTable.VisualProperties.YAxisTitle = title;
+        generationalDataTable.VisualProperties.XAxisTitle = "Generation";
 
         generationalDataTableParameter.ActualValue = generationalDataTable;
         results.Add(new Result(title, generationalDataTable));
       }
 
-      if (!generationalDataTable.Rows.ContainsKey(generationalRowKey)) {
+      if (!generationalDataTable.Rows.ContainsKey(title)) {
         // initialize a new row for the symbol and pad with zeros
-        DataRow row = new DataRow(generationalRowKey, "");
+        DataRow row = new DataRow(title, "");
         row.VisualProperties.StartIndexZero = true;
         generationalDataTable.Rows.Add(row);
       }
-      generationalDataTable.Rows[generationalRowKey].Values.Add(Math.Round(value, 3));
+      generationalDataTable.Rows[title].Values.Add(Math.Round(value, 3));
     }
 
     public static Tuple<string, int, int, int> CalculateGeneticMaterialChange(ISymbolicExpressionTree child, ItemArray<ISymbolicExpressionTree> parents) {

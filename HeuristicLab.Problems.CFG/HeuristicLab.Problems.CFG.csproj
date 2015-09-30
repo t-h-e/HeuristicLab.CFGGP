@@ -138,7 +138,9 @@
   <ItemGroup>
     <Compile Include="Analyzer\CFGTrainingBestSolutionAnalyzer.cs" />
     <Compile Include="CFGProblemData.cs" />
+    <Compile Include="CFGProblemWithTracking.cs" />
     <Compile Include="CFGSolution.cs" />
+    <Compile Include="Evaluator\CFGDummyEvaluator.cs" />
     <Compile Include="Interfaces\ICFGProblemData.cs" />
     <Compile Include="Interfaces\ICFGAnalyzer.cs" />
     <Compile Include="CFGExpressionGrammar.cs" />
