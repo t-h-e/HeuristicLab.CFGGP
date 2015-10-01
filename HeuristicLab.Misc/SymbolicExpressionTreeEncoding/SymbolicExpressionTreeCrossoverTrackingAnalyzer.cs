@@ -140,12 +140,14 @@ namespace HeuristicLab.Misc {
       return base.Apply();
     }
 
+    private const string NOCHANGE = "No change";
+
     private void CreateTables(List<Tuple<string, int, int, int>> values) {
-      var valuesWithChange = values.Where(x => !x.Item1.Equals("No change"));
+      var valuesWithChange = values.Where(x => !x.Item1.Equals(NOCHANGE));
 
       if (!IncludeTerminalsParameter.Value.Value) {
         var terminalSymbolNames = SymbolicExpressionGrammarParameter.ActualValue.Symbols.Where(x => x.MinimumArity > 0).Select(x => x.Name);
-        values = values.Where(x => terminalSymbolNames.Contains(x.Item1) || "No change".Equals(x.Item1)).ToList();
+        values = values.Where(x => terminalSymbolNames.Contains(x.Item1) || NOCHANGE.Equals(x.Item1)).ToList();
         valuesWithChange = valuesWithChange.Where(x => terminalSymbolNames.Contains(x.Item1)).ToList();
       }
 
@@ -245,7 +247,7 @@ namespace HeuristicLab.Misc {
 
     public static Tuple<string, int, int, int> CalculateGeneticMaterialChange(ISymbolicExpressionTree child, ItemArray<ISymbolicExpressionTree> parents) {
       Tuple<ISymbolicExpressionTreeNode, int> crossoverPoint = FindCrossoverPoint(child, parents[0]);
-      if (crossoverPoint == null) return new Tuple<string, int, int, int>("No change", 0, 0, 0);
+      if (crossoverPoint == null) return new Tuple<string, int, int, int>(NOCHANGE, 0, 0, 0);
 
       ISymbolicExpressionTreeNode crossoverPointNode = crossoverPoint.Item1;
 
