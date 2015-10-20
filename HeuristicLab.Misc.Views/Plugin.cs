@@ -24,6 +24,8 @@ using HeuristicLab.PluginInfrastructure;
 namespace HeuristicLab.Misc.Views {
   [Plugin("HeuristicLab.Misc.Views", "Provides views which may be included in the main repository of HL", "3.3.12.0")]
   [PluginFile("HeuristicLab.Misc.Views.dll", PluginFileType.Assembly)]
+  [PluginDependency("HeuristicLab.Analysis", "3.3")]
+  [PluginDependency("HeuristicLab.Collections", "3.3")]
   [PluginDependency("HeuristicLab.Core", "3.3")]
   [PluginDependency("HeuristicLab.Core.Views", "3.3")]
   [PluginDependency("HeuristicLab.Data", "3.3")]
@@ -31,6 +33,7 @@ namespace HeuristicLab.Misc.Views {
   [PluginDependency("HeuristicLab.MainForm", "3.3")]
   [PluginDependency("HeuristicLab.MainForm.WindowsForms", "3.3")]
   [PluginDependency("HeuristicLab.Misc", "3.3")]
+  [PluginDependency("HeuristicLab.Optimization", "3.3")]
   public class HeuristicLabExtLibsIronPythonPlugin : PluginBase {
   }
 }

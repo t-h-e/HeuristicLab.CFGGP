@@ -88,6 +88,42 @@ namespace HeuristicLab.Misc {
     public ILookupParameter<DataTable> CrossoverAbsolutePerSymbolParameter {
       get { return (ILookupParameter<DataTable>)Parameters["CrossoverAbsolutePerSymbol"]; }
     }
+
+    public IScopeTreeLookupParameter<ISymbolicExpressionTree> RemovedBranchesParameter {
+      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["RemovedBranch"]; }
+    }
+    public IScopeTreeLookupParameter<ISymbolicExpressionTree> AddedBranchesParameter {
+      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["AddedBranch"]; }
+    }
+    public IScopeTreeLookupParameter<ISymbol> CutPointSymbolParameter {
+      get { return (IScopeTreeLookupParameter<ISymbol>)Parameters["CutPointSymbol"]; }
+    }
+
+    public ILookupParameter<DataTable> CrossoverActualRemovedMaterialDepthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualRemovedMaterialDepth"]; }
+    }
+    public ILookupParameter<DataTable> CrossoverActualRemovedMaterialLengthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualRemovedMaterialLength"]; }
+    }
+    public ILookupParameter<DataTable> CrossoverActualAddedMaterialDepthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualAddedMaterialDepth"]; }
+    }
+    public ILookupParameter<DataTable> CrossoverActualAddedMaterialLengthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualAddedMaterialLength"]; }
+    }
+
+    public ILookupParameter<DataTable> CrossoverActualCutPointParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualCutPoint"]; }
+    }
+    public ILookupParameter<DataTable> CrossoverActualCutPointParentParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualCutPointParent"]; }
+    }
+    public ILookupParameter<DataTable> CrossoverActualCutPointChildParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualCutPointChild"]; }
+    }
+    public ILookupParameter<DataTable> CrossoverActualCutPointExchangeParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["CrossoverActualCutPointExchange"]; }
+    }
     #endregion
 
     public virtual bool EnabledByDefault {
@@ -116,6 +152,20 @@ namespace HeuristicLab.Misc {
       Parameters.Add(new LookupParameter<DataTable>("CrossoverSymbolDepth", ""));
 
       Parameters.Add(new LookupParameter<DataTable>("CrossoverAbsolutePerSymbol", ""));
+
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("RemovedBranch", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("AddedBranch", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbol>("CutPointSymbol", ""));
+
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualRemovedMaterialDepth", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualRemovedMaterialLength", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualAddedMaterialDepth", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualAddedMaterialLength", ""));
+
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualCutPoint", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualCutPointParent", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualCutPointChild", ""));
+      Parameters.Add(new LookupParameter<DataTable>("CrossoverActualCutPointExchange", ""));
     }
     public override IDeepCloneable Clone(Cloner cloner) {
       return new SymbolicExpressionTreeCrossoverTrackingAnalyzer(this, cloner);
@@ -137,13 +187,36 @@ namespace HeuristicLab.Misc {
 
       CreateTables(values);
 
+      RealChanges();
+
       return base.Apply();
+    }
+
+    private void RealChanges() {
+      var cutPoint = CutPointSymbolParameter.ActualValue;
+      var addedBranches = AddedBranchesParameter.ActualValue;
+      var removedBranches = RemovedBranchesParameter.ActualValue;
+      if (cutPoint == null) { return; }
+
+      if (addedBranches != null) {
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(addedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Depth)), CrossoverActualAddedMaterialDepthParameter, "CrossoverActualAddedMaterialDepth");
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(addedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Length)), CrossoverActualAddedMaterialLengthParameter, "CrossoverActualAddedMaterialLength");
+      }
+      if (removedBranches != null) {
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(removedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Depth)), CrossoverActualRemovedMaterialDepthParameter, "CrossoverActualRemovedMaterialDepth");
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(removedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Length)), CrossoverActualRemovedMaterialLengthParameter, "CrossoverActualRemovedMaterialLength");
+      }
+
+      CreateAbsoluteCrossoverTable(cutPoint.Select(x => x.Name).Zip(addedBranches.Select(x => x.Root.Symbol.Name), (x, y) => x + "-" + y), CrossoverActualCutPointParameter, "Crossover Actual CutPoint");
+      CreateAbsoluteCrossoverTable(cutPoint.Select(x => x.Name), CrossoverActualCutPointParentParameter, "Crossover Actual CutPoint Parent");
+      CreateAbsoluteCrossoverTable(removedBranches.Select(x => x.Root.Symbol.Name), CrossoverActualCutPointChildParameter, "Crossover Actual CutPoint Child");
+      CreateAbsoluteCrossoverTable(removedBranches.Zip(addedBranches, (x, y) => x.Root.Symbol.Name + "-" + y.Root.Symbol.Name), CrossoverActualCutPointExchangeParameter, "Crossover Actual Exchange");
     }
 
     private const string NOCHANGE = "No change";
 
     private void CreateTables(List<Tuple<string, int, int, int>> values) {
-      var valuesWithChange = values.Where(x => !x.Item1.Equals(NOCHANGE));
+      var valuesWithChange = values.Where(x => !x.Item1.Equals(NOCHANGE)).DefaultIfEmpty(new Tuple<string, int, int, int>(NOCHANGE, 0, 0, 0));
 
       if (!IncludeTerminalsParameter.Value.Value) {
         var terminalSymbolNames = SymbolicExpressionGrammarParameter.ActualValue.Symbols.Where(x => x.MinimumArity > 0).Select(x => x.Name);
@@ -159,26 +232,26 @@ namespace HeuristicLab.Misc {
       CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item3)), CrossoverSymbolGeneticMaterialLengthParameter, "Crossover per symbol genetic material length");
       CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item4)), CrossoverSymbolDepthParameter, "Crossover symbol depth");
 
-      CreateAbsoluteCrossoverTable(values);
+      CreateAbsoluteCrossoverTable(values.Select(x => x.Item1), CrossoverAbsolutePerSymbolParameter, "Crossover per symbol");
     }
 
-    private void CreateAbsoluteCrossoverTable(List<Tuple<string, int, int, int>> values) {
+    private void CreateAbsoluteCrossoverTable(IEnumerable<string> values, ILookupParameter<DataTable> dataTableParameter, string title) {
       ResultCollection results = ResultsParameter.ActualValue;
-      DataTable dataTable = CrossoverAbsolutePerSymbolParameter.ActualValue;
+      DataTable dataTable = dataTableParameter.ActualValue;
 
       if (dataTable == null) {
-        dataTable = new DataTable("Crossover per symbol", description);
+        dataTable = new DataTable(title, description);
         dataTable.VisualProperties.YAxisTitle = "Crossover per symbol";
         dataTable.VisualProperties.XAxisTitle = "Generation";
 
-        CrossoverAbsolutePerSymbolParameter.ActualValue = dataTable;
-        results.Add(new Result("Crossover per symbol", dataTable));
+        dataTableParameter.ActualValue = dataTable;
+        results.Add(new Result(title, dataTable));
       }
 
       // all rows must have the same number of values so we can just take the first
       int numberOfValues = dataTable.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
 
-      foreach (var pair in values.GroupBy(x => x.Item1, x => x)) {
+      foreach (var pair in values.GroupBy(x => x, x => x)) {
         if (!dataTable.Rows.ContainsKey(pair.Key)) {
           // initialize a new row for the symbol and pad with zeros
           DataRow row = new DataRow(pair.Key, "", Enumerable.Repeat(0.0, numberOfValues));

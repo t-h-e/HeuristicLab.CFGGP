@@ -54,7 +54,11 @@ namespace HeuristicLab.Problems.CFG {
 
     protected override void ParameterizeAnalyzers() {
       base.ParameterizeAnalyzers();
+      ParameterizeOperatorsForTracking();
+    }
 
+    protected override void OnSolutionCreatorChanged() {
+      base.OnSolutionCreatorChanged();
       ParameterizeOperatorsForTracking();
     }
 
@@ -80,6 +84,7 @@ namespace HeuristicLab.Problems.CFG {
         foreach (var op in operators.OfType<ISymbolicExpressionTreeCrossover>()) {
           var instrumentedXO = op as InstrumentedOperator;
           if (instrumentedXO != null) {
+            instrumentedXO.BeforeExecutionOperators.Clear();
             instrumentedXO.BeforeExecutionOperators.Add(beforeXO);
           }
         }
@@ -104,6 +109,7 @@ namespace HeuristicLab.Problems.CFG {
         foreach (var op in operators.OfType<ISymbolicExpressionTreeManipulator>()) {
           var instrumentedMU = op as InstrumentedOperator;
           if (instrumentedMU != null) {
+            instrumentedMU.BeforeExecutionOperators.Clear();
             instrumentedMU.BeforeExecutionOperators.Add(beforeMU);
           }
         }

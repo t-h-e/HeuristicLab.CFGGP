@@ -1,5 +1,5 @@
     int steps = 0;
-      int swaps = 400;
+      int swaps = 65;
 
       int LONGSIZE = 64;
       int N_SORTING_NETWORK = 4;
@@ -74,7 +74,7 @@
 
 
       // execute sorting network
-      int curswap = 0;
+      int curswap = 1;
       for (int i = 0; i < sortingNetwork.Length; i += 2) {
         int firstLine = sortingNetwork[i];
         int secondLine = sortingNetwork[i + 1];
@@ -122,4 +122,5 @@
       }
 
       Cases.ActualValue = new BoolArray(cases);
-      Quality.ActualValue = new DoubleValue(fitness);
+	  CaseQualities.ActualValue = new DoubleArray(cases.Select(x => x ? 0.0 : 1.0).ToArray());
+      Quality.ActualValue = new DoubleValue(fitness + 0.01 * (curswap - 1));
