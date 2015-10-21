@@ -88,6 +88,42 @@ namespace HeuristicLab.Misc {
     public ILookupParameter<DataTable> ManipulatorAbsolutePerSymbolParameter {
       get { return (ILookupParameter<DataTable>)Parameters["ManipulatorAbsolutePerSymbol"]; }
     }
+
+    public IScopeTreeLookupParameter<ISymbolicExpressionTree> RemovedBranchesParameter {
+      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["ManipulatorRemovedBranch"]; }
+    }
+    public IScopeTreeLookupParameter<ISymbolicExpressionTree> AddedBranchesParameter {
+      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["ManipulatorAddedBranch"]; }
+    }
+    public IScopeTreeLookupParameter<ISymbol> CutPointSymbolParameter {
+      get { return (IScopeTreeLookupParameter<ISymbol>)Parameters["ManipulatorCutPointSymbol"]; }
+    }
+
+    public ILookupParameter<DataTable> ManipulatorActualRemovedMaterialDepthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualRemovedMaterialDepth"]; }
+    }
+    public ILookupParameter<DataTable> ManipulatorActualRemovedMaterialLengthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualRemovedMaterialLength"]; }
+    }
+    public ILookupParameter<DataTable> ManipulatorActualAddedMaterialDepthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualAddedMaterialDepth"]; }
+    }
+    public ILookupParameter<DataTable> ManipulatorActualAddedMaterialLengthParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualAddedMaterialLength"]; }
+    }
+
+    public ILookupParameter<DataTable> ManipulatorActualCutPointParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualCutPoint"]; }
+    }
+    public ILookupParameter<DataTable> ManipulatorActualCutPointParentParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualCutPointParent"]; }
+    }
+    public ILookupParameter<DataTable> ManipulatorActualCutPointChildParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualCutPointChild"]; }
+    }
+    public ILookupParameter<DataTable> ManipulatorActualCutPointExchangeParameter {
+      get { return (ILookupParameter<DataTable>)Parameters["ManipulatorActualCutPointExchange"]; }
+    }
     #endregion
 
     public virtual bool EnabledByDefault {
@@ -116,6 +152,20 @@ namespace HeuristicLab.Misc {
       Parameters.Add(new LookupParameter<DataTable>("ManipulatorSymbolDepth", ""));
 
       Parameters.Add(new LookupParameter<DataTable>("ManipulatorAbsolutePerSymbol", ""));
+
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("ManipulatorRemovedBranch", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("ManipulatorAddedBranch", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbol>("ManipulatorCutPointSymbol", ""));
+
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualRemovedMaterialDepth", ""));
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualRemovedMaterialLength", ""));
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualAddedMaterialDepth", ""));
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualAddedMaterialLength", ""));
+
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualCutPoint", ""));
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualCutPointParent", ""));
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualCutPointChild", ""));
+      Parameters.Add(new LookupParameter<DataTable>("ManipulatorActualCutPointExchange", ""));
     }
     public override IDeepCloneable Clone(Cloner cloner) {
       return new SymbolicExpressionTreeManipulatorTrackingAnalyzer(this, cloner);
@@ -137,7 +187,30 @@ namespace HeuristicLab.Misc {
 
       CreateTables(values);
 
+      RealChanges();
+
       return base.Apply();
+    }
+
+    private void RealChanges() {
+      var cutPoint = CutPointSymbolParameter.ActualValue;
+      var addedBranches = AddedBranchesParameter.ActualValue;
+      var removedBranches = RemovedBranchesParameter.ActualValue;
+      if (cutPoint == null) { return; }
+
+      if (addedBranches != null) {
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(addedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Depth)), ManipulatorActualAddedMaterialDepthParameter, "ManipulatorActualAddedMaterialDepth");
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(addedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Length)), ManipulatorActualAddedMaterialLengthParameter, "ManipulatorActualAddedMaterialLength");
+      }
+      if (removedBranches != null) {
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(removedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Depth)), ManipulatorActualRemovedMaterialDepthParameter, "ManipulatorActualRemovedMaterialDepth");
+        CreatePerSymbolAndGenerationTable(cutPoint.Zip(removedBranches, (x, y) => new Tuple<string, double>(x.Name, y.Length)), ManipulatorActualRemovedMaterialLengthParameter, "ManipulatorActualRemovedMaterialLength");
+      }
+
+      CreateAbsoluteManipulatorTable(cutPoint.Select(x => x.Name).Zip(addedBranches.Select(x => x.Root.Symbol.Name), (x, y) => x + "-" + y), ManipulatorActualCutPointParameter, "Manipulator Actual CutPoint");
+      CreateAbsoluteManipulatorTable(cutPoint.Select(x => x.Name), ManipulatorActualCutPointParentParameter, "Manipulator Actual CutPoint Parent");
+      CreateAbsoluteManipulatorTable(removedBranches.Select(x => x.Root.Symbol.Name), ManipulatorActualCutPointChildParameter, "Manipulator Actual CutPoint Child");
+      CreateAbsoluteManipulatorTable(removedBranches.Zip(addedBranches, (x, y) => x.Root.Symbol.Name + "-" + y.Root.Symbol.Name), ManipulatorActualCutPointExchangeParameter, "Manipulator Actual Exchange");
     }
 
     private const string NOCHANGE = "No change";
@@ -159,26 +232,26 @@ namespace HeuristicLab.Misc {
       CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item3)), ManipulatorSymbolGeneticMaterialLengthParameter, "Manipulator per symbol genetic material length");
       CreatePerSymbolAndGenerationTable(valuesWithChange.Select(x => new Tuple<string, double>(x.Item1, x.Item4)), ManipulatorSymbolDepthParameter, "Manipulator symbol depth");
 
-      CreateAbsoluteManipulatorTable(values);
+      CreateAbsoluteManipulatorTable(values.Select(x => x.Item1), ManipulatorAbsolutePerSymbolParameter, "Manipulator per symbol");
     }
 
-    private void CreateAbsoluteManipulatorTable(List<Tuple<string, int, int, int>> values) {
+    private void CreateAbsoluteManipulatorTable(IEnumerable<string> values, ILookupParameter<DataTable> dataTableParameter, string title) {
       ResultCollection results = ResultsParameter.ActualValue;
-      DataTable dataTable = ManipulatorAbsolutePerSymbolParameter.ActualValue;
+      DataTable dataTable = dataTableParameter.ActualValue;
 
       if (dataTable == null) {
-        dataTable = new DataTable("Manipulator per symbol", description);
+        dataTable = new DataTable(title, description);
         dataTable.VisualProperties.YAxisTitle = "Manipulator per symbol";
         dataTable.VisualProperties.XAxisTitle = "Generation";
 
-        ManipulatorAbsolutePerSymbolParameter.ActualValue = dataTable;
-        results.Add(new Result("Manipulator per symbol", dataTable));
+        dataTableParameter.ActualValue = dataTable;
+        results.Add(new Result(title, dataTable));
       }
 
       // all rows must have the same number of values so we can just take the first
       int numberOfValues = dataTable.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
 
-      foreach (var pair in values.GroupBy(x => x.Item1, x => x)) {
+      foreach (var pair in values.GroupBy(x => x, x => x)) {
         if (!dataTable.Rows.ContainsKey(pair.Key)) {
           // initialize a new row for the symbol and pad with zeros
           DataRow row = new DataRow(pair.Key, "", Enumerable.Repeat(0.0, numberOfValues));

@@ -90,13 +90,13 @@ namespace HeuristicLab.Misc {
     }
 
     public IScopeTreeLookupParameter<ISymbolicExpressionTree> RemovedBranchesParameter {
-      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["RemovedBranch"]; }
+      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["CrossoverRemovedBranch"]; }
     }
     public IScopeTreeLookupParameter<ISymbolicExpressionTree> AddedBranchesParameter {
-      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["AddedBranch"]; }
+      get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters["CrossoverAddedBranch"]; }
     }
     public IScopeTreeLookupParameter<ISymbol> CutPointSymbolParameter {
-      get { return (IScopeTreeLookupParameter<ISymbol>)Parameters["CutPointSymbol"]; }
+      get { return (IScopeTreeLookupParameter<ISymbol>)Parameters["CrossoverCutPointSymbol"]; }
     }
 
     public ILookupParameter<DataTable> CrossoverActualRemovedMaterialDepthParameter {
@@ -153,9 +153,9 @@ namespace HeuristicLab.Misc {
 
       Parameters.Add(new LookupParameter<DataTable>("CrossoverAbsolutePerSymbol", ""));
 
-      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("RemovedBranch", ""));
-      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("AddedBranch", ""));
-      Parameters.Add(new ScopeTreeLookupParameter<ISymbol>("CutPointSymbol", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("CrossoverRemovedBranch", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>("CrossoverAddedBranch", ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ISymbol>("CrossoverCutPointSymbol", ""));
 
       Parameters.Add(new LookupParameter<DataTable>("CrossoverActualRemovedMaterialDepth", ""));
       Parameters.Add(new LookupParameter<DataTable>("CrossoverActualRemovedMaterialLength", ""));

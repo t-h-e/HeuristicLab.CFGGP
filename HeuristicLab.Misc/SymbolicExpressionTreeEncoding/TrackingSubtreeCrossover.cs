@@ -42,9 +42,9 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
     private const string InternalCrossoverPointProbabilityParameterName = "InternalCrossoverPointProbability";
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
-    private const string RemovedBranchParameterName = "RemovedBranch";
-    private const string AddedBranchParameterName = "AddedBranch";
-    private const string CutPointSymbol = "CutPointSymbol";
+    private const string RemovedBranchParameterName = "CrossoverRemovedBranch";
+    private const string AddedBranchParameterName = "CrossoverAddedBranch";
+    private const string CutPointSymbol = "CrossoverCutPointSymbol";
 
     #region Parameter Properties
     public IValueLookupParameter<PercentValue> InternalCrossoverPointProbabilityParameter {

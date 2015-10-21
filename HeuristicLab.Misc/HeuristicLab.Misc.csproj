@@ -144,8 +144,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Selector\MultiProportionalSelector.cs" />
+    <Compile Include="SymbolicExpressionTreeEncoding\TrackingReplaceBranchManipulation.cs" />
     <Compile Include="SymbolicExpressionTreeEncoding\TrackingSubtreeCrossover.cs" />
-    <Compile Include="SymbolicExpressionTreeEncoding\UniformSubtreeCrossover.cs" />
     <Compile Include="TextValue.cs" />
     <Compile Include="Tracking\BeforeCrossoverOperator.cs" />
     <Compile Include="Tracking\BeforeManipulatorOperator.cs" />
