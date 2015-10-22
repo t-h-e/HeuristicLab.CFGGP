@@ -138,8 +138,6 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
             crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, selectedBranch);
 
             AddedBranchParameter.ActualValue = new SymbolicExpressionTree((ISymbolicExpressionTreeNode)selectedBranch.Clone());
-          } else {
-            Console.WriteLine("Test");
           }
         } else {
           // child is null (additional child should be added under the parent)
@@ -147,8 +145,6 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
             crossoverPoint0.Parent.AddSubtree(selectedBranch);
 
             AddedBranchParameter.ActualValue = new SymbolicExpressionTree((ISymbolicExpressionTreeNode)selectedBranch.Clone());
-          } else {
-            Console.WriteLine("test");
           }
         }
         return parent0;
