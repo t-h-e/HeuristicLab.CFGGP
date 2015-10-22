@@ -2,7 +2,7 @@
       int swaps = 65;
 
       int LONGSIZE = 64;
-      int N_SORTING_NETWORK = 4;
+      int N_SORTING_NETWORK = 12;
 
       long fitnessCases = (long)Math.Pow(2, N_SORTING_NETWORK);
       int arrayLength = (int)(fitnessCases / LONGSIZE);

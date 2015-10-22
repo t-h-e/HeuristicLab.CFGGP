@@ -47,6 +47,10 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     private void InitializeOperators() {
+      // remove unnecessary analyzer
+      Operators.RemoveAll(x => x is CFGTrainingBestSolutionAnalyzer);
+      Operators.RemoveAll(x => x is CaseAnalyzer);
+
       Operators.Add(new SymbolicExpressionTreeCrossoverTrackingAnalyzer());
       Operators.Add(new SymbolicExpressionTreeManipulatorTrackingAnalyzer());
       ParameterizeOperators();
