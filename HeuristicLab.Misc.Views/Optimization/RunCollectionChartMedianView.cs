@@ -25,14 +25,16 @@ using System.ComponentModel;
 using System.Linq;
 using HeuristicLab.Analysis;
 using HeuristicLab.Collections;
+using HeuristicLab.Common;
 using HeuristicLab.Core.Views;
 using HeuristicLab.MainForm;
+using HeuristicLab.MainForm.WindowsForms;
 using HeuristicLab.Optimization;
 
 namespace HeuristicLab.Misc.Views {
-  [View("Chart Average")]
+  [View("Chart Median + Std")]
   [Content(typeof(RunCollection), false)]
-  public partial class RunCollectionChartAverageView : ItemView {
+  public partial class RunCollectionChartMedianView : ItemView {
 
     public new RunCollection Content {
       get { return (RunCollection)base.Content; }
@@ -46,7 +48,7 @@ namespace HeuristicLab.Misc.Views {
       get { return combinedDataTable; }
     }
 
-    public RunCollectionChartAverageView() {
+    public RunCollectionChartMedianView() {
       InitializeComponent();
       combinedDataTable = new DataTable("Combined DataTable", "A data table containing data rows from multiple runs.");
       viewHost.Content = combinedDataTable;
@@ -155,25 +157,33 @@ namespace HeuristicLab.Misc.Views {
       combinedDataTable.Rows.Clear();
 
       var visibleRuns = runs.Where(r => r.Visible);
-      int numberOfVisibleRuns = visibleRuns.Count();
 
       var resultName = (string)dataTableComboBox.SelectedItem;
       if (string.IsNullOrEmpty(resultName)) return;
 
-      var dataTables = visibleRuns.Select(r => (DataTable)r.Results[resultName]);
+      var dataTables = visibleRuns.Where(r => r.Results.ContainsKey(resultName)).Select(r => (DataTable)r.Results[resultName]);
+      if (dataTables.Count() != visibleRuns.Count()) {
+        using (InfoBox dialog = new InfoBox(String.Format("One or more runs do not contain a data table {0}", resultName), "bla", this)) {
+          dialog.ShowDialog(this);
+          return;
+        }
+      }
+
       var dataRows = dataTables.SelectMany(dt => dt.Rows).GroupBy(r => r.Name, r => r);
 
       foreach (var row in dataRows) {
-        DataRow averageRow = new DataRow(row.Key, "", CalculateValues(row.Select(r => r.Values), numberOfVisibleRuns));
+        var medianValues = DataRowsAggregate(EnumerableStatisticExtensions.Median, row.Select(r => r.Values));
+        var stdValues = DataRowsAggregate(EnumerableStatisticExtensions.StandardDeviation, row.Select(r => r.Values));
+        DataRow averageRow = new DataRow(row.Key, "Median of Values", medianValues);
+        DataRow stdLowRow = new DataRow(row.Key + "- std low", "", medianValues.Zip(stdValues, (x, y) => x + y));
+        DataRow stdHighRow = new DataRow(row.Key + "- std high", "", medianValues.Zip(stdValues, (x, y) => x - y));
         combinedDataTable.Rows.Add(averageRow);
+        combinedDataTable.Rows.Add(stdLowRow);
+        combinedDataTable.Rows.Add(stdHighRow);
       }
     }
 
-    private IEnumerable<double> CalculateValues(IEnumerable<ObservableList<double>> enumerable, int numberOfVisibleRuns) {
-      return ArrayAggregate(Enumerable.Sum, enumerable).Select(x => x / (double)numberOfVisibleRuns);
-    }
-
-    private IEnumerable<double> ArrayAggregate(Func<IEnumerable<double>, double> aggregate, IEnumerable<IEnumerable<double>> arrays) {
+    private IEnumerable<double> DataRowsAggregate(Func<IEnumerable<double>, double> aggregate, IEnumerable<IEnumerable<double>> arrays) {
       return Enumerable.Range(0, arrays.First().Count())
         .Select(i => aggregate(arrays.Select(a => a.Skip(i).First()).Select(x => Double.IsNaN(x) ? 0 : x)));
     }

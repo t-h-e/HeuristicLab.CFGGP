@@ -19,7 +19,7 @@
  */
 #endregion
 namespace HeuristicLab.Misc.Views {
-  partial class RunCollectionChartAverageView {
+  partial class RunCollectionChartMedianView {
     /// <summary> 
     /// Required designer variable.
     /// </summary>

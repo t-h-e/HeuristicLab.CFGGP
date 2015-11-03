@@ -98,11 +98,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Optimization\RunCollectionChartAggregationView.cs">
+    <Compile Include="Optimization\RunCollectionChartMedianView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Optimization\RunCollectionChartAggregationView.Designer.cs">
-      <DependentUpon>RunCollectionChartAggregationView.cs</DependentUpon>
+    <Compile Include="Optimization\RunCollectionChartMedianView.Designer.cs">
+      <DependentUpon>RunCollectionChartMedianView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Optimization\RunCollectionChartAverageView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Optimization\RunCollectionChartAverageView.Designer.cs">
+      <DependentUpon>RunCollectionChartAverageView.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
