@@ -267,6 +267,11 @@ namespace HeuristicLab.Problems.CFG {
 
       Grammar = grammar;
       GrammarParameter.Hidden = false;
+
+      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
+      foreach (var op in operators.OfType<ISymbolicExpressionTreeGrammarBasedOperator>()) {
+        op.SymbolicExpressionTreeGrammarParameter.Value = GrammarParameter.Value;
+      }
     }
 
     private void SetCodeHeaderAndFooter() {

@@ -131,6 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzer\CaseAnalyzer.cs" />
+    <Compile Include="SymbolicExpressionTreeEncoding\SelectiveCrossover.cs" />
     <Compile Include="SymbolicExpressionTreeEncoding\SymbolicExpressionTreeDummyCrossover.cs" />
     <Compile Include="SymbolicExpressionTreeEncoding\SymbolicExpressionTreeManipulatorTrackingAnalyzer.cs" />
     <Compile Include="SymbolicExpressionTreeEncoding\SymbolicExpressionTreeCrossoverTrackingAnalyzer.cs" />

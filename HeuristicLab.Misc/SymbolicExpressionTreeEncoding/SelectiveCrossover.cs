@@ -36,17 +36,18 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
   /// When recombination with N0 and N1 would create a tree that is too large or invalid the operator randomly selects new N0 and N1 
   /// until a valid configuration is found.
   /// </summary>  
-  [Item("AllSubtreeSwappingCrossover", "An operator which performs subtree swapping crossover.")]
+  [Item("SelectiveCrossover", "An operator which performs subtree swapping crossover.")]
   [StorableClass]
-  public class AllSubtreeCrossover : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator {
+  public class SelectiveCrossover : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator {
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
     private const string RemovedBranchParameterName = "CrossoverRemovedBranch";
     private const string AddedBranchParameterName = "CrossoverAddedBranch";
     private const string CutPointSymbol = "CrossoverCutPointSymbol";
     private const string CrossoverProbabilityParameterName = "CrossoverProbability";
-    private const string InternalCrossoverPointProbabilityParameterName = "InternalCrossoverPointProbability";
-    private const string UseInternalCrossoverPointProbabilityParameterName = "UseInternalCrossoverPointProbability";
+
+    private const string SymbolicExpressionTreeGrammarParameterName = "SymbolicExpressionTreeGrammar";
+    private const string ProbabilitiesParameterName = "ProbabilitiesParameterName";
 
     #region Parameter Properties
     public IValueLookupParameter<IntValue> MaximumSymbolicExpressionTreeLengthParameter {
@@ -67,11 +68,12 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
     public IValueLookupParameter<PercentValue> CrossoverProbabilityParameter {
       get { return (IValueLookupParameter<PercentValue>)Parameters[CrossoverProbabilityParameterName]; }
     }
-    public IValueLookupParameter<PercentValue> InternalCrossoverPointProbabilityParameter {
-      get { return (IValueLookupParameter<PercentValue>)Parameters[InternalCrossoverPointProbabilityParameterName]; }
+
+    public IValueLookupParameter<ISymbolicExpressionGrammar> SymbolicExpressionTreeGrammarParameter {
+      get { return (IValueLookupParameter<ISymbolicExpressionGrammar>)Parameters[SymbolicExpressionTreeGrammarParameterName]; }
     }
-    public IValueLookupParameter<BoolValue> UseInternalCrossoverPointProbabilityParameter {
-      get { return (IValueLookupParameter<BoolValue>)Parameters[UseInternalCrossoverPointProbabilityParameterName]; }
+    public IValueParameter<PercentMatrix> ProbabilitiesParameter {
+      get { return (IValueParameter<PercentMatrix>)Parameters[ProbabilitiesParameterName]; }
     }
     #endregion
     #region Properties
@@ -84,49 +86,76 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
     public PercentValue CrossoverProbability {
       get { return CrossoverProbabilityParameter.ActualValue; }
     }
-    public PercentValue InternalCrossoverPointProbability {
-      get { return InternalCrossoverPointProbabilityParameter.ActualValue; }
-    }
-    public BoolValue UseInternalCrossoverPointProbability {
-      get { return UseInternalCrossoverPointProbabilityParameter.ActualValue; }
-    }
     #endregion
     [StorableConstructor]
-    protected AllSubtreeCrossover(bool deserializing) : base(deserializing) { }
-    protected AllSubtreeCrossover(AllSubtreeCrossover original, Cloner cloner) : base(original, cloner) { }
-    public AllSubtreeCrossover()
+    protected SelectiveCrossover(bool deserializing) : base(deserializing) { }
+    protected SelectiveCrossover(SelectiveCrossover original, Cloner cloner) : base(original, cloner) { }
+    public SelectiveCrossover()
       : base() {
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeDepthParameterName, "The maximal depth of the symbolic expression tree (a tree with one node has depth = 0)."));
-      Parameters.Add(new ValueLookupParameter<PercentValue>(InternalCrossoverPointProbabilityParameterName, "The probability to select an internal crossover point (instead of a leaf node).", new PercentValue(0.9)));
-      Parameters.Add(new ValueLookupParameter<BoolValue>(UseInternalCrossoverPointProbabilityParameterName, "Use internal probability, otherwise uniformly select from all nodes.", new BoolValue(true)));
 
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>(RemovedBranchParameterName, "Branch that has been removed."));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>(AddedBranchParameterName, "Branch that has been added."));
       Parameters.Add(new LookupParameter<ISymbol>(CutPointSymbol, "Cut point symbol"));
 
       Parameters.Add(new ValueLookupParameter<PercentValue>(CrossoverProbabilityParameterName, "Probability of applying crossover", new PercentValue(1.0)));
+
+      Parameters.Add(new ValueLookupParameter<ISymbolicExpressionGrammar>(SymbolicExpressionTreeGrammarParameterName, "Tree grammar"));
+      Parameters.Add(new ValueParameter<PercentMatrix>(ProbabilitiesParameterName, "Probability per symbol"));
+
+      RegisterEventHandlers();
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new AllSubtreeCrossover(this, cloner);
+      return new SelectiveCrossover(this, cloner);
+    }
+
+    private void RegisterEventHandlers() {
+      SymbolicExpressionTreeGrammarParameter.ValueChanged += new EventHandler(SymbolicExpressionTreeGrammarParameter_ValueChanged);
+    }
+
+    private void SymbolicExpressionTreeGrammarParameter_ValueChanged(object sender, EventArgs e) {
+      if (SymbolicExpressionTreeGrammarParameter.Value == null) return;
+
+      SymbolicExpressionTreeGrammarParameter.Value.Changed -= new EventHandler(SymbolicExpressionTreeGrammarParameter_Value_Changed);
+      SymbolicExpressionTreeGrammarParameter.Value.Changed += new EventHandler(SymbolicExpressionTreeGrammarParameter_Value_Changed);
+
+      SetInitialProbabilities();
+    }
+
+    private void SymbolicExpressionTreeGrammarParameter_Value_Changed(object sender, EventArgs e) {
+      SetInitialProbabilities();
+    }
+
+    private void SetInitialProbabilities() {
+      ISymbolicExpressionGrammar grammar = SymbolicExpressionTreeGrammarParameter.Value;
+
+      var symbols = grammar.AllowedSymbols.Where(x => x != grammar.ProgramRootSymbol).OrderBy(x => x.Name).Select(x => x.Name);
+
+      double[,] props = new double[symbols.Count(), 1];
+      for (int i = 0; i < props.Length; i++) {
+        props[i, 0] = 1.0;
+      }
+
+      ProbabilitiesParameter.Value = new PercentMatrix(props, new List<string>() { "Probability" }, symbols);
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random,
       ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
       if (random.NextDouble() < CrossoverProbability.Value)
-        return Cross(random, parent0, parent1, InternalCrossoverPointProbability.Value, UseInternalCrossoverPointProbability.Value,
-          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value);
+        return Cross(random, parent0, parent1,
+          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, ProbabilitiesParameter.Value);
 
       return parent0;
     }
 
     public ISymbolicExpressionTree Cross(IRandom random,
       ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1,
-      double internalCrossoverPointProbability, bool useInternalCrossoverPointProbability, int maxTreeLength, int maxTreeDepth) {
+      int maxTreeLength, int maxTreeDepth, PercentMatrix probabilities) {
       // select a random crossover point in the first parent 
       CutPoint crossoverPoint0;
-      SelectCrossoverPoint(random, parent0, internalCrossoverPointProbability, useInternalCrossoverPointProbability, maxTreeLength, maxTreeDepth, out crossoverPoint0);
+      SelectCrossoverPoint(random, parent0, maxTreeLength, maxTreeDepth, out crossoverPoint0, probabilities);
 
       int childLength = crossoverPoint0.Child != null ? crossoverPoint0.Child.GetLength() : 0;
       // calculate the max length and depth that the inserted branch can have 
@@ -146,7 +175,7 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
         return parent0;
       } else {
         CutPointSymbolParameter.ActualValue = (ISymbol)crossoverPoint0.Parent.Symbol.Clone();
-        var selectedBranch = SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability, useInternalCrossoverPointProbability);
+        var selectedBranch = SelectRandomBranch(random, allowedBranches);
 
         if (crossoverPoint0.Child != null) {
           // manipulate the tree of parent0 in place
@@ -171,8 +200,7 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
       }
     }
 
-    private static void SelectCrossoverPoint(IRandom random, ISymbolicExpressionTree parent0, double internalNodeProbability, bool useInternalNodeProbability, int maxBranchLength, int maxBranchDepth, out CutPoint crossoverPoint) {
-      if (useInternalNodeProbability && (internalNodeProbability < 0.0 || internalNodeProbability > 1.0)) throw new ArgumentException("internalNodeProbability");
+    private static void SelectCrossoverPoint(IRandom random, ISymbolicExpressionTree parent0, int maxBranchLength, int maxBranchDepth, out CutPoint crossoverPoint, PercentMatrix probabilities) {
       List<CutPoint> internalCrossoverPoints = new List<CutPoint>();
       List<CutPoint> leafCrossoverPoints = new List<CutPoint>();
       parent0.Root.ForEachNodePostfix((n) => {
@@ -201,69 +229,15 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
       List<CutPoint> allCrossoverPoints = new List<CutPoint>();
       allCrossoverPoints.AddRange(internalCrossoverPoints);
       allCrossoverPoints.AddRange(leafCrossoverPoints);
-
-      if (useInternalNodeProbability) {
-        if (random.NextDouble() < internalNodeProbability) {
-          // select from internal node if possible
-          if (internalCrossoverPoints.Count > 0) {
-            // select internal crossover point or leaf
-            crossoverPoint = internalCrossoverPoints[random.Next(internalCrossoverPoints.Count)];
-          } else {
-            // otherwise select external node
-            crossoverPoint = leafCrossoverPoints[random.Next(leafCrossoverPoints.Count)];
-          }
-        } else if (leafCrossoverPoints.Count > 0) {
-          // select from leaf crossover point if possible
-          crossoverPoint = leafCrossoverPoints[random.Next(leafCrossoverPoints.Count)];
-        } else {
-          // otherwise select internal crossover point
-          crossoverPoint = internalCrossoverPoints[random.Next(internalCrossoverPoints.Count)];
-        }
-      } else {
-        crossoverPoint = allCrossoverPoints[random.Next(allCrossoverPoints.Count)];
-      }
+      var weights = allCrossoverPoints.Select(x => probabilities[probabilities.RowNames.ToList().IndexOf(x.Child.Symbol.Name), 0]);
+      crossoverPoint = allCrossoverPoints.SampleProportional(random, 1, weights).First();
+      //crossoverPoint = allCrossoverPoints[random.Next(allCrossoverPoints.Count)];
     }
 
-    private static ISymbolicExpressionTreeNode SelectRandomBranch(IRandom random, IEnumerable<ISymbolicExpressionTreeNode> branches, double internalNodeProbability, bool useInternalNodeProbability) {
-      if (!useInternalNodeProbability) {
-        return (from branch in branches
-                where branch != null
-                select branch).SampleRandom(random);
-      }
-
-      if (internalNodeProbability < 0.0 || internalNodeProbability > 1.0) throw new ArgumentException("internalNodeProbability");
-      List<ISymbolicExpressionTreeNode> allowedInternalBranches;
-      List<ISymbolicExpressionTreeNode> allowedLeafBranches;
-      if (random.NextDouble() < internalNodeProbability) {
-        // select internal node if possible
-        allowedInternalBranches = (from branch in branches
-                                   where branch != null && branch.SubtreeCount > 0
-                                   select branch).ToList();
-        if (allowedInternalBranches.Count > 0) {
-          return allowedInternalBranches.SampleRandom(random);
-
-        } else {
-          // no internal nodes allowed => select leaf nodes
-          allowedLeafBranches = (from branch in branches
-                                 where branch == null || branch.SubtreeCount == 0
-                                 select branch).ToList();
-          return allowedLeafBranches.SampleRandom(random);
-        }
-      } else {
-        // select leaf node if possible
-        allowedLeafBranches = (from branch in branches
-                               where branch == null || branch.SubtreeCount == 0
-                               select branch).ToList();
-        if (allowedLeafBranches.Count > 0) {
-          return allowedLeafBranches.SampleRandom(random);
-        } else {
-          allowedInternalBranches = (from branch in branches
-                                     where branch != null && branch.SubtreeCount > 0
-                                     select branch).ToList();
-          return allowedInternalBranches.SampleRandom(random);
-
-        }
-      }
+    private static ISymbolicExpressionTreeNode SelectRandomBranch(IRandom random, IEnumerable<ISymbolicExpressionTreeNode> branches) {
+      return (from branch in branches
+              where branch != null
+              select branch).SampleRandom(random);
     }
   }
 }

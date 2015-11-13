@@ -54,6 +54,7 @@ namespace HeuristicLab.Problems.CFG {
       treeGrammar = new CFGExpressionGrammar();
       ruleSymbols = new GroupSymbol();
       ruleSymbols.Name = "Rule symbols";
+      ruleSymbols.Enabled = false;
 
       treeGrammar.AddSymbol(ruleSymbols);
 
@@ -321,6 +322,7 @@ namespace HeuristicLab.Problems.CFG {
       name = "\"" + name + "\"";
       if (!symbolDictionary.ContainsKey(name)) {
         CFGSymbol rule = new CFGSymbol(name, 1);
+        rule.Enabled = false;
         ruleSymbols.SymbolsCollection.Add(rule);
         symbolDictionary.Add(name, rule);
       }

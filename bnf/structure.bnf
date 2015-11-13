@@ -17,7 +17,7 @@
                  'res = int()'
                  <code>
 
-<code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'<code><statement>'\n' | <statement>'\n'
+<code> ::= <code><statement>'\n' | <statement>'\n'<code> | <code><statement>'\n'<code> | <statement>'\n'
 
 <statement> ::= <simple_stmt> | <compound_stmt>
 <simple_stmt> ::= <call> | <assign>

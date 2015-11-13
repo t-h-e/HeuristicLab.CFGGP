@@ -15,7 +15,7 @@
 // *****************************************************************************
 
 
-<code> ::= <code><assign>'\n' | <assign>'\n'<code> | <assign>'\n'<code><assign>'\n' | <assign>'\n'
+<code> ::= <code><assign>'\n' | <assign>'\n'<code> | <code><assign>'\n'<code> | <assign>'\n'
 
             // from int
 <assign> ::= <int_assign>
