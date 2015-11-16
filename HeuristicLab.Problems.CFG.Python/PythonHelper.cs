@@ -199,18 +199,21 @@ namespace HeuristicLab.Problems.CFG.Python {
       }
 
       IEnumerable<double> caseQualities;
-      if (!scope.TryGetVariable<IEnumerable<double>>("caseQuality", out caseQualities)) {
-        caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count());
+      // twice as fast as next if statement, but in overall it just makes a difference by a few milliseconds
+      //if (!scope.TryGetVariable<IEnumerable<double>>("caseQuality", out caseQualities)) {
+      //  caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count()).ToList();
+      //}
+
+      IEnumerable<object> tmpCaseQualities;
+      if (scope.TryGetVariable<IEnumerable<object>>("caseQuality", out tmpCaseQualities)) {
+        caseQualities = tmpCaseQualities.Select(x => Convert.ToDouble(x));
+      } else {
+        caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count()).ToList();
       }
 
       double quality;
       if (!scope.TryGetVariable<double>("quality", out quality)) {
         quality = Double.MaxValue;
-        //if (cases != null) {
-        //  quality = cases.Where(x => !x).Count();
-        //} else {
-        //  quality = double.PositiveInfinity;
-        //}
       }
 
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);

@@ -22,9 +22,7 @@
         | 'max('<float>', '<float>')' | 'max('<int>', '<float>')' | 'max('<float>', '<int>')'
         | 'abs('<float>')'
 
-// cannot use <int_const>.<int_const>, because int_const cannot have leading zeros
-<float_const> ::= <float_const_part>'.'<float_const_part>
-<float_const_part> ::= <float_const_part><num+zero> | <num+zero>
+<float_const> ::= <number>'.'<number>
 
 <float_arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
 

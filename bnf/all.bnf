@@ -27,7 +27,7 @@
 // *****************************************************************************
 
 
-<code> ::= <code><statement>'\n' | <statement>'\n'<code> | <statement>'\n'
+<code> ::= <code><statement>'\n' | <statement>'\n'
 
 <statement> ::= <simple_stmt> | <compound_stmt>
 <simple_stmt> ::= <call> | <assign>
@@ -151,11 +151,10 @@
         // from list_string
         | 'len('<list_string>')'
 
-// avoid leading zeros, which lead to a syntax error
-<int_const>   ::= <num><int_const_2> | <num+zero>
-<int_const_2> ::= <int_const_2><num+zero> | <num+zero>
-<num> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-<num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+// to avoid problems with leading zeros in python int
+<int_const> ::= 'int('<number>'.0)'
+<number> ::= <number><num> | <num>
+<num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 <arith_assign> ::= <arith_ops>'='
 <arith_ops> ::= '+'|'-'|'*'
@@ -183,9 +182,7 @@
         // from list_float
         | <getListIndexCall_float>
 
-// cannot use <int_const>.<int_const>, because int_const cannot have leading zeros
-<float_const> ::= <float_const_part>'.'<float_const_part>
-<float_const_part> ::= <float_const_part><num+zero> | <num+zero>
+<float_const> ::= <number>'.'<number>
 
 // from string
 
@@ -208,7 +205,7 @@
 <getStringIndexCall> ::= 'getCharFromString('<string>', '<int>')'
 
 <string_const> ::= "'"<string_const_part>"'"
-<string_const_part> ::= <string_const_part><string_literal> | <string_literal><string_const_part> | <string_literal> | <string_literal>
+<string_const_part> ::= <string_const_part><string_literal> | <string_literal>
 <string_literal> ::= '' | '\\n' | '\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
 
 <saveChr> ::= 'saveChr('<int>')'

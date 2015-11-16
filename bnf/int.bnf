@@ -17,11 +17,10 @@
         | 'max('<int>', '<int>')'
         | 'abs('<int>')'
 
-// avoid leading zeros, which lead to a syntax error
-<int_const>   ::= <num><int_const_2> | <num+zero>
-<int_const_2> ::= <int_const_2><num+zero> | <num+zero>
-<num> ::=  1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-<num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+// to avoid problems with leading zeros in python int
+<int_const> ::= 'int('<number>'.0)'
+<number> ::= <number><num> | <num>
+<num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 <arith_assign> ::= <arith_ops>'='
 <arith_ops> ::= '+'|'-'|'*'
