@@ -160,7 +160,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
     }
 
-    private static ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine();
+    private static ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine(new Dictionary<string, object>() {
+      {"LightweightScopes", true}
+    });
 
     public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
       ScriptScope scope = pyEngine.CreateScope();
@@ -206,9 +208,16 @@ namespace HeuristicLab.Problems.CFG.Python {
 
       IEnumerable<object> tmpCaseQualities;
       if (scope.TryGetVariable<IEnumerable<object>>("caseQuality", out tmpCaseQualities)) {
-        caseQualities = tmpCaseQualities.Select(x => Convert.ToDouble(x));
+        try {
+          // call ToList to convert values
+          caseQualities = tmpCaseQualities.Select(x => Convert.ToDouble(x)).ToList();
+        }
+        // catches invalid casts, if the value is to big for double or if it is not numeric
+        catch (InvalidCastException) {
+          caseQualities = new List<double>();
+        }
       } else {
-        caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count()).ToList();
+        caseQualities = new List<double>();
       }
 
       double quality;

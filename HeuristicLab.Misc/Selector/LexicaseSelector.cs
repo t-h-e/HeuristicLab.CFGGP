@@ -62,6 +62,19 @@ namespace HeuristicLab.Misc {
       List<double> qualities = QualityParameter.ActualValue.Where(x => IsValidQuality(x.Value)).Select(x => x.Value).ToList();
       List<DoubleArray> caseQualities = CaseQualitiesParameter.ActualValue.ToList();
 
+      // remove scopes, qualities and case qualities, if the case qualities are empty
+      var removeindices = Enumerable.Range(0, caseQualities.Count)
+                                    .Zip(caseQualities, (i, c) => new { Index = i, CaseQuality = c })
+                                    .Where(c => c.CaseQuality.Count() == 0)
+                                    .Select(c => c.Index)
+                                    .Reverse();
+      foreach (var i in removeindices) {
+        scopes.RemoveAt(i);
+        qualities.RemoveAt(i);
+        caseQualities.RemoveAt(i);
+      }
+
+
       IScope[] selected = new IScope[count];
 
       for (int i = 0; i < count; i++) {
