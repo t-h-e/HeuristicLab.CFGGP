@@ -13,7 +13,7 @@
 
 <list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
 <list_int_slice> ::= <list_int>'['<int>':'<int>']' | <list_int>'[:'<int>']' | <list_int>'['<int>':]'
-<list_int_range> ::= 'list(range('<int>','<int>'))'
+<list_int_range> ::= 'list(saveRange('<int>','<int>'))'
 
 <getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
 <setListIndexToCall_int> ::= 'setListIndexTo('<list_int>', '<int>', '<int>')'
@@ -50,3 +50,8 @@ def getIndexIntList(curList, index):
   if not curList:
     return int()
   return curList[index % len(curList)]
+
+def saveRange(start, end):
+  if end > start and abs(start - end) > 10000:
+    return range(start, start + 10000)
+  return range(start, end)

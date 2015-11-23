@@ -96,7 +96,7 @@ def evolve(inList):
 def fitnessTrainingCase(i, o):
   eval = evolve(i)
 
-  return abs(eval - o[0])
+  return [abs(eval - o[0])]
 
 
 #  function to evaluate fitness
@@ -104,9 +104,9 @@ def fitness():
   error = []
   cases = []
   for (i, o) in zip(inval, outval):
-    value = fitnessTrainingCase(i, o)
-    error.append(value)
-    cases.append(value < 0.000000001)
+    values = fitnessTrainingCase(i, o)
+    error.extend(values)
+    cases.append(all(v < 0.000000001 for v in values))
 
   return error, cases
 

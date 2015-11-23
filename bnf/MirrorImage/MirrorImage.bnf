@@ -7,13 +7,13 @@
 <predefined> ::= 'b0 = b1 = b2 = bool()'
                  'i0 = i1 = i2 = int()'
                  'list_int0 = list_int1 = list_int2 = []'
-                 'res = []'
+                 'res = bool()'
                  <code>
 
 // *****************************************************************************
-<bool_var> ::= 'b0' | 'b1' | 'b2'
+<bool_var> ::= 'b0' | 'b1' | 'b2' | 'res'
 <int_var> ::= 'i0' | 'i1' | 'i2'
-<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2' | 'inList[0]' | 'res'
+<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2' | 'inList[0]' | 'inList[1]'
 // *****************************************************************************
 
 <code> ::= <code><statement>'\n' | <statement>'\n'

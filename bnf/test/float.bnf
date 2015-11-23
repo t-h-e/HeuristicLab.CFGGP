@@ -1,0 +1,41 @@
+// *****************************************************************************
+// float grammar
+// *****************************************************************************
+//
+// import math
+//
+// depends on: int
+// return: bool (optional)
+//         int (optional)
+// *****************************************************************************
+
+<float_var> ::= 'f'
+
+<float_assign> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
+
+<float_var_const> ::= <float_var> | <float_const>
+
+<float> ::= <float_var> | <float_const> | <int_var_const>
+        | <arith_prefix><float_var_const>
+        | '(' <float_var_const> <arith_ops> <float_var_const> ')' | '(' <int_var_const> <arith_ops> <float_var_const> ')' | '(' <float_var_const> <arith_ops> <int_var_const> ')'
+        | <float_arith_ops_protected>'('<float_var_const>','<float_var_const>')' | <float_arith_ops_protected>'('<int_var_const>','<float_var_const>')' | <float_arith_ops_protected>'('<float_var_const>','<int_var_const>')'
+        | 'math.ceil('<float_var_const>')' | 'math.floor('<float_var_const>')' | 'round('<float_var_const>')'
+        | 'min('<float_var_const>', '<float_var_const>')' | 'min('<int_var_const>', '<float_var_const>')' | 'min('<float_var_const>', '<int_var_const>')'
+        | 'max('<float_var_const>', '<float_var_const>')' | 'max('<int_var_const>', '<float_var_const>')' | 'max('<float_var_const>', '<int_var_const>')'
+        | 'abs('<float_var_const>')'
+
+<float_const> ::= <number>'.'<number>
+
+<float_arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
+
+// already contained in int
+<num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+// Return int
+
+// have to call int() for python 2.7.5 (which is run by IronPython)
+<ret_int> ::= 'int(math.ceil('<float_var_const>'))' | 'int(math.floor('<float_var_const>'))' | 'int(round('<float_var_const>'))' | 'int('<float_var_const>')'
+
+// Return bool
+
+<ret_bool> ::= <float_var_const> <comp_op> <float_var_const> | <int_var_const> <comp_op> <float_var_const> | <float_var_const> <comp_op> <int_var_const>

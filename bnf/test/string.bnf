@@ -1,0 +1,61 @@
+// *****************************************************************************
+// string grammar
+// *****************************************************************************
+//
+// depends on: int
+// return: bool (optional)
+//         int (optional)
+// *****************************************************************************
+
+<string_var> ::= 's'
+
+<string_assign> ::= <string_var>' = '<string>
+
+<string_var_const> ::= <string_var> | <string_const>
+
+<string> ::= <string_var> | <string_const>
+           | '('<string_var_const>' + '<string_var_const>')'
+           //may not be used
+           | '('<string_var_const>' * '<int_var_const>')'
+           | <string_slice>
+           | <getStringIndexCall>
+           | <string_var_const>'.lstrip()' | <string_var_const>'.rstrip()' | <string_var_const>'.strip()' | <string_var_const>'.lstrip('<string_var_const>')' | <string_var_const>'.rstrip('<string_var_const>')' | <string_var_const>'.strip('<string_var_const>')'
+           | <string_var_const>'.capitalize()'
+
+<string_slice> ::= <string_var_const>'['<int_var_const>':'<int_var_const>']' | <string>'[:'<int_var_const>']' | <string>'['<int_var_const>':]'
+
+<getStringIndexCall> ::= 'getCharFromString('<string_var_const>', '<int_var_const>')'
+
+<string_const> ::= "'"<string_const_part>"'"
+<string_const_part> ::= <string_const_part><string_literal> | <string_literal>
+<string_literal> ::= '' | '\\n' | '\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
+
+<saveChr> ::= 'saveChr('<int_var_const>')'
+<saveOrd> ::= 'saveOrd('<string_var_const>')'
+
+// Returns int
+
+<ret_int>  ::= 'len('<string_var_const>')' | <saveOrd>
+
+// Return bool
+
+<ret_bool> ::= <string_var_const>' in '<string_var_const> | <string_var_const>' not in '<string_var_const>
+             | <string_var_const>' == '<string_var_const> | <string_var_const>' != '<string_var_const>
+             | <string_var_const>'.startswith('<string_var_const>')' | <string_var_const>'.endswith('<string_var_const>')'
+
+// *****************************************************************************
+// Helper Code
+// *****************************************************************************
+
+def getCharFromString(curString, index):
+  if not curString:
+    return ''
+  return curString[index % len(curString)]
+
+def saveChr(number):
+    return chr(number % 1114111)
+
+def saveOrd(literal):
+    if len(literal) <= 0:
+        return 32
+    return ord(literal[0])

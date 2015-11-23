@@ -41,18 +41,15 @@ def getIndexBoolList(curList, index):
     return bool()
   return curList[index % len(curList)]
 
-
 def getIndexFloatList(curList, index):
   if not curList:
     return float()
   return curList[index % len(curList)]
 
-
 def getIndexIntList(curList, index):
   if not curList:
     return int()
   return curList[index % len(curList)]
-
 
 def getIndexStringList(curList, index):
   if not curList:
@@ -64,21 +61,23 @@ def getCharFromString(curString, index):
     return ''
   return curString[index % len(curString)]
 
-
 def saveChr(number):
     return chr(number % 1114111)
-
 
 def saveOrd(literal):
     if len(literal) <= 0:
         return 32
     return ord(literal[0])
 
-
 def saveSplit(curString, separator):
   if not separator:
     return []
   return curString.split(separator)
+
+def saveRange(start, end):
+  if end > start and abs(start - end) > 10000:
+    return range(start, start + 10000)
+  return range(start, end)
 
 # *****************************************************************************
 
@@ -96,8 +95,8 @@ def evolve(inList):
 def fitnessTrainingCase(i, o):
   eval = evolve(i)
 
-  // add 2000 extra error for length difference, because that's the maximum difference between two elements
-  return sum([abs(x[0] - x[1]) for x in zip(eval,o[0])]) + abs(len(eval) - len(o[0])) * 2000
+  # add 2000 extra error for length difference, because that's the maximum difference between two elements
+  return [sum([abs(x[0] - x[1]) for x in zip(eval,o[0])]) + abs(len(eval) - len(o[0])) * 2000]
 
 
 #  function to evaluate fitness
@@ -105,9 +104,9 @@ def fitness():
   error = []
   cases = []
   for (i, o) in zip(inval, outval):
-    value = fitnessTrainingCase(i, o)
-    error.append(value)
-    cases.append(value < 0.000000001)
+    values = fitnessTrainingCase(i, o)
+    error.extend(values)
+    cases.append(all(v < 0.000000001 for v in values))
 
   return error, cases
 

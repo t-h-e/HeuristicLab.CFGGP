@@ -53,7 +53,7 @@
         | 'abs('<int>')'
         // from list_int
         | <getListIndexCall_int>
-        | 'len('<list_float>')'
+        | 'len('<list_int>')'
 
 // to avoid problems with leading zeros in python int
 <int_const> ::= 'int('<number>'.0)'
@@ -77,7 +77,7 @@
 
 <list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
 <list_int_slice> ::= <list_int>'['<int>':'<int>']' | <list_int>'[:'<int>']' | <list_int>'['<int>':]'
-<list_int_range> ::= 'list(range('<int>','<int>'))'
+<list_int_range> ::= 'list(saveRange('<int>','<int>'))'
 
 <getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
 <setListIndexToCall_int> ::= 'setListIndexTo('<list_int>', '<int>', '<int>')'
