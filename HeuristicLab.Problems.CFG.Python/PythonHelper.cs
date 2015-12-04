@@ -20,6 +20,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -156,17 +157,41 @@ namespace HeuristicLab.Problems.CFG.Python {
       return strBuilder.ToString();
     }
 
-    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
-      return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
+    public static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {
+      StringBuilder strBuilder = new StringBuilder("[");
+      foreach (int row in indices) {
+        strBuilder.Append("[");
+        strBuilder.Append(array[row]);
+        strBuilder.Append("],");
+      }
+      strBuilder.Append("]");
+      return strBuilder.ToString();
     }
 
-    private static ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine(new Dictionary<string, object>() {
+
+    private static PythonHelper pyHelper;
+
+    public static PythonHelper GetInstance() {
+      if (pyHelper == null) {
+        pyHelper = new PythonHelper();
+      }
+      return pyHelper;
+    }
+
+    protected ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine(new Dictionary<string, object>() {
       {"LightweightScopes", true}
     });
 
-    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
-      ScriptScope scope = pyEngine.CreateScope();
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
+      return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
+    }
 
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
+      ScriptScope scope = pyEngine.CreateScope();
+      return EvaluateProgram(program, input, output, indices, scope, timeout);
+    }
+
+    protected Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, ScriptScope scope, int timeout = 1000) {
       // set variables in scope
       scope.SetVariable("stop", false);
       pyEngine.Execute("inval = " + input, scope);
@@ -226,17 +251,6 @@ namespace HeuristicLab.Problems.CFG.Python {
       }
 
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
-    }
-
-    public static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {
-      StringBuilder strBuilder = new StringBuilder("[");
-      foreach (int row in indices) {
-        strBuilder.Append("[");
-        strBuilder.Append(array[row]);
-        strBuilder.Append("],");
-      }
-      strBuilder.Append("]");
-      return strBuilder.ToString();
     }
 
     /**

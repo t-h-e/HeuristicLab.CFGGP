@@ -34,7 +34,8 @@ namespace HeuristicLab.Problems.CFG {
     public IEnumerable<string> parts { get; protected set; }
     [StorableConstructor]
     private CFGProduction(bool deserializing) : base(deserializing) { }
-    private CFGProduction(CFGProduction original, Cloner cloner) : base(original, cloner) {
+    private CFGProduction(CFGProduction original, Cloner cloner)
+      : base(original, cloner) {
       parts = original.parts.ToList();
     }
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -46,7 +47,7 @@ namespace HeuristicLab.Problems.CFG {
      **/
     public CFGProduction(string name, IEnumerable<string> parts)
       : base(name, parts.Count() - 1) {
-        this.parts = parts.ToList();
+      this.parts = parts.ToList();
     }
 
     public override IEnumerable<string> GetTerminalParts() {

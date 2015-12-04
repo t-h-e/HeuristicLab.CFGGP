@@ -69,13 +69,13 @@ namespace HeuristicLab.Problems.CFG.Python {
       Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));
 
       var trainingTimeout = timeout.Value * 2;  // increase timeout to make sure it finishes
-      var training = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, trainingTimeout);
+      var training = PythonHelper.GetInstance().EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, trainingTimeout);
 
       // test timeout should be proportionally bigger than training timeout
       var testTimeout = (int)((double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * trainingTimeout);
       testTimeout = testTimeout > timeout.Value ? testTimeout : timeout.Value;
 
-      var test = PythonHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
+      var test = PythonHelper.GetInstance().EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
 
       if (String.IsNullOrEmpty(training.Item4)) {
         Add(new Result(TrainingQuality, "Training quality", new DoubleValue(training.Item3)));

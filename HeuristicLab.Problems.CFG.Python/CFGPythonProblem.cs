@@ -83,6 +83,10 @@ namespace HeuristicLab.Problems.CFG.Python {
       if (Evaluator != null) {
         Evaluator.TimeoutParameter.ActualName = TimeoutParameterName;
       }
+      var treeEvaluator = Evaluator as ISymbolicExpressionTreeOperator;
+      if (treeEvaluator != null) {
+        treeEvaluator.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+      }
     }
 
     protected override void ParameterizeOperators() {

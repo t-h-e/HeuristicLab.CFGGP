@@ -185,6 +185,9 @@ namespace HeuristicLab.Problems.CFG {
     protected virtual void ParameterizeOperators() {
       var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
 
+      foreach (var op in operators.OfType<ISymbolicExpressionTreeOperator>()) {
+        op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+      }
       foreach (var op in operators.OfType<ISymbolicExpressionTreeGrammarBasedOperator>()) {
         op.SymbolicExpressionTreeGrammarParameter.ActualName = GrammarParameter.Name;
       }
@@ -194,14 +197,14 @@ namespace HeuristicLab.Problems.CFG {
       }
       foreach (var op in operators.OfType<ISymbolicExpressionTreeCrossover>()) {
         op.ParentsParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-        op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+        //op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       }
-      foreach (var op in operators.OfType<ISymbolicExpressionTreeManipulator>()) {
-        op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-      }
-      foreach (var op in operators.OfType<ISymbolicExpressionTreeCreator>()) {
-        op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-      }
+      //foreach (var op in operators.OfType<ISymbolicExpressionTreeManipulator>()) {
+      //  op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+      //}
+      //foreach (var op in operators.OfType<ISymbolicExpressionTreeCreator>()) {
+      //  op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
+      //}
 
       ParameterizeAnalyzers();
     }

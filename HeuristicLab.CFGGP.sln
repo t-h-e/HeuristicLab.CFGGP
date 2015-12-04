@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG", "HeuristicLab.Problems.CFG\HeuristicLab.Problems.CFG.csproj", "{0C90F665-57A1-4773-8C6E-28E73B8968BC}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Misc.Views", "HeuristicLab.Misc.Views\HeuristicLab.Misc.Views.csproj", "{AAFDADAC-60AF-4EAB-A93E-93567FB1D91F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG.Python", "HeuristicLab.Problems.CFG.Python\HeuristicLab.Problems.CFG.Python.csproj", "{CF97234D-9B43-405F-AFEA-DB13685B48EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG.Python.Semantics", "HeuristicLab.Problems.CFG.Python.Semantics\HeuristicLab.Problems.CFG.Python.Semantics.csproj", "{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +79,14 @@ Global
 		{CF97234D-9B43-405F-AFEA-DB13685B48EF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CF97234D-9B43-405F-AFEA-DB13685B48EF}.Release|x64.ActiveCfg = Release|Any CPU
 		{CF97234D-9B43-405F-AFEA-DB13685B48EF}.Release|x86.ActiveCfg = Release|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|x64.ActiveCfg = Release|Any CPU
+		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

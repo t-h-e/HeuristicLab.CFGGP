@@ -46,13 +46,9 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     public static string StaticFormat(ISymbolicExpressionTree symbolicExpressionTree) {
-      if (symbolicExpressionTree == null || symbolicExpressionTree.Root == null) {
-        System.Console.WriteLine("asdf");
-      }
       return FormatRecursively(symbolicExpressionTree.Root);
     }
 
-    //private static HashSet<string> NewLine = new HashSet<string>() { "\n", "\r\n", "\r"};
     private static string FormatRecursively(ISymbolicExpressionTreeNode node) {
       StringBuilder strBuilder = new StringBuilder();
       if (node.Subtrees.Count() > 0) {
@@ -75,8 +71,8 @@ namespace HeuristicLab.Problems.CFG {
       } else {
         // leaf
         var symbol = node.Symbol as CFGSymbol;
-          var parts = symbol.GetTerminalParts();
-          strBuilder.Append(parts.First());
+        var parts = symbol.GetTerminalParts();
+        strBuilder.Append(parts.First());
       }
       return strBuilder.ToString();
     }
