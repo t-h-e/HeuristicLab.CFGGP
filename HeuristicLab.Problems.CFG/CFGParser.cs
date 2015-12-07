@@ -105,7 +105,13 @@ namespace HeuristicLab.Problems.CFG {
                   continue;
                 }
 
-                parts[parts.Count - 1] = parts[parts.Count - 1] + String.Join(String.Empty, Enumerable.Range(1, 6).Select(x => subRule.Groups[x].Value));
+                var part = String.Join(String.Empty, Enumerable.Range(1, 6).Select(x => subRule.Groups[x].Value));
+                // unescape characters so that tab and newline can be defined in the grammar
+                if (part.Contains('\\')) {
+                  part = part.Replace("\\n", Environment.NewLine);
+                  part = Regex.Unescape(part);
+                }
+                parts[parts.Count - 1] = parts[parts.Count - 1] + part;
 
                 subRule = subRule.NextMatch();
               }

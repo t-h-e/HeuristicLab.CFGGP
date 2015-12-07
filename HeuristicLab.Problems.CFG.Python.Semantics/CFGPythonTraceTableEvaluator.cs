@@ -19,6 +19,7 @@
  */
 #endregion
 
+using System;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -31,9 +32,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
   public class CFGPythonTraceTableEvaluator : CFGPythonEvaluator, ISymbolicExpressionTreeOperator {
 
+    private PythonSemanticHelper pythonSemanticHelper;
+
     #region paramerters
     public ILookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["SymbolicExpressionTree"]; }
+    }
+    public IValueParameter<StringArray> TraceVariablesParameter {
+      get { return (IValueParameter<StringArray>)Parameters["TraceVariables"]; }
     }
     #endregion
 
@@ -41,17 +47,43 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     protected CFGPythonTraceTableEvaluator(bool deserializing) : base(deserializing) { }
     protected CFGPythonTraceTableEvaluator(CFGPythonTraceTableEvaluator original, Cloner cloner)
       : base(original, cloner) {
+      RegisterEventHandlers();
+      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value);
     }
     public CFGPythonTraceTableEvaluator() {
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("SymbolicExpressionTree", ""));
+      Parameters.Add(new ValueParameter<StringArray>("TraceVariables", "", new StringArray()));
+
+      pythonSemanticHelper = new PythonSemanticHelper();
+      RegisterEventHandlers();
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGPythonTraceTableEvaluator(this, cloner);
     }
 
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      RegisterEventHandlers();
+      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value);
+    }
+
+    private void RegisterEventHandlers() {
+      TraceVariablesParameter.ValueChanged += new EventHandler(TraceVariablesParameter_ValueChanged);
+      if (TraceVariablesParameter.Value != null) TraceVariablesParameter.Value.ItemChanged += new EventHandler<EventArgs<int>>(Value_ItemChanged);
+    }
+
+    private void Value_ItemChanged(object sender, EventArgs<int> e) {
+      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value);
+    }
+
+    private void TraceVariablesParameter_ValueChanged(object sender, EventArgs e) {
+      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value);
+      if (TraceVariablesParameter.Value != null) TraceVariablesParameter.Value.ItemChanged += new EventHandler<EventArgs<int>>(Value_ItemChanged);
+    }
+
     public override IOperation InstrumentedApply() {
-      var result = PythonSemanticHelper.GetInstance().EvaluateAndTraceProgram(Program, Input, Output, ProblemData.TrainingIndices, HeaderParameter.ActualValue.Value, SymbolicExpressionTreeParameter.ActualValue, Timeout);
+      var result = pythonSemanticHelper.EvaluateAndTraceProgram(Program, Input, Output, ProblemData.TrainingIndices, HeaderParameter.ActualValue.Value, SymbolicExpressionTreeParameter.ActualValue, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());

@@ -168,6 +168,8 @@ namespace HeuristicLab.Problems.CFG.Python {
       return strBuilder.ToString();
     }
 
+    // should not be instanciated directly
+    protected PythonHelper() { }
 
     private static PythonHelper pyHelper;
 

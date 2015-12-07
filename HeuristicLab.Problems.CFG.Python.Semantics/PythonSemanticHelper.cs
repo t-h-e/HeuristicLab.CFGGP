@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using IronPython.Runtime;
 using Microsoft.Scripting.Hosting;
@@ -11,9 +12,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     private const string traceCode = @"import sys
 
-past_locals = {}
-variable_list = ['b0', 'res', 'i0']
-traceTable = {}
+past_locals = {{}}
+variable_list = ['{0}']
+traceTable = {{}}
 
 def trace(frame, event, arg_unused):
   global past_locals, variable_list, traceTable
@@ -21,7 +22,7 @@ def trace(frame, event, arg_unused):
   if frame.f_code.co_name != 'evolve':
     return
 
-  relevant_locals = {}
+  relevant_locals = {{}}
   all_locals = frame.f_locals.copy()
 
   for k, v in all_locals.items():
@@ -29,7 +30,7 @@ def trace(frame, event, arg_unused):
       relevant_locals[k] = v
   if len(relevant_locals) > 0 and past_locals != relevant_locals:
     if frame.f_lineno not in traceTable:
-      traceTable[frame.f_lineno] = {}
+      traceTable[frame.f_lineno] = {{}}
     for var in variable_list:
       if var in relevant_locals:
         if var not in traceTable[frame.f_lineno]:
@@ -42,21 +43,29 @@ sys.settrace(trace)
 
 ";
 
-    private static PythonSemanticHelper pyHelper;
+    private string traceCodeWithVariables;
 
-    public new static PythonSemanticHelper GetInstance() {
-      if (pyHelper == null) {
-        pyHelper = new PythonSemanticHelper();
+    public PythonSemanticHelper() {
+      traceCodeWithVariables = String.Empty;
+    }
+
+    public PythonSemanticHelper(StringArray variableNames) {
+      if (variableNames == null || variableNames.Length == 0) {
+        traceCodeWithVariables = String.Empty;
+      } else {
+        traceCodeWithVariables = String.Format(traceCode, String.Join("', '", variableNames.Where(x => !String.IsNullOrWhiteSpace(x))));
       }
-      return pyHelper;
     }
 
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, IDictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
-      string traceProgram = traceCode + program;
+      string traceProgram = traceCodeWithVariables + program;
 
       ScriptScope scope = pyEngine.CreateScope();
       var tupel = EvaluateProgram(traceProgram, input, output, indices, scope, timeout);
 
+      if (!scope.ContainsVariable("traceTable")) {
+        return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, IDictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, null);
+      }
 
       // ToDo: map line to symbol or something
 
@@ -66,7 +75,7 @@ sys.settrace(trace)
       Dictionary<ISymbolicExpressionTreeNode, Tuple<object, object>> semantics = new Dictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>();
       ISymbolicExpressionTreeNode root = tree.Root;
 
-      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("statement")).Symbols;
+      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols;
       var statementProductionNames = statementProductions.Select(x => x.Name);
       //var statementNodes = tree.IterateNodesPrefix().Select(x => statementProductionNames.Contains(x.Symbol.Name));
 
