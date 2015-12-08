@@ -41,6 +41,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public IValueParameter<StringArray> TraceVariablesParameter {
       get { return (IValueParameter<StringArray>)Parameters["TraceVariables"]; }
     }
+    public ILookupParameter<ItemList<PythonStatementSemantic>> SemanticParameter {
+      get { return (ILookupParameter<ItemList<PythonStatementSemantic>>)Parameters["Semantic"]; }
+    }
     #endregion
 
     [StorableConstructor]
@@ -53,6 +56,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public CFGPythonTraceTableEvaluator() {
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("SymbolicExpressionTree", ""));
       Parameters.Add(new ValueParameter<StringArray>("TraceVariables", "", new StringArray()));
+
+      Parameters.Add(new LookupParameter<ItemList<PythonStatementSemantic>>("Semantic", ""));
 
       pythonSemanticHelper = new PythonSemanticHelper();
       RegisterEventHandlers();
@@ -89,6 +94,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());
       QualityParameter.ActualValue = new DoubleValue(result.Item3);
       ExceptionParameter.ActualValue = new StringValue(result.Item4);
+
+      SemanticParameter.ActualValue = result.Item5 != null ? new ItemList<PythonStatementSemantic>(result.Item5) : null;
 
       return base.InstrumentedApply();
     }

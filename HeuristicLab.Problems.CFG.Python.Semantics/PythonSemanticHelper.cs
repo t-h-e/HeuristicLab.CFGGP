@@ -57,29 +57,27 @@ sys.settrace(trace)
       }
     }
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, IDictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
       string traceProgram = traceCodeWithVariables + program;
 
       ScriptScope scope = pyEngine.CreateScope();
       var tupel = EvaluateProgram(traceProgram, input, output, indices, scope, timeout);
 
       if (!scope.ContainsVariable("traceTable")) {
-        return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, IDictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, null);
+        return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, null);
       }
 
-      // ToDo: map line to symbol or something
+      PythonDictionary traceTablePython = scope.GetVariable<PythonDictionary>("traceTable");
+      var traceTable = ConvertPythonDictionary(traceTablePython);
 
-      PythonDictionary traceTable = scope.GetVariable<PythonDictionary>("traceTable");
-
-
-      Dictionary<ISymbolicExpressionTreeNode, Tuple<object, object>> semantics = new Dictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>();
+      List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
 
       var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols;
       var statementProductionNames = statementProductions.Select(x => x.Name);
       //var statementNodes = tree.IterateNodesPrefix().Select(x => statementProductionNames.Contains(x.Symbol.Name));
 
-      IList<int> lineTraces = traceTable.Keys.Cast<int>().OrderBy(x => x).ToList();
+      IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
 
       // add one, because the values are set after the statement is executed
       int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1;
@@ -89,20 +87,77 @@ sys.settrace(trace)
         if (traceTable.ContainsKey(symbolLine.Value)) {
           var variableValuesAfter = traceTable[symbolLine.Value];
 
-          object variableValuesBefore = null;
+          IDictionary<string, IList> variableValuesBefore = null;
           int index = lineTraces.IndexOf(symbolLine.Value);
           if (index != 0) {
             index--;
             variableValuesBefore = traceTable[lineTraces[index]];
           }
 
-          semantics.Add(symbolLine.Key, new Tuple<object, object>(variableValuesBefore, variableValuesAfter));
+          semantics.Add(new PythonStatementSemantic() {
+            TreeNode = symbolLine.Key,
+            Before = variableValuesBefore,
+            After = variableValuesAfter
+          });
         }
       }
 
-      //Console.WriteLine(traceTable);
+      return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, semantics);
+    }
 
-      return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, IDictionary<ISymbolicExpressionTreeNode, Tuple<object, object>>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, semantics);
+    private IDictionary<int, IDictionary<string, IList>> ConvertPythonDictionary(PythonDictionary dict) {
+      IDictionary<int, IDictionary<string, IList>> convertedDict = new Dictionary<int, IDictionary<string, IList>>(dict.Count);
+      foreach (var line in dict) {
+        IDictionary<string, IList> lineDict = new Dictionary<string, IList>();
+        convertedDict.Add((int)line.Key, lineDict);
+
+        foreach (var variable in (PythonDictionary)line.Value) {
+          lineDict.Add((string)variable.Key, ConvertPythonList((IronPython.Runtime.List)variable.Value));
+        }
+      }
+      return convertedDict;
+    }
+
+    private IList ConvertPythonList(IronPython.Runtime.List pythonList) {
+      if (pythonList.Count == 0) return new List<object>();
+      //if (pythonList[0] == null) return Enumerable.Repeat<object>(null, pythonList.Count).ToList();
+
+      if (pythonList[0] != null && pythonList[0].GetType() == typeof(IronPython.Runtime.List)) {
+        return pythonList.Select(x => ((List)x).ToList()).ToList();
+      } else {
+        return pythonList.ToList();
+      }
+
+      //if (genericType == typeof(bool)) {
+      //  return pythonList.Cast<bool>().ToList();
+      //} else if (genericType == typeof(int) || genericType == typeof(long)) {
+      //  return pythonList.Select(x => Convert.ToInt64(x)).ToList();
+      //} else if (genericType == typeof(BigInteger)) {
+      //  return pythonList.Select(x => (long)x).ToList();
+      //} else if (genericType == typeof(float) || genericType == typeof(double)) {
+      //  return pythonList.Select(x => Convert.ToDouble(x)).ToList();
+      //} else if (genericType == typeof(string)) {
+      //  return pythonList.Cast<string>().ToList();
+      //} else if (genericType == typeof(IronPython.Runtime.List)) {
+      //  object item = null;
+      //  for (int i = 0; i < pythonList.Count; i++) {
+      //    item = ((List)pythonList[i]).FirstOrDefault();
+      //    if (item != null) break;
+      //  }
+      //  if (item == null) return Enumerable.Repeat(new List<object>(), pythonList.Count).ToList();
+
+      //  genericType = item.GetType();
+      //  if (genericType == typeof(bool)) {
+      //    return pythonList.Select(x => ((List)x).Cast<bool>().ToList()).ToList();
+      //  } else if (genericType == typeof(int) || genericType == typeof(float) || genericType == typeof(long) || genericType == typeof(double) || genericType == typeof(BigInteger)) {
+      //    return pythonList.Select(x => ((List)x).Select(y => item is BigInteger ? (double)y : Convert.ToDouble(y)).ToList()).ToList();
+      //    //} else if (genericType == typeof(float)) {
+      //    //  return pythonList.Select(x => ((List)x).Cast<float>().ToList()).ToList();
+      //  } else if (genericType == typeof(string)) {
+      //    return pythonList.Select(x => ((List)x).Cast<string>().ToList()).ToList();
+      //  }
+      //}
+      //throw new ArgumentException("Type in traceTable is not defined or unknown");
     }
 
 
