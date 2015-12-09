@@ -231,7 +231,6 @@ namespace HeuristicLab.Encodings.SymbolicExpressionTreeEncoding {
       allCrossoverPoints.AddRange(leafCrossoverPoints);
       var weights = allCrossoverPoints.Select(x => probabilities[probabilities.RowNames.ToList().IndexOf(x.Child.Symbol.Name), 0]);
       crossoverPoint = allCrossoverPoints.SampleProportional(random, 1, weights).First();
-      //crossoverPoint = allCrossoverPoints[random.Next(allCrossoverPoints.Count)];
     }
 
     private static ISymbolicExpressionTreeNode SelectRandomBranch(IRandom random, IEnumerable<ISymbolicExpressionTreeNode> branches) {

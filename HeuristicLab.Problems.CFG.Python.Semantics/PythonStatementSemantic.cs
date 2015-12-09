@@ -23,25 +23,29 @@ using System.Collections;
 using System.Collections.Generic;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
-using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
   public class PythonStatementSemantic : Item {
     [Storable]
-    public ISymbolicExpressionTreeNode TreeNode { get; set; }
+    public int TreeNodePrefixPos { get; set; }
 
     [Storable]
-    public IDictionary<string, IList> Before { get; set; }
+    private IDictionary<string, IList> before;
+    public IDictionary<string, IList> Before { get { return before; } set { before = value; } }
     [Storable]
-    public IDictionary<string, IList> After { get; set; }
+    private IDictionary<string, IList> after;
+    public IDictionary<string, IList> After { get { return after; } set { after = value; } }
 
     [StorableConstructor]
     protected PythonStatementSemantic(bool deserializing) : base(deserializing) { }
 
     protected PythonStatementSemantic(PythonStatementSemantic original, Cloner cloner)
       : base(original, cloner) {
+      TreeNodePrefixPos = original.TreeNodePrefixPos;
+      before = original.before;
+      after = original.after;
     }
     public PythonStatementSemantic() { }
 

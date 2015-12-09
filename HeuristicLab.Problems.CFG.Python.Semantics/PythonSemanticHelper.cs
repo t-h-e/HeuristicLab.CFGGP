@@ -83,6 +83,8 @@ sys.settrace(trace)
       int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1;
       var symbolToLineDict = FormatRecursively(root, statementProductionNames, ref curline);
 
+      var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
+
       foreach (var symbolLine in symbolToLineDict) {
         if (traceTable.ContainsKey(symbolLine.Value)) {
           var variableValuesAfter = traceTable[symbolLine.Value];
@@ -95,7 +97,7 @@ sys.settrace(trace)
           }
 
           semantics.Add(new PythonStatementSemantic() {
-            TreeNode = symbolLine.Key,
+            TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
             Before = variableValuesBefore,
             After = variableValuesAfter
           });
