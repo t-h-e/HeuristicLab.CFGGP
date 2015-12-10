@@ -15,13 +15,17 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 past_locals = {{}}
 variable_list = ['{0}']
 traceTable = {{}}
+traceChanges = []
 
 def trace(frame, event, arg_unused):
   global past_locals, variable_list, traceTable
 
   if frame.f_code.co_name != 'evolve':
     return
+  if event == 'return' :
+    return
 
+  traceChanges.append(frame.f_lineno)
   relevant_locals = {{}}
   all_locals = frame.f_locals.copy()
 
@@ -68,6 +72,7 @@ sys.settrace(trace)
       }
 
       PythonDictionary traceTablePython = scope.GetVariable<PythonDictionary>("traceTable");
+      IList<int> traceChanges = scope.GetVariable<IList<int>>("traceChanges");
       var traceTable = ConvertPythonDictionary(traceTablePython);
 
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
@@ -75,31 +80,35 @@ sys.settrace(trace)
 
       var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols;
       var statementProductionNames = statementProductions.Select(x => x.Name);
-      //var statementNodes = tree.IterateNodesPrefix().Select(x => statementProductionNames.Contains(x.Symbol.Name));
 
       IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
 
       // add one, because the values are set after the statement is executed
       int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1;
-      var symbolToLineDict = FormatRecursively(root, statementProductionNames, ref curline);
+      var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
 
       var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
       foreach (var symbolLine in symbolToLineDict) {
-        if (traceTable.ContainsKey(symbolLine.Value)) {
-          var variableValuesAfter = traceTable[symbolLine.Value];
-
-          IDictionary<string, IList> variableValuesBefore = null;
-          int index = lineTraces.IndexOf(symbolLine.Value);
-          if (index != 0) {
-            index--;
-            variableValuesBefore = traceTable[lineTraces[index]];
+        int before = -1;
+        foreach (var line in lineTraces) {
+          if (line > before && line <= symbolLine.Value) {
+            before = line;
+            break;
           }
+        }
 
+        int after = before;
+        int pos = traceChanges.IndexOf(before);
+        if (pos + 1 < traceChanges.Count && traceTable.ContainsKey(traceChanges[pos + 1])) {
+          after = traceChanges[pos + 1];
+        }
+
+        if (after != before) {
           semantics.Add(new PythonStatementSemantic() {
             TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
-            Before = variableValuesBefore,
-            After = variableValuesAfter
+            Before = traceTable[before],
+            After = traceTable[after],
           });
         }
       }
@@ -163,7 +172,7 @@ sys.settrace(trace)
     }
 
 
-    private Dictionary<ISymbolicExpressionTreeNode, int> FormatRecursively(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
+    private Dictionary<ISymbolicExpressionTreeNode, int> FindStatementSymbolsInTree(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
       Dictionary<ISymbolicExpressionTreeNode, int> symbolToLineDict = new Dictionary<ISymbolicExpressionTreeNode, int>();
       if (node.Subtrees.Count() > 0) {
         // node
@@ -176,13 +185,13 @@ sys.settrace(trace)
           }
           while (partsEnumerator.MoveNext() && subtreeEnumerator.MoveNext()) {
             curline += partsEnumerator.Current.Count(c => c == '\n');
-            symbolToLineDict = symbolToLineDict.Union(FormatRecursively(subtreeEnumerator.Current, productions, ref curline)).ToDictionary(k => k.Key, v => v.Value);
+            symbolToLineDict = symbolToLineDict.Union(FindStatementSymbolsInTree(subtreeEnumerator.Current, productions, ref curline)).ToDictionary(k => k.Key, v => v.Value);
           }
           curline += partsEnumerator.Current.Count(c => c == '\n');
         } else {
           // ProgramRoot or StartSymbol
           foreach (var subtree in node.Subtrees) {
-            symbolToLineDict = symbolToLineDict.Union(FormatRecursively(subtree, productions, ref curline)).ToDictionary(k => k.Key, v => v.Value);
+            symbolToLineDict = symbolToLineDict.Union(FindStatementSymbolsInTree(subtree, productions, ref curline)).ToDictionary(k => k.Key, v => v.Value);
           }
         }
       } else {

@@ -119,8 +119,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       var parentNode0 = treeNode0.Parent;
 
       var indexTreeNode0 = parentNode0.IndexOfSubtree(treeNode0);
-      //var indexTreeNode1 = parentNode1.IndexOfSubtree(cutpoint1.TreeNode);
-
 
       parentNode0.RemoveSubtree(indexTreeNode0);
       parentNode0.InsertSubtree(indexTreeNode0, treeNode1);
