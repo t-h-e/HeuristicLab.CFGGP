@@ -47,6 +47,18 @@ sys.settrace(trace)
 
 ";
 
+    private const string traceTableReduceEntries = @"
+lines = sorted(list(traceTable.keys()), reverse=True)
+for i in range(1, len(lines)):
+  for v in variable_list:
+    if v in traceTable[lines[i]] and v in traceTable[lines[i-1]]:
+      if traceTable[lines[i]][v] == traceTable[lines[i-1]][v]:
+        del traceTable[lines[i-1]][v]
+
+for l in lines:
+  if not traceTable[l]:
+    del traceTable[l]";
+
     private string traceCodeWithVariables;
 
     public PythonSemanticHelper() {
@@ -62,7 +74,7 @@ sys.settrace(trace)
     }
 
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
-      string traceProgram = traceCodeWithVariables + program;
+      string traceProgram = traceCodeWithVariables + program + traceTableReduceEntries;
 
       ScriptScope scope = pyEngine.CreateScope();
       var tupel = EvaluateProgram(traceProgram, input, output, indices, scope, timeout);
@@ -90,24 +102,26 @@ sys.settrace(trace)
       var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
       foreach (var symbolLine in symbolToLineDict) {
-        int before = -1;
-        foreach (var line in lineTraces) {
-          if (line > before && line <= symbolLine.Value) {
-            before = line;
-            break;
+        Dictionary<string, IList> before = new Dictionary<string, IList>();
+        var linesBefore = lineTraces.Where(x => x <= symbolLine.Value).OrderByDescending(x => x);
+        foreach (var l in linesBefore) {
+          foreach (var change in traceTable[l]) {
+            if (!before.ContainsKey(change.Key)) {
+              before.Add(change.Key, change.Value);
+            }
           }
         }
 
-        int after = before;
-        int pos = traceChanges.IndexOf(before);
+        int after = -1;
+        int pos = traceChanges.IndexOf(linesBefore.Max());
         if (pos + 1 < traceChanges.Count && traceTable.ContainsKey(traceChanges[pos + 1])) {
           after = traceChanges[pos + 1];
         }
 
-        if (after != before) {
+        if (after >= 0) {
           semantics.Add(new PythonStatementSemantic() {
             TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
-            Before = traceTable[before],
+            Before = before,
             After = traceTable[after],
           });
         }
