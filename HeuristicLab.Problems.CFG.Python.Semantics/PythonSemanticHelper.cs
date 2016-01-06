@@ -18,30 +18,36 @@ traceTable = {{}}
 traceChanges = []
 
 def trace(frame, event, arg_unused):
-  global past_locals, variable_list, traceTable
+    global past_locals, variable_list, traceTable
 
-  if frame.f_code.co_name != 'evolve':
-    return
-  if event == 'return' :
-    return
+    if frame.f_code.co_name != 'evolve':
+        return trace
 
-  traceChanges.append(frame.f_lineno)
-  relevant_locals = {{}}
-  all_locals = frame.f_locals.copy()
+    relevant_locals = {{}}
+    all_locals = frame.f_locals.copy()
 
-  for k, v in all_locals.items():
-    if k in variable_list:
-      relevant_locals[k] = v
-  if len(relevant_locals) > 0 and past_locals != relevant_locals:
-    if frame.f_lineno not in traceTable:
-      traceTable[frame.f_lineno] = {{}}
-    for var in variable_list:
-      if var in relevant_locals:
-        if var not in traceTable[frame.f_lineno]:
-          traceTable[frame.f_lineno][var] = []
-        traceTable[frame.f_lineno][var].append(relevant_locals[var])
-    past_locals = relevant_locals
-  return trace
+    for k, v in all_locals.items():
+        if k in variable_list:
+            relevant_locals[k] = v
+
+    if len(relevant_locals) > 0 and past_locals != relevant_locals:
+        # create dict for line number and all variable dicts
+        if frame.f_lineno not in traceTable:
+            traceTable[frame.f_lineno] = {{}}
+            for var in variable_list:
+                traceTable[frame.f_lineno][var] = []
+        elif len(traceTable[frame.f_lineno][variable_list[0]]) >= {1}:
+            past_locals = relevant_locals
+            return trace
+
+        for var in variable_list:
+            if var in relevant_locals:
+                traceTable[frame.f_lineno][var].append(relevant_locals[var])
+            else:
+                # actually not needed for IronPython, but added so it works for all python versions
+                traceTable[frame.f_lineno][var].append(None)
+        past_locals = relevant_locals
+    return trace
 
 sys.settrace(trace)
 
@@ -65,11 +71,11 @@ for l in lines:
       traceCodeWithVariables = String.Empty;
     }
 
-    public PythonSemanticHelper(StringArray variableNames) {
+    public PythonSemanticHelper(StringArray variableNames, int limit) {
       if (variableNames == null || variableNames.Length == 0) {
         traceCodeWithVariables = String.Empty;
       } else {
-        traceCodeWithVariables = String.Format(traceCode, String.Join("', '", variableNames.Where(x => !String.IsNullOrWhiteSpace(x))));
+        traceCodeWithVariables = String.Format(traceCode, String.Join("', '", variableNames.Where(x => !String.IsNullOrWhiteSpace(x))), limit);
       }
     }
 
