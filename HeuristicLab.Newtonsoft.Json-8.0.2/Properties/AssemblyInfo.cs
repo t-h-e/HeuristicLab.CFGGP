@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2016 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -25,8 +25,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HeuristicLab.Problems.CFG.Python.Semantics")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("HeuristicLab.Newtonsoft.Json-8.0.2")]
+[assembly: AssemblyDescription("HeuristicLab plugin for Newtonsoft.Json")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("HeuristicLab")]
@@ -40,7 +40,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e4c0a5e3-a087-486e-a984-124f8e29b8b4")]
+[assembly: Guid("5d1e5604-d6f6-44b6-bd93-93075b5fa491")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -52,5 +52,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.3.0.0")]
-[assembly: AssemblyFileVersion("3.3.13.0")]
+[assembly: AssemblyVersion("8.0.2.0")]
+[assembly: AssemblyFileVersion("8.0.2.0")]

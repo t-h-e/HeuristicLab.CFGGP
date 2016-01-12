@@ -111,6 +111,11 @@
       <HintPath>..\..\HeuristicLab\bin\Microsoft.Scripting.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HeuristicLab\bin\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -128,9 +133,11 @@
     <Compile Include="Evaluator\CFGPythonEvaluator.cs" />
     <Compile Include="Interfaces\ICFGPythonAnalyzer.cs" />
     <Compile Include="Interfaces\ICFGPythonEvaluator.cs" />
+    <Compile Include="Json\EvaluationScript.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PythonHelper.cs" />
+    <Compile Include="PythonProcessHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HeuristicLab.snk" />
@@ -141,11 +148,21 @@
       <Name>HeuristicLab.Misc</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\HeuristicLab.Newtonsoft.Json-8.0.2\HeuristicLab.Newtonsoft.Json-8.0.2.csproj">
+      <Project>{2fdf548d-686f-427d-ad8e-86b7d390286a}</Project>
+      <Name>HeuristicLab.Newtonsoft.Json-8.0.2</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\HeuristicLab.Problems.CFG\HeuristicLab.Problems.CFG.csproj">
       <Project>{0c90f665-57a1-4773-8c6e-28e73b8968bc}</Project>
       <Name>HeuristicLab.Problems.CFG</Name>
       <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="python_script_evaluation.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

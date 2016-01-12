@@ -26,11 +26,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("HeuristicLab.IronPython-2.7.5")]
-[assembly: AssemblyDescription("HeuristicLab transport plugin for IronPython")]
+[assembly: AssemblyDescription("HeuristicLab plugin for IronPython")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("HeuristicLab")]
-[assembly: AssemblyCopyright("(c) 2002-2015 HEAL")]
+[assembly: AssemblyCopyright("(c) 2016 NCRA")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

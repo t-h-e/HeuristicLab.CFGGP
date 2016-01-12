@@ -128,7 +128,8 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public override IOperation InstrumentedApply() {
-      var result = PythonHelper.GetInstance().EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
+      //var result = PythonHelper.GetInstance().EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
+      var result = PythonProcessHelper.GetInstance().EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());

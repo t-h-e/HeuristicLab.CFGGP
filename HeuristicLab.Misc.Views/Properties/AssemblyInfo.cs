@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2013 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2014 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -29,8 +29,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Provides views which may be included in the main repository of HL")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NCRA")]
-[assembly: AssemblyProduct("HeuristicLab.Misc.Views")]
-[assembly: AssemblyCopyright("(c) 2014 NCRA")]
+[assembly: AssemblyProduct("HeuristicLab")]
+[assembly: AssemblyCopyright("(c) 2016 NCRA")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -98,7 +98,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       QualityParameter.ActualValue = new DoubleValue(result.Item3);
       ExceptionParameter.ActualValue = new StringValue(result.Item4);
 
-      SemanticParameter.ActualValue = result.Item5 != null ? new ItemArray<PythonStatementSemantic>(result.Item5) : null;
+      SemanticParameter.ActualValue = result.Item5 != null ? new ItemArray<PythonStatementSemantic>(result.Item5) : (ItemArray<PythonStatementSemantic>)null;
 
       return base.InstrumentedApply();
     }

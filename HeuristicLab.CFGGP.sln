@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG.Python.Semantics", "HeuristicLab.Problems.CFG.Python.Semantics\HeuristicLab.Problems.CFG.Python.Semantics.csproj", "{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Newtonsoft.Json-8.0.2", "HeuristicLab.Newtonsoft.Json-8.0.2\HeuristicLab.Newtonsoft.Json-8.0.2.csproj", "{2FDF548D-686F-427D-AD8E-86B7D390286A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,14 @@ Global
 		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|x64.ActiveCfg = Release|Any CPU
 		{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}.Release|x86.ActiveCfg = Release|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Release|x64.ActiveCfg = Release|Any CPU
+		{2FDF548D-686F-427D-AD8E-86B7D390286A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
