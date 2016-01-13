@@ -32,7 +32,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
   public class CFGPythonTraceTableEvaluator : CFGPythonEvaluator, ISymbolicExpressionTreeOperator {
 
-    private PythonSemanticHelper pythonSemanticHelper;
+    private PythonProcessSemanticHelper pythonSemanticHelper;
 
     #region paramerters
     public ILookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter {
@@ -54,7 +54,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     protected CFGPythonTraceTableEvaluator(CFGPythonTraceTableEvaluator original, Cloner cloner)
       : base(original, cloner) {
       RegisterEventHandlers();
-      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
     }
     public CFGPythonTraceTableEvaluator() {
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("SymbolicExpressionTree", ""));
@@ -63,7 +63,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       Parameters.Add(new LookupParameter<ItemArray<PythonStatementSemantic>>("Semantic", ""));
 
-      pythonSemanticHelper = new PythonSemanticHelper();
+      pythonSemanticHelper = new PythonProcessSemanticHelper();
       RegisterEventHandlers();
     }
 
@@ -74,7 +74,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
       RegisterEventHandlers();
-      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
     }
 
     private void RegisterEventHandlers() {
@@ -83,11 +83,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     private void LimitTraceParameter_ValueChanged(object sender, EventArgs e) {
-      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
     }
 
     private void Value_ItemChanged(object sender, EventArgs<int> e) {
-      pythonSemanticHelper = new PythonSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
     }
 
     public override IOperation InstrumentedApply() {

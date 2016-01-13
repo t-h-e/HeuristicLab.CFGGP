@@ -30,23 +30,23 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcessHelper {
-
-    private Process python;
-    private PythonProcessHelper() {
-      python = new Process {
-        StartInfo = new ProcessStartInfo {
-          FileName = "python",
-          //Arguments = @"E:\coding\codewarsPython\python_script_evaluation.py",
-          Arguments = @"python_script_evaluation.py",
-          UseShellExecute = false,
-          RedirectStandardOutput = true,
-          RedirectStandardInput = true,
-          CreateNoWindow = true
-        }
-      };
-      python.Start();
+    protected PythonProcessHelper() {
+      if (python == null) {
+        python = new Process {
+          StartInfo = new ProcessStartInfo {
+            FileName = "python",
+            Arguments = "python_script_evaluation.py",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true,
+            CreateNoWindow = true
+          }
+        };
+        python.Start();
+      }
     }
 
+    private static Process python;
     private static PythonProcessHelper instance;
     public static PythonProcessHelper GetInstance() {
       if (instance == null) {
@@ -60,30 +60,40 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
-      EvaluationScript es = new EvaluationScript() {
+      EvaluationScript es = CreateEvaluationScript(program, input, output);
+      JObject json = SendAndEvaluateProgram(es);
+      return GetVariablesFromJson(json, indices.Count());
+    }
+
+    protected EvaluationScript CreateEvaluationScript(string program, string input, string output) {
+      return new EvaluationScript() {
         Script = String.Format("inval = {0}\noutval = {1}\n{2}", input, output, program),
         Variables = new List<string>() { "cases", "caseQuality", "quality" }
       };
+    }
 
+    protected JObject SendAndEvaluateProgram(EvaluationScript es) {
       string send = JsonConvert.SerializeObject(es);
 
       python.StandardInput.WriteLine(send);
       python.StandardInput.Flush();
-      JObject result = JObject.Parse(python.StandardOutput.ReadLine());
+      return JObject.Parse(python.StandardOutput.ReadLine());
+    }
 
-      string exception = !String.IsNullOrWhiteSpace((string)result["exception"]) ? (string)result["exception"] : String.Empty;
+    protected Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> GetVariablesFromJson(JObject json, int numberOfCases) {
+      string exception = !String.IsNullOrWhiteSpace((string)json["exception"]) ? (string)json["exception"] : String.Empty;
 
       // get return values
-      IEnumerable<bool> cases = result["cases"] != null
-                              ? cases = result["cases"].Select(x => (bool)x)
-                              : cases = Enumerable.Repeat(false, indices.Count());
+      IEnumerable<bool> cases = json["cases"] != null
+                              ? cases = json["cases"].Select(x => (bool)x)
+                              : cases = Enumerable.Repeat(false, numberOfCases);
 
-      IEnumerable<double> caseQualities = result["caseQualities"] != null
-                                        ? caseQualities = result["caseQualities"].Select(x => (double)x)
+      IEnumerable<double> caseQualities = json["caseQualities"] != null
+                                        ? caseQualities = json["caseQualities"].Select(x => (double)x)
                                         : caseQualities = new List<double>();
 
-      double quality = result["quality"] != null
-                     ? (double)result["quality"]
+      double quality = json["quality"] != null
+                     ? (double)json["quality"]
                      : Double.MaxValue;
 
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);

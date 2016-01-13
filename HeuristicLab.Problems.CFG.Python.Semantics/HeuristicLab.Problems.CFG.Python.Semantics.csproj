@@ -94,6 +94,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\Microsoft.Scripting.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HeuristicLab\bin\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -110,6 +114,7 @@
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PythonProcessSemanticHelper.cs" />
     <Compile Include="PythonSemanticHelper.cs" />
     <Compile Include="PythonStatementSemantic.cs" />
   </ItemGroup>
@@ -120,6 +125,10 @@
     <ProjectReference Include="..\HeuristicLab.Misc\HeuristicLab.Misc.csproj">
       <Project>{0e26857a-8f65-4a60-a939-fbe90298afaf}</Project>
       <Name>HeuristicLab.Misc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HeuristicLab.Newtonsoft.Json-8.0.2\HeuristicLab.Newtonsoft.Json-8.0.2.csproj">
+      <Project>{2fdf548d-686f-427d-ad8e-86b7d390286a}</Project>
+      <Name>HeuristicLab.Newtonsoft.Json-8.0.2</Name>
     </ProjectReference>
     <ProjectReference Include="..\HeuristicLab.Problems.CFG.Python\HeuristicLab.Problems.CFG.Python.csproj">
       <Project>{cf97234d-9b43-405f-afea-db13685b48ef}</Project>
