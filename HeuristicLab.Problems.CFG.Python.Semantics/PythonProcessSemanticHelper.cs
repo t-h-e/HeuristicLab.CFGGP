@@ -16,7 +16,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 past_locals = {{}}
 variable_list = ['{0}']
 traceTable = {{}}
-traceChanges = []
 
 def trace(frame, event, arg_unused):
     global past_locals, variable_list, traceTable
@@ -86,7 +85,6 @@ for l in lines:
 
       EvaluationScript es = base.CreateEvaluationScript(traceProgram, input, output);
       es.Variables.Add("traceTable");
-      es.Variables.Add("traceChanges");
 
       JObject json = base.SendAndEvaluateProgram(es);
       var baseResult = base.GetVariablesFromJson(json, indices.Count());
@@ -96,8 +94,7 @@ for l in lines:
       }
 
       var traceTable = JsonConvert.DeserializeObject<IDictionary<int, IDictionary<string, IList>>>(json["traceTable"].ToString());
-      IList<int> traceChanges = json["traceChanges"].Select(x => (int)x).ToList();
-      //var traceTable = ConvertPythonDictionary(traceTablePython);
+      IList<int> traceChanges = traceTable.Keys.OrderBy(x => x).ToList();
 
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
@@ -108,8 +105,10 @@ for l in lines:
       IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
 
       // add one, because the values are set after the statement is executed
-      int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1;
+      // add two, for inval and outval
+      int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1 + 2;
       var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
+      var symbolLines = symbolToLineDict.Values.OrderBy(x => x).ToList();
 
       var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
@@ -126,7 +125,10 @@ for l in lines:
 
         int after = -1;
         int pos = traceChanges.IndexOf(linesBefore.Max());
-        if (pos + 1 < traceChanges.Count && traceTable.ContainsKey(traceChanges[pos + 1])) {
+        if (pos + 1 < traceChanges.Count // has to be in the array
+          // there cannot be another line which comes after the current one, but before the trace change
+          // otherwise the current line did not change anything
+          && !symbolLines.Any(x => x > symbolLine.Value && x < traceChanges[pos + 1])) {
           after = traceChanges[pos + 1];
         }
 
