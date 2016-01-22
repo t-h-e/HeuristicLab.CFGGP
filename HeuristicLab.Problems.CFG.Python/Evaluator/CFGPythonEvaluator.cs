@@ -19,6 +19,7 @@
  */
 #endregion
 
+using System;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -67,6 +68,10 @@ namespace HeuristicLab.Problems.CFG.Python {
     public IValueLookupParameter<StringValue> OutputParameter {
       get { return (IValueLookupParameter<StringValue>)Parameters["PythonOutputCache"]; }
     }
+
+    public IFixedValueParameter<StringValue> PathToPythonParameter {
+      get { return (IFixedValueParameter<StringValue>)Parameters["PathToPython"]; }
+    }
     #endregion
 
     #region properties
@@ -95,6 +100,11 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
     #endregion
 
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      RegisterEventHandlers();
+    }
+
     [StorableConstructor]
     protected CFGPythonEvaluator(bool deserializing) : base(deserializing) { }
     protected CFGPythonEvaluator(CFGPythonEvaluator original, Cloner cloner)
@@ -114,8 +124,12 @@ namespace HeuristicLab.Problems.CFG.Python {
       Parameters.Add(new ValueLookupParameter<StringValue>("PythonInputCache", "Cache python input"));
       Parameters.Add(new ValueLookupParameter<StringValue>("PythonOutputCache", "Cache python output"));
 
+      Parameters.Add(new FixedValueParameter<StringValue>("PathToPython", "Path to python", new StringValue("python")));
+
       SuccessfulCasesParameter.Hidden = true;
       CaseQualitiesParameter.Hidden = true;
+
+      RegisterEventHandlers();
     }
 
     public virtual void ClearCachedValues() {
@@ -128,7 +142,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public override IOperation InstrumentedApply() {
-      var result = PythonProcessHelper.GetInstance().EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
+      var result = PythonProcessHelper.EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());
@@ -140,6 +154,14 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public IOperation InstrumentedApplyWithoutEvaluation() {
       return base.InstrumentedApply();
+    }
+
+    private void RegisterEventHandlers() {
+      PathToPythonParameter.Value.ValueChanged += new EventHandler(PathToPythonParameter_ValueChanged);
+    }
+
+    void PathToPythonParameter_ValueChanged(object sender, EventArgs e) {
+      PythonProcess.GetInstance().SetNewPythonPathOrArguments(PathToPythonParameter.Value.Value);
     }
   }
 }

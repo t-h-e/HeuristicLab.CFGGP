@@ -81,13 +81,17 @@ for l in lines:
 
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
 
-      string traceProgram = traceCodeWithVariables + program + traceTableReduceEntries;
+      string traceProgram = traceCodeWithVariables
+                          + program;
+      traceProgram += traceCodeWithVariables == String.Empty
+                    ? String.Empty
+                    : traceTableReduceEntries;
 
-      EvaluationScript es = base.CreateEvaluationScript(traceProgram, input, output);
+      EvaluationScript es = PythonProcessHelper.CreateEvaluationScript(traceProgram, input, output);
       es.Variables.Add("traceTable");
 
-      JObject json = base.SendAndEvaluateProgram(es);
-      var baseResult = base.GetVariablesFromJson(json, indices.Count());
+      JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(es);
+      var baseResult = PythonProcessHelper.GetVariablesFromJson(json, indices.Count());
 
       if (json["traceTable"] == null) {
         return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, new List<PythonStatementSemantic>());
@@ -144,19 +148,6 @@ for l in lines:
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, semantics);
     }
 
-    private IDictionary<int, IDictionary<string, IList>> ConvertPythonDictionary(PythonDictionary dict) {
-      IDictionary<int, IDictionary<string, IList>> convertedDict = new Dictionary<int, IDictionary<string, IList>>(dict.Count);
-      foreach (var line in dict) {
-        IDictionary<string, IList> lineDict = new Dictionary<string, IList>();
-        convertedDict.Add((int)line.Key, lineDict);
-
-        foreach (var variable in (PythonDictionary)line.Value) {
-          lineDict.Add((string)variable.Key, ConvertPythonList((IronPython.Runtime.List)variable.Value));
-        }
-      }
-      return convertedDict;
-    }
-
     private IList ConvertPythonList(IronPython.Runtime.List pythonList) {
       if (pythonList.Count == 0) return new List<object>();
       //if (pythonList[0] == null) return Enumerable.Repeat<object>(null, pythonList.Count).ToList();
@@ -166,37 +157,6 @@ for l in lines:
       } else {
         return pythonList.ToList();
       }
-
-      //if (genericType == typeof(bool)) {
-      //  return pythonList.Cast<bool>().ToList();
-      //} else if (genericType == typeof(int) || genericType == typeof(long)) {
-      //  return pythonList.Select(x => Convert.ToInt64(x)).ToList();
-      //} else if (genericType == typeof(BigInteger)) {
-      //  return pythonList.Select(x => (long)x).ToList();
-      //} else if (genericType == typeof(float) || genericType == typeof(double)) {
-      //  return pythonList.Select(x => Convert.ToDouble(x)).ToList();
-      //} else if (genericType == typeof(string)) {
-      //  return pythonList.Cast<string>().ToList();
-      //} else if (genericType == typeof(IronPython.Runtime.List)) {
-      //  object item = null;
-      //  for (int i = 0; i < pythonList.Count; i++) {
-      //    item = ((List)pythonList[i]).FirstOrDefault();
-      //    if (item != null) break;
-      //  }
-      //  if (item == null) return Enumerable.Repeat(new List<object>(), pythonList.Count).ToList();
-
-      //  genericType = item.GetType();
-      //  if (genericType == typeof(bool)) {
-      //    return pythonList.Select(x => ((List)x).Cast<bool>().ToList()).ToList();
-      //  } else if (genericType == typeof(int) || genericType == typeof(float) || genericType == typeof(long) || genericType == typeof(double) || genericType == typeof(BigInteger)) {
-      //    return pythonList.Select(x => ((List)x).Select(y => item is BigInteger ? (double)y : Convert.ToDouble(y)).ToList()).ToList();
-      //    //} else if (genericType == typeof(float)) {
-      //    //  return pythonList.Select(x => ((List)x).Cast<float>().ToList()).ToList();
-      //  } else if (genericType == typeof(string)) {
-      //    return pythonList.Select(x => ((List)x).Cast<string>().ToList()).ToList();
-      //  }
-      //}
-      //throw new ArgumentException("Type in traceTable is not defined or unknown");
     }
 
 

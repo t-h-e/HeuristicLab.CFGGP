@@ -22,12 +22,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using Microsoft.Scripting.Hosting;
 
 namespace HeuristicLab.Problems.CFG.Python {
   public class PythonHelper {
@@ -169,117 +166,117 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     // should not be instanciated directly
-    protected PythonHelper() { }
+    //protected PythonHelper() { }
 
-    private static PythonHelper pyHelper;
+    //private static PythonHelper pyHelper;
 
-    public static PythonHelper GetInstance() {
-      if (pyHelper == null) {
-        pyHelper = new PythonHelper();
-      }
-      return pyHelper;
-    }
+    //public static PythonHelper GetInstance() {
+    //  if (pyHelper == null) {
+    //    pyHelper = new PythonHelper();
+    //  }
+    //  return pyHelper;
+    //}
 
-    protected ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine(new Dictionary<string, object>() {
-      {"LightweightScopes", true}
-    });
+    //protected ScriptEngine pyEngine = IronPython.Hosting.Python.CreateEngine(new Dictionary<string, object>() {
+    //  {"LightweightScopes", true}
+    //});
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
-      return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
-    }
+    //public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
+    //  return EvaluateProgram(program, ConvertToPythonValues(input, indices), ConvertToPythonValues(output, indices), indices, timeout);
+    //}
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
-      ScriptScope scope = pyEngine.CreateScope();
-      return EvaluateProgram(program, input, output, indices, scope, timeout);
-    }
+    //public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
+    //  ScriptScope scope = pyEngine.CreateScope();
+    //  return EvaluateProgram(program, input, output, indices, scope, timeout);
+    //}
 
-    protected Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, ScriptScope scope, int timeout = 1000) {
-      // set variables in scope
-      scope.SetVariable("stop", false);
-      pyEngine.Execute("inval = " + input, scope);
-      pyEngine.Execute("outval = " + output, scope);
+    //protected Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, ScriptScope scope, int timeout = 1000) {
+    //  // set variables in scope
+    //  scope.SetVariable("stop", false);
+    //  pyEngine.Execute("inval = " + input, scope);
+    //  pyEngine.Execute("outval = " + output, scope);
 
-      // create thread and execute the code
-      ExecutePythonThread pyThread = new ExecutePythonThread(program, pyEngine, scope);
-      Thread thread = new Thread(new ThreadStart(pyThread.Run));
-      thread.Start();
+    //  // create thread and execute the code
+    //  ExecutePythonThread pyThread = new ExecutePythonThread(program, pyEngine, scope);
+    //  Thread thread = new Thread(new ThreadStart(pyThread.Run));
+    //  thread.Start();
 
-      // wait for thread
-      // if a timeout occures, set variable stop to true to indicate that the python code should stop
-      // then wait until the thread finished (threads cannot be stopped, killed or aboarted)
-      thread.Join(timeout);
-      bool timedout = false;
-      if (thread.IsAlive) {
-        scope.SetVariable("stop", true);
-        thread.Join();
-        timedout = true;
-      }
+    //  // wait for thread
+    //  // if a timeout occures, set variable stop to true to indicate that the python code should stop
+    //  // then wait until the thread finished (threads cannot be stopped, killed or aboarted)
+    //  thread.Join(timeout);
+    //  bool timedout = false;
+    //  if (thread.IsAlive) {
+    //    scope.SetVariable("stop", true);
+    //    thread.Join();
+    //    timedout = true;
+    //  }
 
 
-      string exception = String.Empty;
-      if (pyThread.Exception != null || timedout) {
-        exception = pyThread.Exception != null ? pyThread.Exception.Message : "Timeout occurred.";
-      }
+    //  string exception = String.Empty;
+    //  if (pyThread.Exception != null || timedout) {
+    //    exception = pyThread.Exception != null ? pyThread.Exception.Message : "Timeout occurred.";
+    //  }
 
-      // get return values
-      IEnumerable<bool> cases;
-      if (!scope.TryGetVariable<IEnumerable<bool>>("cases", out cases)) {
-        cases = Enumerable.Repeat(false, indices.Count());
-      }
+    //  // get return values
+    //  IEnumerable<bool> cases;
+    //  if (!scope.TryGetVariable<IEnumerable<bool>>("cases", out cases)) {
+    //    cases = Enumerable.Repeat(false, indices.Count());
+    //  }
 
-      IEnumerable<double> caseQualities;
-      // twice as fast as next if statement, but in overall it just makes a difference by a few milliseconds
-      //if (!scope.TryGetVariable<IEnumerable<double>>("caseQuality", out caseQualities)) {
-      //  caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count()).ToList();
-      //}
+    //  IEnumerable<double> caseQualities;
+    //  // twice as fast as next if statement, but in overall it just makes a difference by a few milliseconds
+    //  //if (!scope.TryGetVariable<IEnumerable<double>>("caseQuality", out caseQualities)) {
+    //  //  caseQualities = Enumerable.Repeat(Double.MaxValue, indices.Count()).ToList();
+    //  //}
 
-      IEnumerable<object> tmpCaseQualities;
-      if (scope.TryGetVariable<IEnumerable<object>>("caseQuality", out tmpCaseQualities)) {
-        try {
-          // call ToList to convert values
-          caseQualities = tmpCaseQualities.Select(x => Convert.ToDouble(x)).ToList();
-        }
-        // catches invalid casts, if the value is to big for double or if it is not numeric
-        catch (InvalidCastException) {
-          caseQualities = new List<double>();
-        }
-      } else {
-        caseQualities = new List<double>();
-      }
+    //  IEnumerable<object> tmpCaseQualities;
+    //  if (scope.TryGetVariable<IEnumerable<object>>("caseQuality", out tmpCaseQualities)) {
+    //    try {
+    //      // call ToList to convert values
+    //      caseQualities = tmpCaseQualities.Select(x => Convert.ToDouble(x)).ToList();
+    //    }
+    //    // catches invalid casts, if the value is to big for double or if it is not numeric
+    //    catch (InvalidCastException) {
+    //      caseQualities = new List<double>();
+    //    }
+    //  } else {
+    //    caseQualities = new List<double>();
+    //  }
 
-      double quality;
-      if (!scope.TryGetVariable<double>("quality", out quality)) {
-        quality = Double.MaxValue;
-      }
+    //  double quality;
+    //  if (!scope.TryGetVariable<double>("quality", out quality)) {
+    //    quality = Double.MaxValue;
+    //  }
 
-      return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
-    }
+    //  return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
+    //}
 
-    /**
-     * Helper class which is used to executes python code in a separate thread
-     **/
-    private class ExecutePythonThread {
-      private string code;
-      private ScriptEngine engine;
-      private ScriptScope scope;
+    ///**
+    // * Helper class which is used to executes python code in a separate thread
+    // **/
+    //private class ExecutePythonThread {
+    //  private string code;
+    //  private ScriptEngine engine;
+    //  private ScriptScope scope;
 
-      public Exception Exception { get; private set; }
+    //  public Exception Exception { get; private set; }
 
-      public ExecutePythonThread(string code, ScriptEngine engine, ScriptScope scope) {
-        this.code = code;
-        this.engine = engine;
-        this.scope = scope;
-      }
+    //  public ExecutePythonThread(string code, ScriptEngine engine, ScriptScope scope) {
+    //    this.code = code;
+    //    this.engine = engine;
+    //    this.scope = scope;
+    //  }
 
-      public void Run() {
-        // execute the script
-        try {
-          engine.Execute(code, scope);
-        }
-        catch (Exception e) {
-          Exception = e;
-        }
-      }
-    }
+    //  public void Run() {
+    //    // execute the script
+    //    try {
+    //      engine.Execute(code, scope);
+    //    }
+    //    catch (Exception e) {
+    //      Exception = e;
+    //    }
+    //  }
+    //}
   }
 }

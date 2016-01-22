@@ -5,7 +5,6 @@ using System.Linq;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using IronPython.Runtime;
-using Microsoft.Scripting.Hosting;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class PythonSemanticHelper : PythonHelper {
@@ -79,62 +78,62 @@ for l in lines:
       }
     }
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
-      string traceProgram = traceCodeWithVariables + program + traceTableReduceEntries;
+    //public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
+    //  string traceProgram = traceCodeWithVariables + program + traceTableReduceEntries;
 
-      ScriptScope scope = pyEngine.CreateScope();
-      var tupel = EvaluateProgram(traceProgram, input, output, indices, scope, timeout);
+    //  ScriptScope scope = pyEngine.CreateScope();
+    //  var tupel = EvaluateProgram(traceProgram, input, output, indices, scope, timeout);
 
-      if (!scope.ContainsVariable("traceTable")) {
-        return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, null);
-      }
+    //  if (!scope.ContainsVariable("traceTable")) {
+    //    return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, null);
+    //  }
 
-      PythonDictionary traceTablePython = scope.GetVariable<PythonDictionary>("traceTable");
-      IList<int> traceChanges = scope.GetVariable<IList<int>>("traceChanges");
-      var traceTable = ConvertPythonDictionary(traceTablePython);
+    //  PythonDictionary traceTablePython = scope.GetVariable<PythonDictionary>("traceTable");
+    //  IList<int> traceChanges = scope.GetVariable<IList<int>>("traceChanges");
+    //  var traceTable = ConvertPythonDictionary(traceTablePython);
 
-      List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
-      ISymbolicExpressionTreeNode root = tree.Root;
+    //  List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
+    //  ISymbolicExpressionTreeNode root = tree.Root;
 
-      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols;
-      var statementProductionNames = statementProductions.Select(x => x.Name);
+    //  var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols;
+    //  var statementProductionNames = statementProductions.Select(x => x.Name);
 
-      IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
+    //  IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
 
-      // add one, because the values are set after the statement is executed
-      int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1;
-      var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
+    //  // add one, because the values are set after the statement is executed
+    //  int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1;
+    //  var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
 
-      var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
+    //  var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
-      foreach (var symbolLine in symbolToLineDict) {
-        Dictionary<string, IList> before = new Dictionary<string, IList>();
-        var linesBefore = lineTraces.Where(x => x <= symbolLine.Value).OrderByDescending(x => x);
-        foreach (var l in linesBefore) {
-          foreach (var change in traceTable[l]) {
-            if (!before.ContainsKey(change.Key)) {
-              before.Add(change.Key, change.Value);
-            }
-          }
-        }
+    //  foreach (var symbolLine in symbolToLineDict) {
+    //    Dictionary<string, IList> before = new Dictionary<string, IList>();
+    //    var linesBefore = lineTraces.Where(x => x <= symbolLine.Value).OrderByDescending(x => x);
+    //    foreach (var l in linesBefore) {
+    //      foreach (var change in traceTable[l]) {
+    //        if (!before.ContainsKey(change.Key)) {
+    //          before.Add(change.Key, change.Value);
+    //        }
+    //      }
+    //    }
 
-        int after = -1;
-        int pos = traceChanges.IndexOf(linesBefore.Max());
-        if (pos + 1 < traceChanges.Count && traceTable.ContainsKey(traceChanges[pos + 1])) {
-          after = traceChanges[pos + 1];
-        }
+    //    int after = -1;
+    //    int pos = traceChanges.IndexOf(linesBefore.Max());
+    //    if (pos + 1 < traceChanges.Count && traceTable.ContainsKey(traceChanges[pos + 1])) {
+    //      after = traceChanges[pos + 1];
+    //    }
 
-        if (after >= 0) {
-          semantics.Add(new PythonStatementSemantic() {
-            TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
-            Before = before,
-            After = traceTable[after],
-          });
-        }
-      }
+    //    if (after >= 0) {
+    //      semantics.Add(new PythonStatementSemantic() {
+    //        TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
+    //        Before = before,
+    //        After = traceTable[after],
+    //      });
+    //    }
+    //  }
 
-      return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, semantics);
-    }
+    //  return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(tupel.Item1, tupel.Item2, tupel.Item3, tupel.Item4, semantics);
+    //}
 
     private IDictionary<int, IDictionary<string, IList>> ConvertPythonDictionary(PythonDictionary dict) {
       IDictionary<int, IDictionary<string, IList>> convertedDict = new Dictionary<int, IDictionary<string, IList>>(dict.Count);

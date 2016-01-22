@@ -19,9 +19,9 @@ while True:
     t.join(6)
     if t.isAlive():
         stop = True
-        print(json.dumps({'Exception': 'Timeout occurred.'}))
+        print(json.dumps({'exception': 'Timeout occurred.'}))
     elif 'exception' in locals():
-        print(json.dumps({'Exception': locals()['exception']}))
+        print(json.dumps({'exception': locals()['exception']}))
         del exception
     else:
         ret_message_dict = {}

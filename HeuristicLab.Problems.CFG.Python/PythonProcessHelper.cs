@@ -23,64 +23,30 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using HeuristicLab.Data;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcessHelper {
-    protected PythonProcessHelper() {
-      if (python == null) {
-        python = new Process {
-          StartInfo = new ProcessStartInfo {
-            FileName = "python",
-            Arguments = "python_script_evaluation.py",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true,
-            CreateNoWindow = true
-          }
-        };
-        python.Start();
-      }
-    }
 
-    private static Process python;
-    private static PythonProcessHelper instance;
-    public static PythonProcessHelper GetInstance() {
-      if (instance == null) {
-        instance = new PythonProcessHelper();
-      }
-      return instance;
-    }
-
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
+    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
       return EvaluateProgram(program, PythonHelper.ConvertToPythonValues(input, indices), PythonHelper.ConvertToPythonValues(output, indices), indices, timeout);
     }
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
+    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
       EvaluationScript es = CreateEvaluationScript(program, input, output);
-      JObject json = SendAndEvaluateProgram(es);
+      JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(es);
       return GetVariablesFromJson(json, indices.Count());
     }
 
-    protected EvaluationScript CreateEvaluationScript(string program, string input, string output) {
+    protected static EvaluationScript CreateEvaluationScript(string program, string input, string output) {
       return new EvaluationScript() {
         Script = String.Format("inval = {0}\noutval = {1}\n{2}", input, output, program),
         Variables = new List<string>() { "cases", "caseQuality", "quality" }
       };
     }
 
-    protected JObject SendAndEvaluateProgram(EvaluationScript es) {
-      string send = JsonConvert.SerializeObject(es);
-
-      python.StandardInput.WriteLine(send);
-      python.StandardInput.Flush();
-      return JObject.Parse(python.StandardOutput.ReadLine());
-    }
-
-    protected Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> GetVariablesFromJson(JObject json, int numberOfCases) {
+    protected static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> GetVariablesFromJson(JObject json, int numberOfCases) {
       string exception = !String.IsNullOrWhiteSpace((string)json["exception"]) ? (string)json["exception"] : String.Empty;
 
       // get return values

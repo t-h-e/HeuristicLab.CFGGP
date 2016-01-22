@@ -109,7 +109,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CFGPythonTraceTableEvaluator.cs" />
+    <Compile Include="Evaluator\CFGPythonTraceTableEvaluator.cs" />
     <Compile Include="Crossover\CFGPythonSemanticCrossover.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
     <Compile Include="Plugin.cs" />
