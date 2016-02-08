@@ -19,19 +19,13 @@
  */
 #endregion
 
-using System.Collections.Generic;
-using Newtonsoft.Json;
+using HeuristicLab.Core;
+using HeuristicLab.Data;
+using HeuristicLab.Misc;
 
 namespace HeuristicLab.Problems.CFG.Python {
-  public class EvaluationScript {
-
-    [JsonProperty("id")]
-    public int Id { get; set; }
-
-    [JsonProperty("script")]
-    public string Script { get; set; }
-
-    [JsonProperty("variables")]
-    public IList<string> Variables { get; set; }
+  public interface ICFGPythonProblemData : ICFGProblemData {
+    CheckedItemList<StringValue> Variables { get; }
+    ItemList<TextValue> VariableSettings { get; }
   }
 }

@@ -148,18 +148,6 @@ for l in lines:
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, semantics);
     }
 
-    private IList ConvertPythonList(IronPython.Runtime.List pythonList) {
-      if (pythonList.Count == 0) return new List<object>();
-      //if (pythonList[0] == null) return Enumerable.Repeat<object>(null, pythonList.Count).ToList();
-
-      if (pythonList[0] != null && pythonList[0].GetType() == typeof(IronPython.Runtime.List)) {
-        return pythonList.Select(x => ((List)x).ToList()).ToList();
-      } else {
-        return pythonList.ToList();
-      }
-    }
-
-
     private Dictionary<ISymbolicExpressionTreeNode, int> FindStatementSymbolsInTree(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
       Dictionary<ISymbolicExpressionTreeNode, int> symbolToLineDict = new Dictionary<ISymbolicExpressionTreeNode, int>();
       if (node.Subtrees.Count() > 0) {

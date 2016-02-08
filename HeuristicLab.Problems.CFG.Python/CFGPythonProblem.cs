@@ -31,7 +31,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   [Item("CFG Python Problem", "Generate python code to solve a problem defined by input and output pairs.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 152)]
   [StorableClass]
-  public class CFGPythonProblem : CFGProblem<ICFGPythonEvaluator> {
+  public class CFGPythonProblem : CFGProblem<ICFGPythonProblemData, ICFGPythonEvaluator> {
 
     private const string TimeoutParameterName = "Timeout";
 

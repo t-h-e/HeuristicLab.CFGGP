@@ -30,9 +30,9 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  [Item("CFGPythonSemanticCrossover", "Semantic crossover for program synthesis")]
+  [Item("CFGPythonSemanticTraceCrossover", "Semantic crossover for program synthesis, which uses the trace table provided by the evaluator to decide on a crossover point.")]
   [StorableClass]
-  public class CFGPythonSemanticCrossover : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator, ICFGPythonSemanticsCrossover {
+  public class CFGPythonSemanticTraceCrossover : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator, ICFGPythonSemanticsCrossover {
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
     private const string CrossoverProbabilityParameterName = "CrossoverProbability";
@@ -73,9 +73,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
     #endregion
     [StorableConstructor]
-    protected CFGPythonSemanticCrossover(bool deserializing) : base(deserializing) { }
-    protected CFGPythonSemanticCrossover(CFGPythonSemanticCrossover original, Cloner cloner) : base(original, cloner) { }
-    public CFGPythonSemanticCrossover()
+    protected CFGPythonSemanticTraceCrossover(bool deserializing) : base(deserializing) { }
+    protected CFGPythonSemanticTraceCrossover(CFGPythonSemanticTraceCrossover original, Cloner cloner) : base(original, cloner) { }
+    public CFGPythonSemanticTraceCrossover()
       : base() {
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeDepthParameterName, "The maximal depth of the symbolic expression tree (a tree with one node has depth = 0)."));
@@ -89,7 +89,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGPythonSemanticCrossover(this, cloner);
+      return new CFGPythonSemanticTraceCrossover(this, cloner);
     }
 
     private void RegisterEventHandlers() {

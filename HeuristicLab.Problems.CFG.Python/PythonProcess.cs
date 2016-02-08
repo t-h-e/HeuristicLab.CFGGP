@@ -19,7 +19,10 @@
  */
 #endregion
 
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using HeuristicLab.PluginInfrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -39,7 +42,13 @@ namespace HeuristicLab.Problems.CFG.Python {
           CreateNoWindow = true
         }
       };
-      python.Start();
+      try {
+        python.Start();
+      }
+      catch (Win32Exception e) {
+        python = null;
+        ErrorHandling.ShowErrorDialog(e);
+      }
     }
 
     public static PythonProcess GetInstance(string pathToPython = "python", string pythonArguments = "") {
@@ -50,23 +59,29 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public bool SetNewPythonPathOrArguments(string pathToPython = "python", string pythonArguments = "") {
-      lock (python) {
-        python.Kill();
-        python = new Process {
-          StartInfo = new ProcessStartInfo {
-            FileName = pathToPython,
-            Arguments = pythonArguments + " python_script_evaluation.py",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true,
-            CreateNoWindow = true
-          }
-        };
+      if (python != null) python.Kill();
+      python = new Process {
+        StartInfo = new ProcessStartInfo {
+          FileName = pathToPython,
+          Arguments = pythonArguments + " python_script_evaluation.py",
+          UseShellExecute = false,
+          RedirectStandardOutput = true,
+          RedirectStandardInput = true,
+          CreateNoWindow = true
+        }
+      };
+      try {
         return python.Start();
+      }
+      catch (Win32Exception e) {
+        python = null;
+        ErrorHandling.ShowErrorDialog(e);
+        return false;
       }
     }
 
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
+      if (python == null || python.HasExited) { throw new ArgumentException("No python process has been started."); }
       lock (python) {
         string send = JsonConvert.SerializeObject(es);
 

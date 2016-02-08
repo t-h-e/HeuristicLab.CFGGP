@@ -35,9 +35,10 @@ using HeuristicLab.Problems.Instances.CFG;
 
 namespace HeuristicLab.Problems.CFG {
   [StorableClass]
-  public abstract class CFGProblem<T> : SingleObjectiveHeuristicOptimizationProblem<T, ISymbolicExpressionTreeCreator>, IStorableContent,
+  public abstract class CFGProblem<T, U> : SingleObjectiveHeuristicOptimizationProblem<U, ISymbolicExpressionTreeCreator>, IStorableContent,
     IProblemInstanceConsumer<CFGData>
-    where T : class, ICFGEvaluator {
+    where T : class, ICFGProblemData
+    where U : class, ICFGEvaluator {
 
     private const string ProblemDataParameterName = "CFGProblemData";
     private const string ProblemDataParameterDescription = "The data set, target variable and input variables of the context free grammar problem.";
@@ -49,8 +50,8 @@ namespace HeuristicLab.Problems.CFG {
     private const string INSERTCODE = "<insertCodeHere>";
 
     #region Parameter Properties
-    public IValueParameter<CFGProblemData> ProblemDataParameter {
-      get { return (IValueParameter<CFGProblemData>)Parameters[ProblemDataParameterName]; }
+    public IValueParameter<T> ProblemDataParameter {
+      get { return (IValueParameter<T>)Parameters[ProblemDataParameterName]; }
     }
     public IFixedValueParameter<TextValue> GrammarBNFParameter {
       get { return (IFixedValueParameter<TextValue>)Parameters["GrammarBNF"]; }
@@ -76,7 +77,7 @@ namespace HeuristicLab.Problems.CFG {
     #endregion
 
     #region properties
-    public CFGProblemData ProblemData {
+    public T ProblemData {
       get { return ProblemDataParameter.Value; }
       protected set {
         ProblemDataParameter.Value = value;
@@ -98,17 +99,17 @@ namespace HeuristicLab.Problems.CFG {
     [StorableConstructor]
     protected CFGProblem(bool deserializing) : base(deserializing) { }
 
-    protected CFGProblem(CFGProblem<T> original, Cloner cloner)
+    protected CFGProblem(CFGProblem<T, U> original, Cloner cloner)
       : base(original, cloner) {
       RegisterEventHandlers();
     }
 
     public CFGProblem()
-      : base(new CFGProgrammableEvaluator() as T, new ProbabilisticTreeCreator()) {
+      : base(new CFGProgrammableEvaluator() as U, new ProbabilisticTreeCreator()) {
       Initialize();
     }
 
-    public CFGProblem(T evaluator, ISymbolicExpressionTreeCreator creator)
+    public CFGProblem(U evaluator, ISymbolicExpressionTreeCreator creator)
       : base(evaluator, creator) {
       Initialize();
     }
@@ -301,7 +302,7 @@ namespace HeuristicLab.Problems.CFG {
       problemData.TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
       problemData.TestPartitionParameter.Value.Start = data.TestPartitionStart;
       problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
-      ProblemDataParameter.Value = problemData;
+      ProblemDataParameter.Value = problemData as T;
       GrammarBNF.Value = data.Grammar;
       EmbedCode.Value = data.Embed;
     }
@@ -310,7 +311,7 @@ namespace HeuristicLab.Problems.CFG {
   [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 151)]
   [StorableClass]
-  public class CFGProblem : CFGProblem<ICFGEvaluator> {
+  public class CFGProblem : CFGProblem<CFGProblemData, ICFGEvaluator> {
     [StorableConstructor]
     protected CFGProblem(bool deserializing) : base(deserializing) { }
     protected CFGProblem(CFGProblem original, Cloner cloner)

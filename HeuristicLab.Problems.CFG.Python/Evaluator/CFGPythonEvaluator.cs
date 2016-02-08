@@ -69,6 +69,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       get { return (IValueLookupParameter<StringValue>)Parameters["PythonOutputCache"]; }
     }
 
+    // TODO may be exchanged with FileValue instead of StringValue
     public IFixedValueParameter<StringValue> PathToPythonParameter {
       get { return (IFixedValueParameter<StringValue>)Parameters["PathToPython"]; }
     }

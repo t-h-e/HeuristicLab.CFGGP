@@ -129,8 +129,10 @@
     <Compile Include="Analyzer\CFGPythonExceptionAnalyzer.cs" />
     <Compile Include="Analyzer\CFGPythonTrainingBestSolutionAnalyzer.cs" />
     <Compile Include="CFGPythonProblem.cs" />
+    <Compile Include="CFGPythonProblemData.cs" />
     <Compile Include="CFGPythonSolution.cs" />
     <Compile Include="Evaluator\CFGPythonEvaluator.cs" />
+    <Compile Include="Interfaces\ICFGPythonProblemData.cs" />
     <Compile Include="Interfaces\ICFGPythonAnalyzer.cs" />
     <Compile Include="Interfaces\ICFGPythonEvaluator.cs" />
     <Compile Include="Json\EvaluationScript.cs" />
