@@ -39,7 +39,7 @@ namespace HeuristicLab.Problems.CFG {
       : base(original, cloner) {
     }
     public CFGProblemWithTracking()
-      : base(new CFGDummyEvaluator(), new ProbabilisticTreeCreator()) {
+      : base(CFGProblemData.EmptyProblemData, new CFGDummyEvaluator(), new ProbabilisticTreeCreator()) {
       InitializeOperators();
     }
     public override IDeepCloneable Clone(Cloner cloner) {

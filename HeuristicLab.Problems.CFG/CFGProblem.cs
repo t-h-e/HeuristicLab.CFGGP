@@ -104,14 +104,14 @@ namespace HeuristicLab.Problems.CFG {
       RegisterEventHandlers();
     }
 
-    public CFGProblem()
+    public CFGProblem(T problemData)
       : base(new CFGProgrammableEvaluator() as U, new ProbabilisticTreeCreator()) {
-      Initialize();
+      Initialize(problemData);
     }
 
-    public CFGProblem(U evaluator, ISymbolicExpressionTreeCreator creator)
+    public CFGProblem(T problemData, U evaluator, ISymbolicExpressionTreeCreator creator)
       : base(evaluator, creator) {
-      Initialize();
+      Initialize(problemData);
     }
 
     [StorableHook(HookType.AfterDeserialization)]
@@ -122,8 +122,8 @@ namespace HeuristicLab.Problems.CFG {
 
 
     #region Helpers
-    private void Initialize() {
-      Parameters.Add(new ValueParameter<CFGProblemData>(ProblemDataParameterName, ProblemDataParameterDescription, CFGProblemData.EmptyProblemData));
+    private void Initialize(T problemData) {
+      Parameters.Add(new ValueParameter<T>(ProblemDataParameterName, ProblemDataParameterDescription, problemData)); //CFGProblemData.EmptyProblemData));
       Parameters.Add(new FixedValueParameter<TextValue>("GrammarBNF", "Grammar in BNF Form.", new TextValue()));
       Parameters.Add(new FixedValueParameter<TextValue>("EmbedCode", "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue()));
       Parameters.Add(new FixedValueParameter<IntValue>("MaximumSymbolicExpressionTreeDepth", "Maximal depth of the symbolic expression. The minimum depth needed for the algorithm is 3 because two levels are reserved for the ProgramRoot and the Start symbol.", new IntValue(15)));
@@ -293,16 +293,19 @@ namespace HeuristicLab.Problems.CFG {
       }
     }
 
-
-    public void Load(CFGData data) {
-      Name = data.Name;
-      Description = data.Description;
+    protected virtual T LoadProblemData(CFGData data) {
       CFGProblemData problemData = new CFGProblemData(data.Input, data.Output);
       problemData.TrainingPartitionParameter.Value.Start = data.TrainingPartitionStart;
       problemData.TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
       problemData.TestPartitionParameter.Value.Start = data.TestPartitionStart;
       problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
-      ProblemDataParameter.Value = problemData as T;
+      return problemData as T;
+    }
+
+    public void Load(CFGData data) {
+      Name = data.Name;
+      Description = data.Description;
+      ProblemDataParameter.Value = LoadProblemData(data);
       GrammarBNF.Value = data.Grammar;
       EmbedCode.Value = data.Embed;
     }
@@ -317,7 +320,7 @@ namespace HeuristicLab.Problems.CFG {
     protected CFGProblem(CFGProblem original, Cloner cloner)
       : base(original, cloner) {
     }
-    public CFGProblem() : base() { }
+    public CFGProblem() : base(CFGProblemData.EmptyProblemData) { }
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGProblem(this, cloner);
     }

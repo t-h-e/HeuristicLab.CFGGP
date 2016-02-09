@@ -25,11 +25,32 @@ using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Misc;
+using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG.Python {
   public class CFGPythonProblemData : CFGProblemData, ICFGPythonProblemData {
     protected const string VariablesParameterName = "Variables";
     protected const string VariableSettingsParameterName = "VariableSettings";
+
+    private static readonly CFGPythonProblemData emptyProblemData;
+    public static new CFGPythonProblemData EmptyProblemData {
+      get { return emptyProblemData; }
+    }
+    static CFGPythonProblemData() {
+      var problemData = new CFGPythonProblemData();
+      problemData.Parameters.Clear();
+      problemData.Name = "Empty CFG ProblemData";
+      problemData.Description = "This ProblemData acts as place holder before the correct problem data is loaded.";
+      problemData.isEmpty = true;
+
+      problemData.Parameters.Add(new FixedValueParameter<StringArray>(InputParameterName, "", new StringArray().AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray().AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<CheckedItemList<StringValue>>(VariablesParameterName, "", new CheckedItemList<StringValue>()));
+      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
+      emptyProblemData = problemData;
+    }
 
     #region parameter properites
     public IFixedValueParameter<CheckedItemList<StringValue>> VariablesParameter {
@@ -57,7 +78,13 @@ namespace HeuristicLab.Problems.CFG.Python {
     protected CFGPythonProblemData(bool deserializing) : base(deserializing) { }
 
     public CFGPythonProblemData()
-      : base(new List<string>(0), new List<string>(0)) {
+      : this(new List<string>(0), new List<string>(0)) {
+    }
+
+    public CFGPythonProblemData(IEnumerable<string> input, IEnumerable<string> output)
+      : base(input, output) {
+      Parameters.Add(new FixedValueParameter<CheckedItemList<StringValue>>(VariablesParameterName, "", new CheckedItemList<StringValue>()));
+      Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {

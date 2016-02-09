@@ -26,6 +26,7 @@ using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
+using HeuristicLab.Problems.Instances.CFG;
 
 namespace HeuristicLab.Problems.CFG.Python {
   [Item("CFG Python Problem", "Generate python code to solve a problem defined by input and output pairs.")]
@@ -48,7 +49,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public CFGPythonProblem()
-      : base(new CFGPythonEvaluator(), new ProbabilisticTreeCreator()) {
+      : base(CFGPythonProblemData.EmptyProblemData, new CFGPythonEvaluator(), new ProbabilisticTreeCreator()) {
       Parameters.Add(new FixedValueParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)", new IntValue(1000)));
 
       InitializeOperators();
@@ -99,5 +100,14 @@ namespace HeuristicLab.Problems.CFG.Python {
       }
     }
     #endregion
+
+    protected override ICFGPythonProblemData LoadProblemData(CFGData data) {
+      CFGPythonProblemData problemData = new CFGPythonProblemData(data.Input, data.Output);
+      problemData.TrainingPartitionParameter.Value.Start = data.TrainingPartitionStart;
+      problemData.TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
+      problemData.TestPartitionParameter.Value.Start = data.TestPartitionStart;
+      problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
+      return problemData as ICFGPythonProblemData;
+    }
   }
 }
