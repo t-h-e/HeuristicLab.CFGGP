@@ -19,6 +19,7 @@
  */
 #endregion
 
+using System;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -32,7 +33,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   [Item("CFG Python Problem", "Generate python code to solve a problem defined by input and output pairs.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 152)]
   [StorableClass]
-  public class CFGPythonProblem : CFGProblem<ICFGPythonProblemData, ICFGPythonEvaluator> {
+  public class CFGPythonProblem : CFGProblem<ICFGPythonProblemData, ICFGPythonEvaluator<ICFGPythonProblemData>> {
 
     private const string TimeoutParameterName = "Timeout";
 
@@ -49,18 +50,54 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public CFGPythonProblem()
-      : base(CFGPythonProblemData.EmptyProblemData, new CFGPythonEvaluator(), new ProbabilisticTreeCreator()) {
+      : base(CFGPythonProblemData.EmptyProblemData, new CFGPythonEvaluator<ICFGPythonProblemData>(), new ProbabilisticTreeCreator()) {
       Parameters.Add(new FixedValueParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)", new IntValue(1000)));
+
+      SetVariables();
 
       InitializeOperators();
       ParameterizeEvaluator();
+
+      RegisterEventHandlers();
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGPythonProblem(this, cloner);
     }
 
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      RegisterEventHandlers();
+    }
+
     #region Events
+    private void RegisterEventHandlers() {
+      GrammarParameter.ValueChanged += new EventHandler(GrammarParameter_ValueChanged);
+      if (GrammarParameter.Value != null) {
+        GrammarParameter.Value.Changed += new EventHandler(GrammarParameter_Value_Changed);
+      }
+    }
+
+    private void GrammarParameter_ValueChanged(object sender, EventArgs e) {
+      if (GrammarParameter.Value != null) {
+        GrammarParameter.Value.Changed += new EventHandler(GrammarParameter_Value_Changed);
+      }
+      SetVariables();
+    }
+
+    private void GrammarParameter_Value_Changed(object sender, EventArgs e) {
+      SetVariables();
+    }
+
+    private void SetVariables() {
+      ProblemData.Variables.Clear();
+      if (Grammar != null && Grammar != CFGExpressionGrammar.Empty) {
+        var variableSymbols = Grammar.Symbols.Where(x => x.Enabled && x is GroupSymbol && x.Name.StartsWith("Rule: <") && x.Name.EndsWith("_var>")).Cast<GroupSymbol>();
+        ProblemData.Variables.AddRange(variableSymbols.SelectMany(g => g.Symbols.Where(s => s.Enabled)
+                                                                                .Select(s => new StringValue(s.Name.Trim(new char[] { '\'', '"' })))).ToList()); // remove quoates
+      }
+    }
+
     protected override void OnEvaluatorChanged() {
       base.OnEvaluatorChanged();
       ParameterizeEvaluator();

@@ -19,7 +19,6 @@
  */
 #endregion
 
-using System;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -32,13 +31,16 @@ using HeuristicLab.Random;
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [Item("CFGPythonSemanticTraceCrossover", "Semantic crossover for program synthesis, which uses the trace table provided by the evaluator to decide on a crossover point.")]
   [StorableClass]
-  public class CFGPythonSemanticTraceCrossover : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator, ICFGPythonSemanticsCrossover {
+  public class CFGPythonSemanticTraceCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
+                                                 ICFGPythonSemanticsCrossover<T>
+  where T : class, ICFGPythonProblemData {
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
     private const string CrossoverProbabilityParameterName = "CrossoverProbability";
 
     private const string SymbolicExpressionTreeGrammarParameterName = "SymbolicExpressionTreeGrammar";
     private const string SemanticsParameterName = "Semantic";
+    private const string ProblemDataParameterName = "ProblemData";
 
     #region Parameter Properties
     public IValueLookupParameter<IntValue> MaximumSymbolicExpressionTreeLengthParameter {
@@ -57,6 +59,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public ILookupParameter<ItemArray<ItemArray<PythonStatementSemantic>>> SemanticsParameter {
       get { return (ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>)Parameters[SemanticsParameterName]; }
     }
+    public ILookupParameter<T> ProblemDataParameter {
+      get { return (ILookupParameter<T>)Parameters[ProblemDataParameterName]; }
+    }
     #endregion
     #region Properties
     public IntValue MaximumSymbolicExpressionTreeLength {
@@ -74,7 +79,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     #endregion
     [StorableConstructor]
     protected CFGPythonSemanticTraceCrossover(bool deserializing) : base(deserializing) { }
-    protected CFGPythonSemanticTraceCrossover(CFGPythonSemanticTraceCrossover original, Cloner cloner) : base(original, cloner) { }
+    protected CFGPythonSemanticTraceCrossover(CFGPythonSemanticTraceCrossover<T> original, Cloner cloner) : base(original, cloner) { }
     public CFGPythonSemanticTraceCrossover()
       : base() {
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
@@ -84,20 +89,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       Parameters.Add(new ValueLookupParameter<ISymbolicExpressionGrammar>(SymbolicExpressionTreeGrammarParameterName, "Tree grammar"));
       Parameters.Add(new ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>(SemanticsParameterName, ""));
-
-      RegisterEventHandlers();
+      Parameters.Add(new LookupParameter<T>(ProblemDataParameterName, "Problem data"));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGPythonSemanticTraceCrossover(this, cloner);
-    }
-
-    private void RegisterEventHandlers() {
-      SymbolicExpressionTreeGrammarParameter.ValueChanged += new EventHandler(SymbolicExpressionTreeGrammarParameter_ValueChanged);
-    }
-
-    private void SymbolicExpressionTreeGrammarParameter_ValueChanged(object sender, EventArgs e) {
-      if (SymbolicExpressionTreeGrammarParameter.Value == null) return;
+      return new CFGPythonSemanticTraceCrossover<T>(this, cloner);
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {

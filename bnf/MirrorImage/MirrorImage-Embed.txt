@@ -89,7 +89,7 @@ def saveRange(start, end):
 # *****************************************************************************
 
 #  evolved function
-def evolve(inList):
+def evolve(in0, in1):
   # constant defines allowed maximum number of all loops performed
   loopBreakConst = 1500
   # initialises variable which should be used to count the number of loop iterations
@@ -100,7 +100,7 @@ def evolve(inList):
 
 
 def fitnessTrainingCase(i, o):
-  eval = evolve(i)
+  eval = evolve(i[0], i[1])
   return [0 if eval == o[0] else 1]
 
 

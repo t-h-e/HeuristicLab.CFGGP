@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -34,7 +35,9 @@ using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [Item("CFGPythonSemanticEvalCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
   [StorableClass]
-  public class CFGPythonSemanticEvalCrossover : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator, ICFGPythonSemanticsCrossover {
+  public class CFGPythonSemanticEvalCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
+                                                ICFGPythonSemanticsCrossover<T>
+  where T : class, ICFGPythonProblemData {
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
     private const string CrossoverProbabilityParameterName = "CrossoverProbability";
@@ -42,6 +45,27 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     private const string SymbolicExpressionTreeGrammarParameterName = "SymbolicExpressionTreeGrammar";
     private const string SemanticsParameterName = "Semantic";
+
+    /// <summary>
+    /// 0 = variable names
+    /// 1 = variable settings
+    /// 2 = variable settings names
+    /// 3 = code
+    /// </summary>
+    private const string EVAL_TRACE_SCRIPT = @"variables = [{0}]
+{1}
+
+trace = {{}}
+for v in variables:
+    trace[v] = []
+
+for {0} in zip({2}):
+{3}
+    for v in variables:
+        trace[v].append(locals()[v])
+
+for v in variables:
+    v = trace[v]";
 
     #region Parameter Properties
     public IValueLookupParameter<IntValue> MaximumSymbolicExpressionTreeLengthParameter {
@@ -53,16 +77,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public IValueLookupParameter<PercentValue> CrossoverProbabilityParameter {
       get { return (IValueLookupParameter<PercentValue>)Parameters[CrossoverProbabilityParameterName]; }
     }
-
     public IValueLookupParameter<ISymbolicExpressionGrammar> SymbolicExpressionTreeGrammarParameter {
       get { return (IValueLookupParameter<ISymbolicExpressionGrammar>)Parameters[SymbolicExpressionTreeGrammarParameterName]; }
     }
     public ILookupParameter<ItemArray<ItemArray<PythonStatementSemantic>>> SemanticsParameter {
       get { return (ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>)Parameters[SemanticsParameterName]; }
     }
-
-    public IValueLookupParameter<ICFGPythonProblemData> ProblemDataParameter {
-      get { return (IValueLookupParameter<ICFGPythonProblemData>)Parameters[ProblemDataParameterName]; }
+    public ILookupParameter<T> ProblemDataParameter {
+      get { return (ILookupParameter<T>)Parameters[ProblemDataParameterName]; }
     }
     #endregion
     #region Properties
@@ -85,7 +107,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     #endregion
     [StorableConstructor]
     protected CFGPythonSemanticEvalCrossover(bool deserializing) : base(deserializing) { }
-    protected CFGPythonSemanticEvalCrossover(CFGPythonSemanticEvalCrossover original, Cloner cloner) : base(original, cloner) { }
+    protected CFGPythonSemanticEvalCrossover(CFGPythonSemanticEvalCrossover<T> original, Cloner cloner) : base(original, cloner) { }
     public CFGPythonSemanticEvalCrossover()
       : base() {
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
@@ -95,20 +117,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       Parameters.Add(new ValueLookupParameter<ISymbolicExpressionGrammar>(SymbolicExpressionTreeGrammarParameterName, "Tree grammar"));
       Parameters.Add(new ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>(SemanticsParameterName, ""));
-
-      RegisterEventHandlers();
+      Parameters.Add(new LookupParameter<T>(ProblemDataParameterName, "Problem data"));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGPythonSemanticEvalCrossover(this, cloner);
-    }
-
-    private void RegisterEventHandlers() {
-      SymbolicExpressionTreeGrammarParameter.ValueChanged += new EventHandler(SymbolicExpressionTreeGrammarParameter_ValueChanged);
-    }
-
-    private void SymbolicExpressionTreeGrammarParameter_ValueChanged(object sender, EventArgs e) {
-      if (SymbolicExpressionTreeGrammarParameter.Value == null) return;
+      return new CFGPythonSemanticEvalCrossover<T>(this, cloner);
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
@@ -142,14 +155,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       // add variable setting to problem data
       var variableSettings = String.Join("\n", problemData.VariableSettings.Select(x => x.Value));
-      var variables = problemData.Variables.CheckedItems.Select(x => x.Value.Value).ToList();
+      var variables = problemData.Variables.Select(x => x.Value).ToList();
 
       // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-        Script = String.Format("{0}\n", variableSettings, PythonHelper.FormatToProgram(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol))),
-        Variables = variables //new List<string>() { "cases", "caseQuality", "quality" }
+        Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), variables, variableSettings),
+        Variables = variables
       };
       JObject json0 = PythonProcess.GetInstance().SendAndEvaluateProgram(crossoverPointScript0);
       crossoverPoint0.Child.Parent = crossoverPoint0.Parent; // restore parent
@@ -158,10 +171,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // pick the first node that fulfills the semantic similarity conditions
       foreach (var node in allowedBranches) {
         var parent = node.Parent;
-        var tree1 = CreateTreeFromNode(random, node, startSymbol, rootSymbol); // this will affect node.Parent 
+        var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = String.Format("{0}\n", variableSettings, PythonHelper.FormatToProgram(tree1)),
-          Variables = variables //new List<string>() { "cases", "caseQuality", "quality" }
+          Script = FormatScript(tree1, variables, variableSettings),
+          Variables = variables
         };
         JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
@@ -176,6 +189,16 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (selectedBranch != null)
         Swap(crossoverPoint0, selectedBranch);
       return parent0;
+    }
+
+    private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
+      Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
+      string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting");
+      return String.Format(EVAL_TRACE_SCRIPT, String.Join(",", variables),
+                                              variableSettingsSubstitute,
+                                              String.Join(",", variables.Select(x => x + "_setting")),
+                                              PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
+
     }
 
     private bool DoSimilarityCalculations(JObject json0, JObject json1, IList<string> variables) {

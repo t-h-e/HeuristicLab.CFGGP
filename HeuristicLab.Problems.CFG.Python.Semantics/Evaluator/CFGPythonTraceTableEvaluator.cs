@@ -30,7 +30,8 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
-  public class CFGPythonTraceTableEvaluator : CFGPythonEvaluator, ISymbolicExpressionTreeOperator {
+  public class CFGPythonTraceTableEvaluator<T> : CFGPythonEvaluator<T>, ISymbolicExpressionTreeOperator
+  where T : class, ICFGPythonProblemData {
 
     private PythonProcessSemanticHelper pythonSemanticHelper;
 
@@ -51,7 +52,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     [StorableConstructor]
     protected CFGPythonTraceTableEvaluator(bool deserializing) : base(deserializing) { }
-    protected CFGPythonTraceTableEvaluator(CFGPythonTraceTableEvaluator original, Cloner cloner)
+    protected CFGPythonTraceTableEvaluator(CFGPythonTraceTableEvaluator<T> original, Cloner cloner)
       : base(original, cloner) {
       RegisterEventHandlers();
       pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariablesParameter.Value, LimitTraceParameter.Value.Value);
@@ -68,7 +69,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGPythonTraceTableEvaluator(this, cloner);
+      return new CFGPythonTraceTableEvaluator<T>(this, cloner);
     }
 
     [StorableHook(HookType.AfterDeserialization)]

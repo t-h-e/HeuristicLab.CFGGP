@@ -147,6 +147,7 @@
     <Compile Include="CFGParser.cs" />
     <Compile Include="CFGProblem.cs" />
     <Compile Include="CFGSymbolicExpressionTreeStringFormatter.cs" />
+    <Compile Include="Interfaces\ICFGProblemDataOperator.cs" />
     <Compile Include="Symbols\CFGProduction.cs" />
     <Compile Include="Symbols\CFGSymbol.cs" />
     <Compile Include="Interfaces\ICFGEvaluator.cs" />

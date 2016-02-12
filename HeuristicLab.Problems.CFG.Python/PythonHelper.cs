@@ -131,11 +131,14 @@ namespace HeuristicLab.Problems.CFG.Python {
       return stringBuilder.ToString();
     }
 
-    public static string FormatToProgram(ISymbolicExpressionTree tree, StringValue HeaderValue = null, StringValue FooterValue = null) {
+    public static string FormatToProgram(ISymbolicExpressionTree tree) {
+      return FormatToProgram(tree, (string)null);
+    }
+
+    public static string FormatToProgram(ISymbolicExpressionTree tree, string header, string footer = null) {
       StringBuilder strBuilder = new StringBuilder();
       string indent = String.Empty;
-      if (HeaderValue != null) {
-        string header = HeaderValue.Value;
+      if (header != null) {
         strBuilder.Append(header);
         int lastNewLine = header.LastIndexOf(Environment.NewLine);
         if (lastNewLine > 0) {
@@ -148,10 +151,14 @@ namespace HeuristicLab.Problems.CFG.Python {
                        tree), indent);
 
       strBuilder.Append(program);
-      if (FooterValue != null) {
-        strBuilder.Append(FooterValue.Value);
+      if (footer != null) {
+        strBuilder.Append(footer);
       }
       return strBuilder.ToString();
+    }
+
+    public static string FormatToProgram(ISymbolicExpressionTree tree, StringValue HeaderValue, StringValue FooterValue = null) {
+      return FormatToProgram(tree, HeaderValue == null ? null : HeaderValue.Value, FooterValue == null ? null : FooterValue.Value);
     }
 
     public static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {

@@ -83,7 +83,7 @@ def saveSplit(curString, separator):
 # *****************************************************************************
 
 #  evolved function
-def evolve(inList):
+def evolve(in0, in1, in2, in3, in4):
   # constant defines allowed maximum number of all loops performed
   loopBreakConst = 1500
   # initialises variable which should be used to count the number of loop iterations
@@ -94,7 +94,7 @@ def evolve(inList):
 
 
 def fitnessTrainingCase(i, o):
-  eval = evolve(i)
+  eval = evolve(i[0], i[1], i[2], i[3], i[4])
 
   if len(eval) != len(o[0]):
     return [6, 1]  # maximum difference between ord('F') - ord('A'), plus 1

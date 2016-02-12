@@ -47,14 +47,14 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
-      problemData.Parameters.Add(new FixedValueParameter<CheckedItemList<StringValue>>(VariablesParameterName, "", new CheckedItemList<StringValue>()));
+      problemData.Parameters.Add(new FixedValueParameter<ItemList<StringValue>>(VariablesParameterName, "", new ItemList<StringValue>()));
       problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
       emptyProblemData = problemData;
     }
 
     #region parameter properites
-    public IFixedValueParameter<CheckedItemList<StringValue>> VariablesParameter {
-      get { return (IFixedValueParameter<CheckedItemList<StringValue>>)Parameters[VariablesParameterName]; }
+    public IFixedValueParameter<ItemList<StringValue>> VariablesParameter {
+      get { return (IFixedValueParameter<ItemList<StringValue>>)Parameters[VariablesParameterName]; }
     }
     public IFixedValueParameter<ItemList<TextValue>> VariableSettingsParameter {
       get { return (IFixedValueParameter<ItemList<TextValue>>)Parameters[VariableSettingsParameterName]; }
@@ -62,7 +62,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     #endregion
 
     #region properties
-    public CheckedItemList<StringValue> Variables {
+    public ItemList<StringValue> Variables {
       get { return VariablesParameter.Value; }
     }
     public ItemList<TextValue> VariableSettings {
@@ -83,7 +83,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public CFGPythonProblemData(IEnumerable<string> input, IEnumerable<string> output)
       : base(input, output) {
-      Parameters.Add(new FixedValueParameter<CheckedItemList<StringValue>>(VariablesParameterName, "", new CheckedItemList<StringValue>()));
+        Parameters.Add(new FixedValueParameter<ItemList<StringValue>>(VariablesParameterName, "", new ItemList<StringValue>()));
       Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
     }
 

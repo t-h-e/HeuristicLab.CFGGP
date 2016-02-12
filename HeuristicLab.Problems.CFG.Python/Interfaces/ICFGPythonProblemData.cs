@@ -25,7 +25,7 @@ using HeuristicLab.Misc;
 
 namespace HeuristicLab.Problems.CFG.Python {
   public interface ICFGPythonProblemData : ICFGProblemData {
-    CheckedItemList<StringValue> Variables { get; }
+    ItemList<StringValue> Variables { get; }
     ItemList<TextValue> VariableSettings { get; }
   }
 }

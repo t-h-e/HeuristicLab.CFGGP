@@ -38,7 +38,7 @@ namespace HeuristicLab.Problems.CFG {
   public abstract class CFGProblem<T, U> : SingleObjectiveHeuristicOptimizationProblem<U, ISymbolicExpressionTreeCreator>, IStorableContent,
     IProblemInstanceConsumer<CFGData>
     where T : class, ICFGProblemData
-    where U : class, ICFGEvaluator {
+    where U : class, ICFGEvaluator<T> {
 
     private const string ProblemDataParameterName = "CFGProblemData";
     private const string ProblemDataParameterDescription = "The data set, target variable and input variables of the context free grammar problem.";
@@ -157,6 +157,7 @@ namespace HeuristicLab.Problems.CFG {
 
     private void InitializeOperators() {
       Operators.AddRange(ApplicationManager.Manager.GetInstances<ISymbolicExpressionTreeOperator>());
+      Operators.AddRange(ApplicationManager.Manager.GetInstances<ICFGProblemDataOperator<T>>());
       Operators.Add(new MinAverageMaxSymbolicExpressionTreeLengthAnalyzer());
       Operators.Add(new SymbolicExpressionSymbolFrequencyAnalyzer());
       Operators.Add(new SymbolicExpressionTreeLengthAnalyzer());
@@ -206,6 +207,9 @@ namespace HeuristicLab.Problems.CFG {
       //foreach (var op in operators.OfType<ISymbolicExpressionTreeCreator>()) {
       //  op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       //}
+      foreach (var op in operators.OfType<ICFGProblemDataOperator<T>>()) {
+        op.ProblemDataParameter.ActualName = ProblemDataParameter.Name;
+      }
 
       ParameterizeAnalyzers();
     }
@@ -314,7 +318,7 @@ namespace HeuristicLab.Problems.CFG {
   [Item("Context Free Grammar Problem", "The Context Free Grammar Problem is a general problem. Any probelm that can be defined as a grammar can be specified with this item.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 151)]
   [StorableClass]
-  public class CFGProblem : CFGProblem<CFGProblemData, ICFGEvaluator> {
+  public class CFGProblem : CFGProblem<CFGProblemData, ICFGEvaluator<CFGProblemData>> {
     [StorableConstructor]
     protected CFGProblem(bool deserializing) : base(deserializing) { }
     protected CFGProblem(CFGProblem original, Cloner cloner)

@@ -13,7 +13,7 @@
 // *****************************************************************************
 <bool_var> ::= 'b0' | 'b1' | 'b2'
 <int_var> ::= 'i0' | 'i1' | 'i2'
-<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2' | 'inList[0]' | 'res'
+<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2' | 'in0' | 'res'
 // *****************************************************************************
 
 <code> ::= <code><statement>'\n' | <statement>'\n'

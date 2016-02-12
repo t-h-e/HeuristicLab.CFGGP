@@ -30,7 +30,7 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG {
   [Item("CFGDummyEvaluator", "An evaluator assigns default values to each individual.")]
   [StorableClass]
-  public class CFGDummyEvaluator : InstrumentedOperator, ICFGEvaluator {
+  public class CFGDummyEvaluator : InstrumentedOperator, ICFGEvaluator<ICFGProblemData> {
     #region parameters
     public ILookupParameter<ISymbolicExpressionTree> ProgramParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["Program"]; }

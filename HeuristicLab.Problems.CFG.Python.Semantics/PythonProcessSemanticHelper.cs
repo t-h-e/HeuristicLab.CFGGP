@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using IronPython.Runtime;
 using Newtonsoft.Json;
@@ -71,8 +70,8 @@ for l in lines:
       traceCodeWithVariables = String.Empty;
     }
 
-    public PythonProcessSemanticHelper(StringArray variableNames, int limit) {
-      if (variableNames == null || variableNames.Length == 0) {
+    public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit) {
+      if (variableNames == null || variableNames.Count() == 0) {
         traceCodeWithVariables = String.Empty;
       } else {
         traceCodeWithVariables = String.Format(traceCode, String.Join("', '", variableNames.Where(x => !String.IsNullOrWhiteSpace(x))), limit);

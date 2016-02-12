@@ -26,9 +26,10 @@ using HeuristicLab.Misc;
 using HeuristicLab.Optimization;
 
 namespace HeuristicLab.Problems.CFG {
-  public interface ICFGEvaluator : ISingleObjectiveEvaluator, ICaseEvaluator {
+  public interface ICFGEvaluator<T> : ISingleObjectiveEvaluator, ICaseEvaluator
+  where T : class, ICFGProblemData {
     ILookupParameter<ISymbolicExpressionTree> ProgramParameter { get; }
-    ILookupParameter<ICFGProblemData> ProblemDataParameter { get; }
+    ILookupParameter<T> ProblemDataParameter { get; }
     ILookupParameter<StringValue> HeaderParameter { get; }
     ILookupParameter<StringValue> FooterParameter { get; }
   }

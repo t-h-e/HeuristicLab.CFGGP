@@ -46,9 +46,6 @@ namespace HeuristicLab.Problems.CFG {
     }
 
     public static string StaticFormat(ISymbolicExpressionTree symbolicExpressionTree) {
-      if (symbolicExpressionTree == null || symbolicExpressionTree.Root == null) {
-        System.Console.WriteLine("asdf");
-      }
       return FormatRecursively(symbolicExpressionTree.Root);
     }
 

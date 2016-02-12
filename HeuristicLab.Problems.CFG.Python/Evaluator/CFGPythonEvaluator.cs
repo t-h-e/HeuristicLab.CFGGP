@@ -31,7 +31,8 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG.Python {
   [StorableClass]
-  public class CFGPythonEvaluator : InstrumentedOperator, ICFGPythonEvaluator {
+  public class CFGPythonEvaluator<T> : InstrumentedOperator, ICFGPythonEvaluator<T>
+  where T : class, ICFGPythonProblemData {
 
     #region paramerters
     public ILookupParameter<IntValue> TimeoutParameter {
@@ -46,8 +47,8 @@ namespace HeuristicLab.Problems.CFG.Python {
     public ILookupParameter<StringValue> FooterParameter {
       get { return (ILookupParameter<StringValue>)Parameters["Footer"]; }
     }
-    public ILookupParameter<ICFGProblemData> ProblemDataParameter {
-      get { return (ILookupParameter<ICFGProblemData>)Parameters["ProblemData"]; }
+    public ILookupParameter<T> ProblemDataParameter {
+      get { return (ILookupParameter<T>)Parameters["ProblemData"]; }
     }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
@@ -108,13 +109,13 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     [StorableConstructor]
     protected CFGPythonEvaluator(bool deserializing) : base(deserializing) { }
-    protected CFGPythonEvaluator(CFGPythonEvaluator original, Cloner cloner)
+    protected CFGPythonEvaluator(CFGPythonEvaluator<T> original, Cloner cloner)
       : base(original, cloner) {
     }
     public CFGPythonEvaluator() {
       Parameters.Add(new LookupParameter<IntValue>("Timeout", "The amount of time an execution is allowed to take, before it is stopped."));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
-      Parameters.Add(new LookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
+      Parameters.Add(new LookupParameter<T>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
@@ -139,7 +140,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGPythonEvaluator(this, cloner);
+      return new CFGPythonEvaluator<T>(this, cloner);
     }
 
     public override IOperation InstrumentedApply() {

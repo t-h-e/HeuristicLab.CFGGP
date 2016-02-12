@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2016 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -20,13 +20,9 @@
 #endregion
 
 using HeuristicLab.Core;
-using HeuristicLab.Data;
 
-namespace HeuristicLab.Problems.CFG.Python {
-  public interface ICFGPythonEvaluator<T> : ICFGEvaluator<T>
-  where T : class, ICFGPythonProblemData {
-    ILookupParameter<IntValue> TimeoutParameter { get; }
-
-    void ClearCachedValues();
+namespace HeuristicLab.Problems.CFG {
+  public interface ICFGProblemDataOperator<T> : IOperator where T : class, ICFGProblemData {
+    ILookupParameter<T> ProblemDataParameter { get; }
   }
 }

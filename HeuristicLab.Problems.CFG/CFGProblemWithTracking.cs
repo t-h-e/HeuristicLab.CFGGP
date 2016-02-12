@@ -31,7 +31,7 @@ namespace HeuristicLab.Problems.CFG {
   [Item("Context Free Grammar Problem with Tracking", "The Context Free Grammar Problem with Tracking to analyze Crossover and Mutation on Grammars.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 152)]
   [StorableClass]
-  public class CFGProblemWithTracking : CFGProblem<ICFGProblemData, ICFGEvaluator> {
+  public class CFGProblemWithTracking : CFGProblem<ICFGProblemData, ICFGEvaluator<ICFGProblemData>> {
     [StorableConstructor]
     protected CFGProblemWithTracking(bool deserializing) : base(deserializing) { }
 

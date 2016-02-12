@@ -51,7 +51,7 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG {
   [Item("CFGProgrammableEvaluator", "An evaluator that can be programmed for arbitrary CFG problems.")]
   [StorableClass]
-  public class CFGProgrammableEvaluator : ProgrammableSingleSuccessorOperator, ICFGEvaluator {
+  public class CFGProgrammableEvaluator : ProgrammableSingleSuccessorOperator, ICFGEvaluator<ICFGProblemData> {
     #region parameters
     public ILookupParameter<ISymbolicExpressionTree> ProgramParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["Program"]; }
