@@ -19,12 +19,8 @@
  */
 #endregion
 
-using HeuristicLab.Core;
-using HeuristicLab.Misc;
-
 namespace HeuristicLab.Problems.CFG.Python {
-  public interface ICFGPythonProblemData : ICFGProblemData {
-    VariableTypeParameterCollection Variables { get; }
-    ItemList<TextValue> VariableSettings { get; }
+  public enum VariableType {
+    Bool, Int, Float, String, List_Bool, List_Int, List_Float, List_String
   }
 }

@@ -33,7 +33,7 @@ using HeuristicLab.Random;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  [Item("CFGPythonSemanticEvalCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
+  [Item("PythonSemanticEvaluationCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
   [StorableClass]
   public class CFGPythonSemanticEvalCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
                                                 ICFGPythonSemanticsCrossover<T>
@@ -59,13 +59,13 @@ trace = {{}}
 for v in variables:
     trace[v] = []
 
-for {0} in zip({2}):
-{3}
+for {2} in zip({3}):
+{4}
     for v in variables:
         trace[v].append(locals()[v])
 
 for v in variables:
-    v = trace[v]";
+    locals()[v] = trace[v]";
 
     #region Parameter Properties
     public IValueLookupParameter<IntValue> MaximumSymbolicExpressionTreeLengthParameter {
@@ -155,11 +155,19 @@ for v in variables:
 
       // add variable setting to problem data
       var variableSettings = String.Join("\n", problemData.VariableSettings.Select(x => x.Value));
-      var variables = problemData.Variables.Select(x => x.Value).ToList();
+      var variables = problemData.Variables.GetVariableNames().ToList();
 
       // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
+      //-------------------------------------TEMP START
+      JObject jsonOriginal = PythonProcess.GetInstance().SendAndEvaluateProgram(new EvaluationScript() {
+        Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
+        Variables = variables
+      });
+      //-------------------------------------TEMP END
+
+
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
         Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), variables, variableSettings),
         Variables = variables
@@ -179,7 +187,7 @@ for v in variables:
         JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
 
-        if (DoSimilarityCalculations(json0, json1, variables)) {
+        if (DoSimilarityCalculations(json0, json1, variables, problemData.Variables.GetVariableTypes(), jsonOriginal)) {
           selectedBranch = node;
           break;
         }
@@ -193,16 +201,33 @@ for v in variables:
 
     private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
       Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
-      string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting");
-      return String.Format(EVAL_TRACE_SCRIPT, String.Join(",", variables),
+      string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
+      return String.Format(EVAL_TRACE_SCRIPT, String.Format("'{0}'", String.Join("','", variables)),
                                               variableSettingsSubstitute,
+                                              String.Join(",", variables),
                                               String.Join(",", variables.Select(x => x + "_setting")),
                                               PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
 
     }
 
-    private bool DoSimilarityCalculations(JObject json0, JObject json1, IList<string> variables) {
-      throw new NotImplementedException();
+    private bool DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<string, VariableType> variablesPerType, JObject jsonOriginal) {
+      List<string> differences0 = new List<string>();
+      List<string> differences1 = new List<string>();
+      List<VariableType> differenceType0 = new List<VariableType>();
+      List<VariableType> differenceType1 = new List<VariableType>();
+      foreach (var variableName in variableNames) {
+        if (jsonOriginal[variableName].Equals(json0[variableName])) {
+          differences0.Add(variableName);
+          differenceType0.Add(variablesPerType[variableName]);
+        }
+        if (jsonOriginal[variableName].Equals(json1[variableName])) {
+          differences1.Add(variableName);
+          differenceType1.Add(variablesPerType[variableName]);
+        }
+      }
+
+
+      return true;
     }
 
     //copied from SymbolicDataAnalysisExpressionCrossover<T>

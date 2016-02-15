@@ -93,8 +93,13 @@ namespace HeuristicLab.Problems.CFG.Python {
       ProblemData.Variables.Clear();
       if (Grammar != null && Grammar != CFGExpressionGrammar.Empty) {
         var variableSymbols = Grammar.Symbols.Where(x => x.Enabled && x is GroupSymbol && x.Name.StartsWith("Rule: <") && x.Name.EndsWith("_var>")).Cast<GroupSymbol>();
-        ProblemData.Variables.AddRange(variableSymbols.SelectMany(g => g.Symbols.Where(s => s.Enabled)
-                                                                                .Select(s => new StringValue(s.Name.Trim(new char[] { '\'', '"' })))).ToList()); // remove quoates
+        foreach (var varSy in variableSymbols) {
+          VariableType type = (VariableType)Enum.Parse(typeof(VariableType), varSy.Name.Substring("Rule: <".Length, varSy.Name.Length - "Rule: <".Length - "_var>".Length), true);
+          var variables = varSy.Symbols.Where(s => s.Enabled).ToDictionary(s => s.Name.Trim(new char[] { '\'', '"' }), x => type);
+          ProblemData.Variables.Add(variables);
+        }
+        //ProblemData.Variables.AddRange(variableSymbols.SelectMany(g => g.Symbols.Where(s => s.Enabled)
+        //                                                                        .Select(s => new StringValue(s.Name.Trim(new char[] { '\'', '"' })))).ToList()); // remove quoates
       }
     }
 
