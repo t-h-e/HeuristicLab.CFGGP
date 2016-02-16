@@ -216,16 +216,18 @@ for v in variables:
       List<VariableType> differenceType0 = new List<VariableType>();
       List<VariableType> differenceType1 = new List<VariableType>();
       foreach (var variableName in variableNames) {
-        if (jsonOriginal[variableName].Equals(json0[variableName])) {
+        if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json0[variableName])) {
           differences0.Add(variableName);
           differenceType0.Add(variablesPerType[variableName]);
         }
-        if (jsonOriginal[variableName].Equals(json1[variableName])) {
+        if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json1[variableName])) {
           differences1.Add(variableName);
           differenceType1.Add(variablesPerType[variableName]);
         }
       }
 
+
+      //Do stuff here
 
       return true;
     }

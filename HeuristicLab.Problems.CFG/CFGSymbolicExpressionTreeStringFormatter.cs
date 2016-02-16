@@ -71,8 +71,10 @@ namespace HeuristicLab.Problems.CFG {
       } else {
         // leaf
         var symbol = node.Symbol as CFGSymbol;
-        var parts = symbol.GetTerminalParts();
-        strBuilder.Append(parts.First());
+        if (symbol != null) {
+          var parts = symbol.GetTerminalParts();
+          strBuilder.Append(parts.First());
+        }
       }
       return strBuilder.ToString();
     }
