@@ -27,6 +27,7 @@ using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Misc;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
@@ -187,7 +188,7 @@ for v in variables:
         JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
 
-        if (DoSimilarityCalculations(json0, json1, variables, problemData.Variables.GetVariableTypes(), jsonOriginal)) {
+        if (DoSimilarityCalculations(json0, json1, variables, problemData.Variables.GetTypesOfVariables(), problemData.Variables.GetVariableTypes(), jsonOriginal)) {
           selectedBranch = node;
           break;
         }
@@ -210,26 +211,65 @@ for v in variables:
 
     }
 
-    private bool DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<string, VariableType> variablesPerType, JObject jsonOriginal) {
-      List<string> differences0 = new List<string>();
-      List<string> differences1 = new List<string>();
-      List<VariableType> differenceType0 = new List<VariableType>();
-      List<VariableType> differenceType1 = new List<VariableType>();
-      foreach (var variableName in variableNames) {
-        if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json0[variableName])) {
-          differences0.Add(variableName);
-          differenceType0.Add(variablesPerType[variableName]);
+    private bool DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<VariableType, List<string>> variablesPerType, IDictionary<string, VariableType> typeOfVariable, JObject jsonOriginal) {
+      List<string> differences = new List<string>();
+
+      double distance = 0;
+      foreach (var entry in variablesPerType) {
+        foreach (var variableName in entry.Value) {
+          if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json0[variableName])
+           || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], json1[variableName])) {
+            differences.Add(variableName);
+          }
         }
-        if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json1[variableName])) {
-          differences1.Add(variableName);
-          differenceType1.Add(variablesPerType[variableName]);
+
+        if (differences.Count == 0) continue;
+
+        double[,] cost = new double[differences.Count, differences.Count];
+        for (int i = 0; i < differences.Count; i++) {
+          var curDiff0 = json0[differences[i]];
+          for (int j = 0; j < differences.Count; j++) {
+            var curDiff1 = json1[differences[j]];
+            cost[i, j] = CalculateDifference(curDiff0, curDiff1, entry.Key);
+            if (Double.IsNaN(cost[i, j]) || Double.IsInfinity(cost[i, j])) {
+              cost[i, j] = Double.MaxValue;
+            }
+          }
         }
+        HungarianAlgorithm ha = new HungarianAlgorithm(cost);
+        var assignment = ha.Run();
+        for (int i = 0; i < assignment.Length; i++) {
+          distance += cost[i, assignment[i]];
+        }
+
+        differences.Clear();
       }
 
-
-      //Do stuff here
+      Console.WriteLine(distance);
 
       return true;
+    }
+
+    private double CalculateDifference(JToken curDiff0, JToken curDiff1, VariableType variableType) {
+      switch (variableType) {
+        case VariableType.Bool:
+          return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>());
+        case VariableType.Int:
+          return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiff1.Values<long>());
+        case VariableType.Float:
+          return PythonSemanticComparer.Compare(curDiff0.Values<double>(), curDiff1.Values<double>());
+        case VariableType.String:
+          return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiff1.Values<string>());
+        case VariableType.List_Bool:
+          return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiff1.Values<List<bool>>());
+        case VariableType.List_Int:
+          return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiff1.Values<List<int>>());
+        case VariableType.List_Float:
+          return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiff1.Values<List<double>>());
+        case VariableType.List_String:
+          return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiff1.Values<List<string>>());
+      }
+      throw new ArgumentException("Variable Type cannot be compared.");
     }
 
     //copied from SymbolicDataAnalysisExpressionCrossover<T>
