@@ -47,6 +47,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private const string SymbolicExpressionTreeGrammarParameterName = "SymbolicExpressionTreeGrammar";
     private const string SemanticsParameterName = "Semantic";
 
+    private const string MaxComparesParameterName = "MaxCompares";
+
     /// <summary>
     /// 0 = variable names
     /// 1 = variable settings
@@ -99,6 +101,10 @@ for v in variables:
       get { return CrossoverProbabilityParameter.ActualValue; }
     }
 
+    public IValueParameter<IntValue> MaxComparesParameter {
+      get { return (IValueParameter<IntValue>)Parameters["MaxCompares"]; }
+    }
+
     public ICFGPythonProblemData ProblemData {
       get { return ProblemDataParameter.ActualValue; }
     }
@@ -119,6 +125,8 @@ for v in variables:
       Parameters.Add(new ValueLookupParameter<ISymbolicExpressionGrammar>(SymbolicExpressionTreeGrammarParameterName, "Tree grammar"));
       Parameters.Add(new ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>(SemanticsParameterName, ""));
       Parameters.Add(new LookupParameter<T>(ProblemDataParameterName, "Problem data"));
+
+      Parameters.Add(new ValueParameter<IntValue>(MaxComparesParameterName, "Maximum number of branches that ae going to be compared for crossover.", new IntValue(10)));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -175,7 +183,11 @@ for v in variables:
       };
       JObject json0 = PythonProcess.GetInstance().SendAndEvaluateProgram(crossoverPointScript0);
       crossoverPoint0.Child.Parent = crossoverPoint0.Parent; // restore parent
-      ISymbolicExpressionTreeNode selectedBranch = null;
+      //ISymbolicExpressionTreeNode selectedBranch = null;
+
+      var compBranches = allowedBranches.SampleRandomWithoutRepetition(random, MaxComparesParameter.Value.Value); // TODO: use parameter
+      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(compBranches, random, variables, variableSettings);
+
 
       // pick the first node that fulfills the semantic similarity conditions
       foreach (var node in allowedBranches) {
@@ -200,6 +212,28 @@ for v in variables:
       return parent0;
     }
 
+    private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings) {
+      var rootSymbol = new ProgramRootSymbol();
+      var startSymbol = new StartSymbol();
+      Dictionary<ISymbolicExpressionTreeNode, JObject> evaluationPerNode = new Dictionary<ISymbolicExpressionTreeNode, JObject>();
+      foreach (var node in compBranches) {
+        var parent = node.Parent;
+        var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
+        EvaluationScript evaluationScript1 = new EvaluationScript() {
+          Script = FormatScript(tree1, variables, variableSettings),
+          Variables = variables
+        };
+        JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
+        node.Parent = parent; // restore parent
+        evaluationPerNode.Add(node, json1);
+      }
+
+
+
+
+      return null;
+    }
+
     private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
       Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
       string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
@@ -208,7 +242,6 @@ for v in variables:
                                               String.Join(",", variables),
                                               String.Join(",", variables.Select(x => x + "_setting")),
                                               PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
-
     }
 
     private bool DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<VariableType, List<string>> variablesPerType, IDictionary<string, VariableType> typeOfVariable, JObject jsonOriginal) {
