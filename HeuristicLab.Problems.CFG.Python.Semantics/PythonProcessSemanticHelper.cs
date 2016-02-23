@@ -66,12 +66,37 @@ for l in lines:
 
     private string traceCodeWithVariables;
 
+
+    private IEnumerable<string> variableNames;
+    public IEnumerable<string> VariableNames {
+      get { return variableNames.Select(x => (string)x.Clone()).ToList(); }
+      set {
+        this.variableNames = value;
+        SetTraceCodeWithVariables();
+      }
+    }
+
+    private int limit;
+    public int Limit {
+      get { return limit; }
+      set {
+        limit = value;
+        SetTraceCodeWithVariables();
+      }
+    }
+
     public PythonProcessSemanticHelper() {
       traceCodeWithVariables = String.Empty;
     }
 
     public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit) {
-      if (variableNames == null || variableNames.Count() == 0) {
+      this.variableNames = variableNames;
+      this.limit = limit;
+      SetTraceCodeWithVariables();
+    }
+
+    private void SetTraceCodeWithVariables() {
+      if (variableNames == null || variableNames.Count() == 0 || limit <= 0) {
         traceCodeWithVariables = String.Empty;
       } else {
         traceCodeWithVariables = String.Format(traceCode, String.Join("', '", variableNames.Where(x => !String.IsNullOrWhiteSpace(x))), limit);
@@ -102,7 +127,7 @@ for l in lines:
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
 
-      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols;
+      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols;
       var statementProductionNames = statementProductions.Select(x => x.Name);
 
       IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();

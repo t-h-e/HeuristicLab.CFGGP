@@ -47,8 +47,8 @@ namespace HeuristicLab.Problems.CFG.Python {
     public ILookupParameter<StringValue> FooterParameter {
       get { return (ILookupParameter<StringValue>)Parameters["Footer"]; }
     }
-    public ILookupParameter<T> ProblemDataParameter {
-      get { return (ILookupParameter<T>)Parameters["ProblemData"]; }
+    public IValueLookupParameter<T> ProblemDataParameter {
+      get { return (IValueLookupParameter<T>)Parameters["ProblemData"]; }
     }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
@@ -77,7 +77,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     #endregion
 
     #region properties
-    public ICFGProblemData ProblemData { get { return ProblemDataParameter.ActualValue; } }
+    public T ProblemData { get { return ProblemDataParameter.ActualValue; } }
     public int Timeout { get { return TimeoutParameter.ActualValue.Value; } }
     public string Program {
       get {
@@ -115,7 +115,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     public CFGPythonEvaluator() {
       Parameters.Add(new LookupParameter<IntValue>("Timeout", "The amount of time an execution is allowed to take, before it is stopped."));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
-      Parameters.Add(new LookupParameter<T>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
+      Parameters.Add(new ValueLookupParameter<T>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));

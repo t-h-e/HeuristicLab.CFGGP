@@ -27,7 +27,6 @@ using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using HeuristicLab.Misc;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
@@ -186,25 +185,25 @@ for v in variables:
       //ISymbolicExpressionTreeNode selectedBranch = null;
 
       var compBranches = allowedBranches.SampleRandomWithoutRepetition(random, MaxComparesParameter.Value.Value); // TODO: use parameter
-      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(compBranches, random, variables, variableSettings);
+      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.Variables.GetTypesOfVariables());
 
 
-      // pick the first node that fulfills the semantic similarity conditions
-      foreach (var node in allowedBranches) {
-        var parent = node.Parent;
-        var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
-        EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = FormatScript(tree1, variables, variableSettings),
-          Variables = variables
-        };
-        JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
-        node.Parent = parent; // restore parent
+      //// pick the first node that fulfills the semantic similarity conditions
+      //foreach (var node in allowedBranches) {
+      //  var parent = node.Parent;
+      //  var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
+      //  EvaluationScript evaluationScript1 = new EvaluationScript() {
+      //    Script = FormatScript(tree1, variables, variableSettings),
+      //    Variables = variables
+      //  };
+      //  JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
+      //  node.Parent = parent; // restore parent
 
-        if (DoSimilarityCalculations(json0, json1, variables, problemData.Variables.GetTypesOfVariables(), problemData.Variables.GetVariableTypes(), jsonOriginal)) {
-          selectedBranch = node;
-          break;
-        }
-      }
+      //  if (DoSimilarityCalculations(json0, json1, variables, problemData.Variables.GetTypesOfVariables(), problemData.Variables.GetVariableTypes(), jsonOriginal) >= 0) {
+      //    selectedBranch = node;
+      //    break;
+      //  }
+      //}
 
       // perform the actual swap
       if (selectedBranch != null)
@@ -212,7 +211,7 @@ for v in variables:
       return parent0;
     }
 
-    private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings) {
+    private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       Dictionary<ISymbolicExpressionTreeNode, JObject> evaluationPerNode = new Dictionary<ISymbolicExpressionTreeNode, JObject>();
@@ -223,15 +222,44 @@ for v in variables:
           Script = FormatScript(tree1, variables, variableSettings),
           Variables = variables
         };
-        JObject json1 = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
+        JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
-        evaluationPerNode.Add(node, json1);
+        evaluationPerNode.Add(node, json);
       }
 
+      Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
+      List<string> differences;
+      foreach (var entry in variablesPerType) {
+        differences = new List<string>();
+        foreach (var variableName in entry.Value) {
+          if (evaluationPerNode.Any(pair => !JToken.EqualityComparer.Equals(jsonOriginal[variableName], pair.Value[variableName]))
+          || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], jsonParent0[variableName])) {
+            differences.Add(variableName);
+          }
+        }
 
+        if (differences.Count > 0) {
+          differencesPerType.Add(entry.Key, differences);
+        }
+      }
 
+      if (differencesPerType.Count == 0) return compBranches.SampleRandom(random); // no difference found, crossover with any branch
 
-      return null;
+      var typeDifference = differencesPerType.SampleRandom(random);
+      double best = Double.MaxValue;
+      ISymbolicExpressionTreeNode selectedNode = null;
+      foreach (var item in evaluationPerNode) {
+        double cur = 0;
+        foreach (var variableName in typeDifference.Value) {
+          cur += CalculateDifference(jsonParent0[variableName], item.Value[variableName], typeDifference.Key);
+        }
+        if (cur > 0 && cur < best) {
+          best = cur;
+          selectedNode = item.Key;
+        }
+      }
+
+      return selectedNode;
     }
 
     private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
@@ -244,44 +272,40 @@ for v in variables:
                                               PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
     }
 
-    private bool DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<VariableType, List<string>> variablesPerType, IDictionary<string, VariableType> typeOfVariable, JObject jsonOriginal) {
-      List<string> differences = new List<string>();
+    //private double DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<VariableType, List<string>> variablesPerType, IDictionary<string, VariableType> typeOfVariable, JObject jsonOriginal) {
+    //  List<string> differences = new List<string>();
 
-      double distance = 0;
-      foreach (var entry in variablesPerType) {
-        foreach (var variableName in entry.Value) {
-          if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json0[variableName])
-           || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], json1[variableName])) {
-            differences.Add(variableName);
-          }
-        }
+    //  double distance = 0;
+    //  foreach (var entry in variablesPerType) {
+    //    foreach (var variableName in entry.Value) {
+    //      if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json0[variableName])
+    //       || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], json1[variableName])) {
+    //        differences.Add(variableName);
+    //      }
+    //    }
 
-        if (differences.Count == 0) continue;
+    //    if (differences.Count == 0) continue;
 
-        double[,] cost = new double[differences.Count, differences.Count];
-        for (int i = 0; i < differences.Count; i++) {
-          var curDiff0 = json0[differences[i]];
-          for (int j = 0; j < differences.Count; j++) {
-            var curDiff1 = json1[differences[j]];
-            cost[i, j] = CalculateDifference(curDiff0, curDiff1, entry.Key);
-            if (Double.IsNaN(cost[i, j]) || Double.IsInfinity(cost[i, j])) {
-              cost[i, j] = Double.MaxValue;
-            }
-          }
-        }
-        HungarianAlgorithm ha = new HungarianAlgorithm(cost);
-        var assignment = ha.Run();
-        for (int i = 0; i < assignment.Length; i++) {
-          distance += cost[i, assignment[i]];
-        }
-
-        differences.Clear();
-      }
-
-      Console.WriteLine(distance);
-
-      return true;
-    }
+    //    double[,] cost = new double[differences.Count, differences.Count];
+    //    for (int i = 0; i < differences.Count; i++) {
+    //      var curDiff0 = json0[differences[i]];
+    //      for (int j = 0; j < differences.Count; j++) {
+    //        var curDiff1 = json1[differences[j]];
+    //        cost[i, j] = CalculateDifference(curDiff0, curDiff1, entry.Key);
+    //        if (Double.IsNaN(cost[i, j]) || Double.IsInfinity(cost[i, j])) {
+    //          cost[i, j] = Double.MaxValue;
+    //        }
+    //      }
+    //    }
+    //    HungarianAlgorithm ha = new HungarianAlgorithm(cost);
+    //    var assignment = ha.Run();
+    //    for (int i = 0; i < assignment.Length; i++) {
+    //      distance += cost[i, assignment[i]];
+    //    }
+    //    differences.Clear();
+    //  }
+    //  return distance;
+    //}
 
     private double CalculateDifference(JToken curDiff0, JToken curDiff1, VariableType variableType) {
       switch (variableType) {

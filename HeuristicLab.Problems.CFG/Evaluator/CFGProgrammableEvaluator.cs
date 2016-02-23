@@ -62,8 +62,8 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<StringValue> FooterParameter {
       get { return (ILookupParameter<StringValue>)Parameters["Footer"]; }
     }
-    public ILookupParameter<ICFGProblemData> ProblemDataParameter {
-      get { return (ILookupParameter<ICFGProblemData>)Parameters["ProblemData"]; }
+    public IValueLookupParameter<ICFGProblemData> ProblemDataParameter {
+      get { return (IValueLookupParameter<ICFGProblemData>)Parameters["ProblemData"]; }
     }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
@@ -87,7 +87,7 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
       Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
       Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
-      Parameters.Add(new LookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
+      Parameters.Add(new ValueLookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));

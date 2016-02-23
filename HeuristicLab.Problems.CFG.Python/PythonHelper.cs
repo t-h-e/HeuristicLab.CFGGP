@@ -143,6 +143,11 @@ namespace HeuristicLab.Problems.CFG.Python {
         int lastNewLine = header.LastIndexOf(Environment.NewLine);
         if (lastNewLine > 0) {
           indent = header.Substring(lastNewLine + Environment.NewLine.Length, header.Length - lastNewLine - Environment.NewLine.Length);
+        } else {
+          indent = header;
+        }
+        if (!String.IsNullOrWhiteSpace(indent)) {
+          indent = "";
         }
       }
 

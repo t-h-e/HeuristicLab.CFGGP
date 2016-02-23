@@ -14,7 +14,6 @@
 <float_var> ::= 'f0' | 'f1' | 'f2' | 'in1' | 'res'
 // *****************************************************************************
 
-
 <code> ::= <code><assign>'\n' | <assign>'\n'<code> | <code><assign>'\n'<code> | <assign>'\n'
 
             // from int

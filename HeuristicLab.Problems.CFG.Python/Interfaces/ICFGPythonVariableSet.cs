@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2016 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -19,18 +19,10 @@
  */
 #endregion
 
-using HeuristicLab.Core;
-using HeuristicLab.Data;
-using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using HeuristicLab.Misc;
-using HeuristicLab.Optimization;
+using System.Collections.Generic;
 
-namespace HeuristicLab.Problems.CFG {
-  public interface ICFGEvaluator<T> : ISingleObjectiveEvaluator, ICaseEvaluator
-  where T : class, ICFGProblemData {
-    ILookupParameter<ISymbolicExpressionTree> ProgramParameter { get; }
-    IValueLookupParameter<T> ProblemDataParameter { get; }
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
+namespace HeuristicLab.Problems.CFG.Python {
+  public interface ICFGPythonVariableSet {
+    void SetVariables(IEnumerable<string> variableNames);
   }
 }

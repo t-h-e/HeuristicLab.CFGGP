@@ -135,6 +135,7 @@
     <Compile Include="Interfaces\ICFGPythonProblemData.cs" />
     <Compile Include="Interfaces\ICFGPythonAnalyzer.cs" />
     <Compile Include="Interfaces\ICFGPythonEvaluator.cs" />
+    <Compile Include="Interfaces\ICFGPythonVariableSet.cs" />
     <Compile Include="Json\EvaluationScript.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

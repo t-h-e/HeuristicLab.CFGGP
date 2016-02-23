@@ -98,14 +98,25 @@ namespace HeuristicLab.Problems.CFG.Python {
           var variables = varSy.Symbols.Where(s => s.Enabled).ToDictionary(s => s.Name.Trim(new char[] { '\'', '"' }), x => type);
           ProblemData.Variables.Add(variables);
         }
-        //ProblemData.Variables.AddRange(variableSymbols.SelectMany(g => g.Symbols.Where(s => s.Enabled)
-        //                                                                        .Select(s => new StringValue(s.Name.Trim(new char[] { '\'', '"' })))).ToList()); // remove quoates
+      }
+
+      SetVariablesToOperators();
+    }
+
+    private void SetVariablesToOperators() {
+      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
+      foreach (var op in operators.OfType<ICFGPythonVariableSet>()) {
+        op.SetVariables(ProblemData.Variables.GetVariableNames());
       }
     }
 
     protected override void OnEvaluatorChanged() {
       base.OnEvaluatorChanged();
       ParameterizeEvaluator();
+      var eval = Evaluator as ICFGPythonVariableSet;
+      if (eval != null) {
+        eval.SetVariables(ProblemData.Variables.GetVariableNames());
+      }
     }
 
     protected override void OnReset() {
