@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
+using HeuristicLab.Misc;
 
 namespace HeuristicLab.Problems.CFG {
   public interface ICFGProblemData : INamedItem {
@@ -31,12 +32,15 @@ namespace HeuristicLab.Problems.CFG {
     StringArray Output { get; }
     IntRange TrainingPartition { get; }
     IntRange TestPartition { get; }
+    TextValue Header { get; }
+    TextValue Footer { get; }
 
     IEnumerable<int> TrainingIndices { get; }
     IEnumerable<int> TestIndices { get; }
 
     bool IsTrainingSample(int index);
     bool IsTestSample(int index);
+
     event EventHandler Changed;
   }
 }

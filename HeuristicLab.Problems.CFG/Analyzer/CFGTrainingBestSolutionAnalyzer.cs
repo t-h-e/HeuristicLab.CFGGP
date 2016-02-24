@@ -35,7 +35,8 @@ namespace HeuristicLab.Problems.CFG {
   /// </summary>
   [Item("CFGTrainingBestSolutionAnalyzer", "An operator that analyzes the training best context free grammar solution.")]
   [StorableClass]
-  public class CFGTrainingBestSolutionAnalyzer : SingleSuccessorOperator, IIterationBasedOperator, ICFGAnalyzer {
+  public class CFGTrainingBestSolutionAnalyzer<T> : SingleSuccessorOperator, IIterationBasedOperator, ICFGAnalyzer<T>
+  where T : class, ICFGProblemData {
     private const string TrainingBestSolutionParameterName = "Best training solution";
     private const string TrainingBestSolutionQualityParameterName = "Best training solution quality";
     private const string TrainingBestSolutionGenerationParameterName = "Best training solution generation";
@@ -48,9 +49,6 @@ namespace HeuristicLab.Problems.CFG {
     private const string SymbolicExpressionTreeParameterName = "SymbolicExpressionTree";
     private const string ResultCollectionParameterName = "Results";
     private const string QualityParameterName = "Quality";
-
-    private const string HeaderParameterName = "Header";
-    private const string FooterParameterName = "Footer";
 
     #region parameter properties
     public ILookupParameter<CFGSolution> TrainingBestSolutionParameter {
@@ -74,20 +72,14 @@ namespace HeuristicLab.Problems.CFG {
     public IScopeTreeLookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter {
       get { return (IScopeTreeLookupParameter<ISymbolicExpressionTree>)Parameters[SymbolicExpressionTreeParameterName]; }
     }
-    public ILookupParameter<ICFGProblemData> ProblemDataParameter {
-      get { return (ILookupParameter<ICFGProblemData>)Parameters[ProblemDataParameterName]; }
+    public ILookupParameter<T> ProblemDataParameter {
+      get { return (ILookupParameter<T>)Parameters[ProblemDataParameterName]; }
     }
     public ILookupParameter<ResultCollection> ResultCollectionParameter {
       get { return (ILookupParameter<ResultCollection>)Parameters[ResultCollectionParameterName]; }
     }
     public IScopeTreeLookupParameter<DoubleValue> QualityParameter {
       get { return (IScopeTreeLookupParameter<DoubleValue>)Parameters[QualityParameterName]; }
-    }
-    public ILookupParameter<StringValue> HeaderParameter {
-      get { return (ILookupParameter<StringValue>)Parameters[HeaderParameterName]; }
-    }
-    public ILookupParameter<StringValue> FooterParameter {
-      get { return (ILookupParameter<StringValue>)Parameters[FooterParameterName]; }
     }
     #endregion
     #region properties
@@ -118,7 +110,7 @@ namespace HeuristicLab.Problems.CFG {
 
     [StorableConstructor]
     protected CFGTrainingBestSolutionAnalyzer(bool deserializing) : base(deserializing) { }
-    protected CFGTrainingBestSolutionAnalyzer(CFGTrainingBestSolutionAnalyzer original, Cloner cloner) : base(original, cloner) { }
+    protected CFGTrainingBestSolutionAnalyzer(CFGTrainingBestSolutionAnalyzer<T> original, Cloner cloner) : base(original, cloner) { }
     public CFGTrainingBestSolutionAnalyzer()
       : base() {
       Parameters.Add(new LookupParameter<ICFGProblemData>(ProblemDataParameterName, "The problem data on which the context free grammar solution should be evaluated."));
@@ -131,13 +123,11 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new ScopeTreeLookupParameter<ISymbolicExpressionTree>(SymbolicExpressionTreeParameterName, "The symbolic expression trees that should be analyzed."));
       Parameters.Add(new LookupParameter<ResultCollection>(ResultCollectionParameterName, "The result collection to store the analysis results."));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(QualityParameterName, "The qualities of the trees that should be analyzed."));
-      Parameters.Add(new LookupParameter<StringValue>(HeaderParameterName, "The header of the program."));
-      Parameters.Add(new LookupParameter<StringValue>(FooterParameterName, "The footer of the program."));
       UpdateAlwaysParameter.Hidden = true;
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGTrainingBestSolutionAnalyzer(this, cloner);
+      return new CFGTrainingBestSolutionAnalyzer<T>(this, cloner);
     }
 
     [StorableHook(HookType.AfterDeserialization)]

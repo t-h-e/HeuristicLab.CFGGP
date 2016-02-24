@@ -127,7 +127,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     #region Helpers
     private void InitializeOperators() {
-      Operators.RemoveAll(x => x is CFGTrainingBestSolutionAnalyzer);
+      //Operators.RemoveAll(x => x is CFGTrainingBestSolutionAnalyzer);
       Operators.Add(new CFGPythonTrainingBestSolutionAnalyzer());
       Operators.Add(new CFGPythonExceptionAnalyzer());
       ParameterizeOperators();
@@ -148,7 +148,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       if (!Parameters.ContainsKey(TimeoutParameterName)) return;
 
       var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
-      foreach (var op in operators.OfType<ICFGPythonAnalyzer>()) {
+      foreach (var op in operators.OfType<ICFGPythonAnalyzer<CFGPythonProblemData>>()) {
         op.TimeoutParameter.ActualName = TimeoutParameterName;
       }
     }
@@ -160,6 +160,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
       problemData.TestPartitionParameter.Value.Start = data.TestPartitionStart;
       problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
+      problemData.HelperCode.Value = data.HelperCode;
       return problemData as ICFGPythonProblemData;
     }
   }

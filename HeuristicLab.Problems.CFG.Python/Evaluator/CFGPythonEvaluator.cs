@@ -41,12 +41,6 @@ namespace HeuristicLab.Problems.CFG.Python {
     public ILookupParameter<ISymbolicExpressionTree> ProgramParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["Program"]; }
     }
-    public ILookupParameter<StringValue> HeaderParameter {
-      get { return (ILookupParameter<StringValue>)Parameters["Header"]; }
-    }
-    public ILookupParameter<StringValue> FooterParameter {
-      get { return (ILookupParameter<StringValue>)Parameters["Footer"]; }
-    }
     public IValueLookupParameter<T> ProblemDataParameter {
       get { return (IValueLookupParameter<T>)Parameters["ProblemData"]; }
     }
@@ -81,7 +75,17 @@ namespace HeuristicLab.Problems.CFG.Python {
     public int Timeout { get { return TimeoutParameter.ActualValue.Value; } }
     public string Program {
       get {
-        return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, HeaderParameter.ActualValue, FooterParameter.ActualValue);
+        string header = ProblemData.HelperCode == null
+                        ? String.Empty
+                        : ProblemData.HelperCode.Value + Environment.NewLine;
+        header += ProblemData.Header == null
+                        ? String.Empty
+                        : ProblemData.Header.Value;
+        string footer = ProblemData.Footer == null
+                        ? String.Empty
+                        : ProblemData.Footer.Value;
+
+        return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, header, footer);
       }
     }
     public string Input {
@@ -116,8 +120,6 @@ namespace HeuristicLab.Problems.CFG.Python {
       Parameters.Add(new LookupParameter<IntValue>("Timeout", "The amount of time an execution is allowed to take, before it is stopped."));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
       Parameters.Add(new ValueLookupParameter<T>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
-      Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
-      Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));

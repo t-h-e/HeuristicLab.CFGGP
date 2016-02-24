@@ -20,7 +20,6 @@
 #endregion
 
 using HeuristicLab.Core;
-using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Misc;
 using HeuristicLab.Optimization;
@@ -30,7 +29,5 @@ namespace HeuristicLab.Problems.CFG {
   where T : class, ICFGProblemData {
     ILookupParameter<ISymbolicExpressionTree> ProgramParameter { get; }
     IValueLookupParameter<T> ProblemDataParameter { get; }
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
   }
 }

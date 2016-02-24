@@ -20,16 +20,13 @@
 #endregion
 
 using HeuristicLab.Core;
-using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Optimization;
 
 namespace HeuristicLab.Problems.CFG {
-  public interface ICFGAnalyzer : IAnalyzer {
+  public interface ICFGAnalyzer<T> : IAnalyzer where T : class, ICFGProblemData {
     IScopeTreeLookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter { get; }
     ILookupParameter<ResultCollection> ResultCollectionParameter { get; }
-    ILookupParameter<StringValue> HeaderParameter { get; }
-    ILookupParameter<StringValue> FooterParameter { get; }
-    ILookupParameter<ICFGProblemData> ProblemDataParameter { get; }
+    ILookupParameter<T> ProblemDataParameter { get; }
   }
 }

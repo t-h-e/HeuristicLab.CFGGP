@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2016 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -26,6 +26,7 @@ using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Misc;
+using HeuristicLab.Operators;
 using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
@@ -67,12 +68,6 @@ namespace HeuristicLab.Problems.CFG {
     }
     public IFixedValueParameter<IntValue> MaximumSymbolicExpressionTreeLengthParameter {
       get { return (IFixedValueParameter<IntValue>)Parameters["MaximumSymbolicExpressionTreeLength"]; }
-    }
-    public IFixedValueParameter<StringValue> HeaderParameter {
-      get { return (IFixedValueParameter<StringValue>)Parameters["Header"]; }
-    }
-    public IFixedValueParameter<StringValue> FooterParameter {
-      get { return (IFixedValueParameter<StringValue>)Parameters["Footer"]; }
     }
     #endregion
 
@@ -136,8 +131,6 @@ namespace HeuristicLab.Problems.CFG {
       MaximizationParameter.Hidden = true;
 
       GrammarParameter.Hidden = true;
-      HeaderParameter.Hidden = true;
-      FooterParameter.Hidden = true;
 
       CreateTreeFromGrammar();
 
@@ -162,7 +155,7 @@ namespace HeuristicLab.Problems.CFG {
       Operators.Add(new SymbolicExpressionSymbolFrequencyAnalyzer());
       Operators.Add(new SymbolicExpressionTreeLengthAnalyzer());
       Operators.Add(new CaseAnalyzer());
-      Operators.Add(new CFGTrainingBestSolutionAnalyzer());
+      Operators.Add(new CFGTrainingBestSolutionAnalyzer<T>());
       ParameterizeOperators();
     }
 
@@ -170,8 +163,6 @@ namespace HeuristicLab.Problems.CFG {
       if (Evaluator != null) {
         Evaluator.ProgramParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
         Evaluator.ProblemDataParameter.ActualName = ProblemDataParameterName;
-        Evaluator.HeaderParameter.ActualName = HeaderParameter.Name;
-        Evaluator.FooterParameter.ActualName = FooterParameter.Name;
       }
     }
 
@@ -199,19 +190,25 @@ namespace HeuristicLab.Problems.CFG {
       }
       foreach (var op in operators.OfType<ISymbolicExpressionTreeCrossover>()) {
         op.ParentsParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-        //op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       }
-      //foreach (var op in operators.OfType<ISymbolicExpressionTreeManipulator>()) {
-      //  op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-      //}
-      //foreach (var op in operators.OfType<ISymbolicExpressionTreeCreator>()) {
-      //  op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-      //}
       foreach (var op in operators.OfType<ICFGProblemDataOperator<T>>()) {
         op.ProblemDataParameter.ActualName = ProblemDataParameter.Name;
       }
 
       ParameterizeAnalyzers();
+      ParameterizeMultiCrossover();
+    }
+
+    protected virtual void ParameterizeMultiCrossover() {
+      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
+      var crossovers = operators.OfType<ISymbolicExpressionTreeCrossover>().Where(x => !typeof(IMultiOperator<ISymbolicExpressionTreeCrossover>).IsAssignableFrom(x.GetType())).ToList();
+      foreach (var op in operators.OfType<StochasticMultiBranch<ISymbolicExpressionTreeCrossover>>()) {
+        var containedTypes = op.Operators.Select(o => o.GetType()).ToList();
+        var crossoversToAdd = crossovers.Where(x => !containedTypes.Contains(x.GetType())).ToList();
+        foreach (var c in crossoversToAdd) {
+          op.Operators.Add((ISymbolicExpressionTreeCrossover)c.Clone());
+        }
+      }
     }
 
     protected virtual void ParameterizeAnalyzers() {
@@ -220,10 +217,8 @@ namespace HeuristicLab.Problems.CFG {
       foreach (var op in operators.OfType<ISymbolicExpressionTreeAnalyzer>()) {
         op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
       }
-      foreach (var op in operators.OfType<ICFGAnalyzer>()) {
+      foreach (var op in operators.OfType<ICFGAnalyzer<T>>()) {
         op.SymbolicExpressionTreeParameter.ActualName = SolutionCreator.SymbolicExpressionTreeParameter.ActualName;
-        op.HeaderParameter.ActualName = HeaderParameter.Name;
-        op.FooterParameter.ActualName = FooterParameter.Name;
         op.ProblemDataParameter.ActualName = ProblemDataParameter.Name;
       }
     }
@@ -284,16 +279,19 @@ namespace HeuristicLab.Problems.CFG {
 
     private void SetCodeHeaderAndFooter() {
       if (String.IsNullOrWhiteSpace(EmbedCode.Value)) {
-        HeaderParameter.Value.Value = String.Empty;
-        FooterParameter.Value.Value = String.Empty;
+        ProblemData.Header.Value = String.Empty;
+        ProblemData.Footer.Value = String.Empty;
         return;
       }
 
       string embedCode = EmbedCode.Value;
       int insert = embedCode.IndexOf(INSERTCODE);
       if (insert > 0) {
-        HeaderParameter.Value.Value = embedCode.Substring(0, insert);
-        FooterParameter.Value.Value = embedCode.Substring(insert + INSERTCODE.Length, embedCode.Length - insert - INSERTCODE.Length);
+        ProblemData.Header.Value = embedCode.Substring(0, insert);
+        ProblemData.Footer.Value = embedCode.Substring(insert + INSERTCODE.Length, embedCode.Length - insert - INSERTCODE.Length);
+      } else {
+        ProblemData.Header.Value = embedCode;
+        ProblemData.Footer.Value = String.Empty;
       }
     }
 

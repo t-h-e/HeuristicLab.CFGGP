@@ -32,7 +32,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   /// </summary>
   [Item("CFGPythonTrainingBestSolutionAnalyzer", "An operator that analyzes the training best context free grammar solution.")]
   [StorableClass]
-  public class CFGPythonTrainingBestSolutionAnalyzer : CFGTrainingBestSolutionAnalyzer, ICFGPythonAnalyzer {
+  public class CFGPythonTrainingBestSolutionAnalyzer : CFGTrainingBestSolutionAnalyzer<CFGPythonProblemData>, ICFGPythonAnalyzer<CFGPythonProblemData> {
     private const string TimeoutParameterName = "Timeout";
 
     #region parameter properties
@@ -55,7 +55,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     protected override CFGSolution CreateCFGSolution(ISymbolicExpressionTree bestTree) {
-      return new CFGPythonSolution(bestTree, ProblemDataParameter.ActualValue, TimeoutParameter.ActualValue, HeaderParameter.ActualValue, FooterParameter.ActualValue);
+      return new CFGPythonSolution(bestTree, ProblemDataParameter.ActualValue, TimeoutParameter.ActualValue);
     }
   }
 }

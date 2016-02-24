@@ -56,12 +56,6 @@ namespace HeuristicLab.Problems.CFG {
     public ILookupParameter<ISymbolicExpressionTree> ProgramParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["Program"]; }
     }
-    public ILookupParameter<StringValue> HeaderParameter {
-      get { return (ILookupParameter<StringValue>)Parameters["Header"]; }
-    }
-    public ILookupParameter<StringValue> FooterParameter {
-      get { return (ILookupParameter<StringValue>)Parameters["Footer"]; }
-    }
     public IValueLookupParameter<ICFGProblemData> ProblemDataParameter {
       get { return (IValueLookupParameter<ICFGProblemData>)Parameters["ProblemData"]; }
     }
@@ -85,8 +79,6 @@ namespace HeuristicLab.Problems.CFG {
       : base() {
       Parameters.Add(new LookupParameter<BoolValue>("Maximization", "True if the problem is a maximization problem."));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
-      Parameters.Add(new LookupParameter<StringValue>("Header", "The header of the program."));
-      Parameters.Add(new LookupParameter<StringValue>("Footer", "The footer of the program."));
       Parameters.Add(new ValueLookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));

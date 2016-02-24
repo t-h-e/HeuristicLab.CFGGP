@@ -35,13 +35,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     public string Description { get; set; }
 
     /// <summary>
-    /// String containing the path to a file with the grammar
+    /// String containing the grammar
     /// </summary>
     public string Grammar { get; set; }
     /// <summary>
-    /// Optional! String containing the path to a file where code should be embeded
+    /// Optional! String containing where individual should be embeded
     /// </summary>
     public string Embed { get; set; }
+    /// <summary>
+    /// Optional! String containing code should be added to(/before) the individual
+    /// </summary>
+    public string HelperCode { get; set; }
     /// <summary>
     /// Input values
     /// </summary>

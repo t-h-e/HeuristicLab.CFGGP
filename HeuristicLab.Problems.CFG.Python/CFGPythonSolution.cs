@@ -58,10 +58,20 @@ namespace HeuristicLab.Problems.CFG.Python {
       name = original.Name;
       description = original.Description;
     }
-    public CFGPythonSolution(ISymbolicExpressionTree tree, ICFGProblemData problemData, IntValue timeout, StringValue header = null, StringValue footer = null)
+    public CFGPythonSolution(ISymbolicExpressionTree tree, ICFGPythonProblemData problemData, IntValue timeout)
       : base(tree, problemData) {
       name = ItemName;
       description = ItemDescription;
+
+      string header = problemData.HelperCode == null
+                      ? String.Empty
+                      : problemData.HelperCode.Value + Environment.NewLine;
+      header += problemData.Header == null
+                      ? String.Empty
+                      : problemData.Header.Value;
+      string footer = problemData.Footer == null
+                      ? String.Empty
+                      : problemData.Footer.Value;
 
       string program = PythonHelper.FormatToProgram(tree, header, footer);
       Add(new Result(ProgramResultName, "The program with header and footer", new TextValue(program)));

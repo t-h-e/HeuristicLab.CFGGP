@@ -131,9 +131,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       return stringBuilder.ToString();
     }
 
-    public static string FormatToProgram(ISymbolicExpressionTree tree) {
-      return FormatToProgram(tree, (string)null);
-    }
+    //public static string FormatToProgram(ISymbolicExpressionTree tree) {
+    //  return FormatToProgram(tree, (string)null);
+    //}
 
     public static string FormatToProgram(ISymbolicExpressionTree tree, string header, string footer = null) {
       StringBuilder strBuilder = new StringBuilder();
@@ -162,9 +162,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       return strBuilder.ToString();
     }
 
-    public static string FormatToProgram(ISymbolicExpressionTree tree, StringValue HeaderValue, StringValue FooterValue = null) {
-      return FormatToProgram(tree, HeaderValue == null ? null : HeaderValue.Value, FooterValue == null ? null : FooterValue.Value);
-    }
+    //public static string FormatToProgram(ISymbolicExpressionTree tree, StringValue HeaderValue, StringValue FooterValue = null) {
+    //  return FormatToProgram(tree, HeaderValue == null ? null : HeaderValue.Value, FooterValue == null ? null : FooterValue.Value);
+    //}
 
     public static string ConvertToPythonValues(StringArray array, IEnumerable<int> indices) {
       StringBuilder strBuilder = new StringBuilder("[");

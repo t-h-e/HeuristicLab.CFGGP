@@ -25,6 +25,7 @@ using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
+using HeuristicLab.Misc;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
@@ -35,6 +36,8 @@ namespace HeuristicLab.Problems.CFG {
     protected const string OutputParameterName = "Output";
     protected const string TrainingPartitionParameterName = "TrainingPartition";
     protected const string TestPartitionParameterName = "TestPartition";
+    protected const string HeaderParameterName = "Header";
+    protected const string FooterParameterName = "Footer";
 
     private static readonly CFGProblemData emptyProblemData;
     public static CFGProblemData EmptyProblemData {
@@ -48,9 +51,11 @@ namespace HeuristicLab.Problems.CFG {
       problemData.isEmpty = true;
 
       problemData.Parameters.Add(new FixedValueParameter<StringArray>(InputParameterName, "", new StringArray().AsReadOnly()));
-      problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray()));
+      problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<TextValue>(HeaderParameterName, "", new TextValue().AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<TextValue>(FooterParameterName, "", new TextValue().AsReadOnly()));
       emptyProblemData = problemData;
     }
 
@@ -66,6 +71,12 @@ namespace HeuristicLab.Problems.CFG {
     }
     public IFixedValueParameter<IntRange> TestPartitionParameter {
       get { return (IFixedValueParameter<IntRange>)Parameters[TestPartitionParameterName]; }
+    }
+    public IFixedValueParameter<TextValue> HeaderParameter {
+      get { return (IFixedValueParameter<TextValue>)Parameters[HeaderParameterName]; }
+    }
+    public IFixedValueParameter<TextValue> FooterParameter {
+      get { return (IFixedValueParameter<TextValue>)Parameters[FooterParameterName]; }
     }
     #endregion
 
@@ -85,6 +96,12 @@ namespace HeuristicLab.Problems.CFG {
     }
     public IntRange TestPartition {
       get { return TestPartitionParameter.Value; }
+    }
+    public TextValue Header {
+      get { return HeaderParameter.Value; }
+    }
+    public TextValue Footer {
+      get { return FooterParameter.Value; }
     }
 
     public virtual IEnumerable<int> TrainingIndices {
@@ -146,6 +163,8 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray(output.ToArray())));
       Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", new IntRange(trainingPartitionStart, trainingPartitionEnd)));
       Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", new IntRange(testPartitionStart, testPartitionEnd)));
+      Parameters.Add(new FixedValueParameter<TextValue>(HeaderParameterName, "", new TextValue()));
+      Parameters.Add(new FixedValueParameter<TextValue>(FooterParameterName, "", new TextValue()));
 
       RegisterEventHandlers();
     }

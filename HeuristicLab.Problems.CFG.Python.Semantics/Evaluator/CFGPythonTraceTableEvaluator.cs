@@ -34,12 +34,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class CFGPythonTraceTableEvaluator<T> : CFGPythonEvaluator<T>, ISymbolicExpressionTreeOperator, ICFGPythonVariableSet
   where T : class, ICFGPythonProblemData {
 
-    [Storable]
     private PythonProcessSemanticHelper pythonSemanticHelper;
 
     #region paramerters
     public ILookupParameter<ISymbolicExpressionTree> SymbolicExpressionTreeParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["SymbolicExpressionTree"]; }
+    }
+    public IFixedValueParameter<ReadOnlyItemList<StringValue>> TraceVariableNamesParameter {
+      get { return (IFixedValueParameter<ReadOnlyItemList<StringValue>>)Parameters["TraceVariableNames"]; }
     }
     public IFixedValueParameter<IntValue> LimitTraceParameter {
       get { return (IFixedValueParameter<IntValue>)Parameters["LimitTrace"]; }
@@ -49,19 +51,25 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
     #endregion
 
+    #region properties
+    public int LimitTrace { get { return LimitTraceParameter.Value.Value; } }
+    public IEnumerable<string> TraceVariableNames { get { return TraceVariableNamesParameter.Value.Select(x => x.Value); } }
+    #endregion
+
     [StorableConstructor]
     protected CFGPythonTraceTableEvaluator(bool deserializing) : base(deserializing) { }
     protected CFGPythonTraceTableEvaluator(CFGPythonTraceTableEvaluator<T> original, Cloner cloner)
       : base(original, cloner) {
       RegisterEventHandlers();
-      pythonSemanticHelper = new PythonProcessSemanticHelper(original.pythonSemanticHelper.VariableNames, LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(original.TraceVariableNames, original.LimitTrace);
     }
     public CFGPythonTraceTableEvaluator() {
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("SymbolicExpressionTree", ""));
+      Parameters.Add(new FixedValueParameter<ReadOnlyItemList<StringValue>>("TraceVariableNames", "", new ReadOnlyItemList<StringValue>()));
       Parameters.Add(new FixedValueParameter<IntValue>("LimitTrace", "", new IntValue(25)));
       Parameters.Add(new LookupParameter<ItemArray<PythonStatementSemantic>>("Semantic", ""));
 
-      pythonSemanticHelper = new PythonProcessSemanticHelper(null, LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariableNames, LimitTrace);
       RegisterEventHandlers();
     }
 
@@ -72,7 +80,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
       RegisterEventHandlers();
-      //pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), LimitTraceParameter.Value.Value);
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariableNames, LimitTrace);
     }
 
     private void RegisterEventHandlers() {
@@ -80,11 +88,18 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     private void LimitTraceParameter_ValueChanged(object sender, EventArgs e) {
-      pythonSemanticHelper.Limit = LimitTraceParameter.Value.Value;
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariableNames, LimitTrace);
     }
 
     public override IOperation InstrumentedApply() {
-      var result = pythonSemanticHelper.EvaluateAndTraceProgram(Program, Input, Output, ProblemData.TrainingIndices, HeaderParameter.ActualValue.Value, SymbolicExpressionTreeParameter.ActualValue, Timeout);
+      string header = ProblemData.HelperCode == null
+                      ? String.Empty
+                      : ProblemData.HelperCode.Value + Environment.NewLine;
+      header += ProblemData.Header == null
+                      ? String.Empty
+                      : ProblemData.Header.Value;
+
+      var result = pythonSemanticHelper.EvaluateAndTraceProgram(Program, Input, Output, ProblemData.TrainingIndices, header, SymbolicExpressionTreeParameter.ActualValue, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());
@@ -96,7 +111,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public void SetVariables(IEnumerable<string> variableNames) {
-      pythonSemanticHelper.VariableNames = variableNames;
+      // remove and add parameter again
+      // parameter has to be FixedValueParameter otherwise a user could create new ReadOnlyItemList
+      // value has to be ReadOnlyItemList otherwise elements could be changed
+      Parameters.Remove("TraceVariableNames");
+      Parameters.Add(new FixedValueParameter<ReadOnlyItemList<StringValue>>("TraceVariableNames", "", new ReadOnlyItemList<StringValue>(new ItemList<StringValue>(variableNames.Select(x => new StringValue(x).AsReadOnly())))));
+
     }
   }
 }

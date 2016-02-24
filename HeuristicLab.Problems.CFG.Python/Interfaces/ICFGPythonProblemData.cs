@@ -24,6 +24,8 @@ using HeuristicLab.Misc;
 
 namespace HeuristicLab.Problems.CFG.Python {
   public interface ICFGPythonProblemData : ICFGProblemData {
+
+    TextValue HelperCode { get; }
     VariableTypeParameterCollection Variables { get; }
     ItemList<TextValue> VariableSettings { get; }
   }

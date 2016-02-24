@@ -40,5 +40,11 @@ namespace HeuristicLab.Misc {
     public override IDeepCloneable Clone(Cloner cloner) {
       return new TextValue(this, cloner);
     }
+
+    public new virtual TextValue AsReadOnly() {
+      TextValue readOnlyStringValue = (TextValue)this.Clone();
+      readOnlyStringValue.readOnly = true;
+      return readOnlyStringValue;
+    }
   }
 }

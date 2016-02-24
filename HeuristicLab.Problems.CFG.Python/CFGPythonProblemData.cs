@@ -29,6 +29,7 @@ using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG.Python {
   public class CFGPythonProblemData : CFGProblemData, ICFGPythonProblemData {
+    protected const string HelperCodeParameterName = "HelperCode";
     protected const string VariablesParameterName = "Variables";
     protected const string VariableSettingsParameterName = "VariableSettings";
 
@@ -47,12 +48,16 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "", new VariableTypeParameterCollection()));
       problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
       emptyProblemData = problemData;
     }
 
     #region parameter properites
+    public IFixedValueParameter<TextValue> HelperCodeParameter {
+      get { return (IFixedValueParameter<TextValue>)Parameters[HelperCodeParameterName]; }
+    }
     public IFixedValueParameter<VariableTypeParameterCollection> VariablesParameter {
       get { return (IFixedValueParameter<VariableTypeParameterCollection>)Parameters[VariablesParameterName]; }
     }
@@ -62,6 +67,9 @@ namespace HeuristicLab.Problems.CFG.Python {
     #endregion
 
     #region properties
+    public TextValue HelperCode {
+      get { return HelperCodeParameter.Value; }
+    }
     public VariableTypeParameterCollection Variables {
       get { return VariablesParameter.Value; }
     }
@@ -83,6 +91,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public CFGPythonProblemData(IEnumerable<string> input, IEnumerable<string> output)
       : base(input, output) {
+      Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue()));
       Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "", new VariableTypeParameterCollection()));
       Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
     }
@@ -90,6 +99,5 @@ namespace HeuristicLab.Problems.CFG.Python {
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGPythonProblemData(this, cloner);
     }
-
   }
 }
