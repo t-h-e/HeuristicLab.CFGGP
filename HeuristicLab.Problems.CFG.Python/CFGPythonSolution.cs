@@ -63,17 +63,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       name = ItemName;
       description = ItemDescription;
 
-      string header = problemData.HelperCode == null
-                      ? String.Empty
-                      : problemData.HelperCode.Value + Environment.NewLine;
-      header += problemData.Header == null
-                      ? String.Empty
-                      : problemData.Header.Value;
-      string footer = problemData.Footer == null
-                      ? String.Empty
-                      : problemData.Footer.Value;
-
-      string program = PythonHelper.FormatToProgram(tree, header, footer);
+      string program = PythonHelper.FormatToProgram(tree, problemData.FullHeader, problemData.FullFooter);
       Add(new Result(ProgramResultName, "The program with header and footer", new TextValue(program)));
       string code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
       Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));

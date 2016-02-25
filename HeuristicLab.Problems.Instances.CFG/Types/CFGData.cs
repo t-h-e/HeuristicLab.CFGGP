@@ -43,10 +43,6 @@ namespace HeuristicLab.Problems.Instances.CFG {
     /// </summary>
     public string Embed { get; set; }
     /// <summary>
-    /// Optional! String containing code should be added to(/before) the individual
-    /// </summary>
-    public string HelperCode { get; set; }
-    /// <summary>
     /// Input values
     /// </summary>
     public string[] Input { get; set; }

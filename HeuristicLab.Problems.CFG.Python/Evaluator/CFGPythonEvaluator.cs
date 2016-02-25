@@ -75,17 +75,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     public int Timeout { get { return TimeoutParameter.ActualValue.Value; } }
     public string Program {
       get {
-        string header = ProblemData.HelperCode == null
-                        ? String.Empty
-                        : ProblemData.HelperCode.Value + Environment.NewLine;
-        header += ProblemData.Header == null
-                        ? String.Empty
-                        : ProblemData.Header.Value;
-        string footer = ProblemData.Footer == null
-                        ? String.Empty
-                        : ProblemData.Footer.Value;
-
-        return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, header, footer);
+        return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, ProblemData.FullHeader, ProblemData.FullFooter);
       }
     }
     public string Input {

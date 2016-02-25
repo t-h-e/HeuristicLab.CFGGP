@@ -92,14 +92,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public override IOperation InstrumentedApply() {
-      string header = ProblemData.HelperCode == null
-                      ? String.Empty
-                      : ProblemData.HelperCode.Value + Environment.NewLine;
-      header += ProblemData.Header == null
-                      ? String.Empty
-                      : ProblemData.Header.Value;
-
-      var result = pythonSemanticHelper.EvaluateAndTraceProgram(Program, Input, Output, ProblemData.TrainingIndices, header, SymbolicExpressionTreeParameter.ActualValue, Timeout);
+      var result = pythonSemanticHelper.EvaluateAndTraceProgram(Program, Input, Output, ProblemData.TrainingIndices, ProblemData.FullHeader, SymbolicExpressionTreeParameter.ActualValue, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());
@@ -116,6 +109,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // value has to be ReadOnlyItemList otherwise elements could be changed
       Parameters.Remove("TraceVariableNames");
       Parameters.Add(new FixedValueParameter<ReadOnlyItemList<StringValue>>("TraceVariableNames", "", new ReadOnlyItemList<StringValue>(new ItemList<StringValue>(variableNames.Select(x => new StringValue(x).AsReadOnly())))));
+      pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariableNames, LimitTrace);
 
     }
   }

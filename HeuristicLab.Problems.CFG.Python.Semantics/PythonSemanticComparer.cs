@@ -70,7 +70,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       double denom = max * count;
       if (sum == 0) return 0;
       if (denom.IsAlmost(0)) return 1;
-      return sum / denom;
+      sum /= denom;
+      return sum == 0 ? Double.Epsilon : sum;
     }
     #endregion
 
@@ -102,7 +103,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       double denom = max * count;
       if (sum == 0) return 0;
       if (denom.IsAlmost(0)) return 1;
-      return sum / denom;
+      sum /= denom;
+      return sum == 0 ? Double.Epsilon : sum;
     }
     #endregion
 
@@ -153,7 +155,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       for (int i = 0; i < sum.Count; i++) {
         if (sum[i] == 0) continue;
         if (denom.IsAlmost(0)) sum[i] = 1;
-        else sum[i] /= denom;
+        else {
+          sum[i] /= denom;
+          sum[i] = sum[i] == 0 ? Double.Epsilon : sum[i];
+        }
       }
       return sum;
     }
@@ -191,7 +196,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       for (int i = 0; i < sum.Count; i++) {
         if (sum[i] == 0) continue;
         if (denom.IsAlmost(0)) sum[i] = 1;
-        else sum[i] /= denom;
+        else {
+          sum[i] /= denom;
+          sum[i] = sum[i] == 0 ? Double.Epsilon : sum[i];
+        }
       }
       return sum;
     }

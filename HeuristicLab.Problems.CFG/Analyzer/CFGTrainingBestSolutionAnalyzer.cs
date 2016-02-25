@@ -113,7 +113,7 @@ namespace HeuristicLab.Problems.CFG {
     protected CFGTrainingBestSolutionAnalyzer(CFGTrainingBestSolutionAnalyzer<T> original, Cloner cloner) : base(original, cloner) { }
     public CFGTrainingBestSolutionAnalyzer()
       : base() {
-      Parameters.Add(new LookupParameter<ICFGProblemData>(ProblemDataParameterName, "The problem data on which the context free grammar solution should be evaluated."));
+      Parameters.Add(new LookupParameter<T>(ProblemDataParameterName, "The problem data on which the context free grammar solution should be evaluated."));
       Parameters.Add(new LookupParameter<CFGSolution>(TrainingBestSolutionParameterName, "The training best cfg solution."));
       Parameters.Add(new LookupParameter<DoubleValue>(TrainingBestSolutionQualityParameterName, "The quality of the training best cfg solution."));
       Parameters.Add(new LookupParameter<IntValue>(TrainingBestSolutionGenerationParameterName, "The generation in which the best training solution was found."));

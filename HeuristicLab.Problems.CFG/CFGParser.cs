@@ -28,7 +28,8 @@ using HeuristicLab.PluginInfrastructure;
 
 namespace HeuristicLab.Problems.CFG {
   public class CFGParser {
-    private const string rulePattern = @"(?<rulename><\S+>)\s*::=\s*(?<production>(?(?=\/\/)\/\/[^\r\n]*$|.+?)+?(?(?=<\S+>\s*::=)(?=<\S+>\s*::=)|\Z))";
+    //private const string rulePattern = @"(?<rulename><\S+>)\s*::=\s*(?<production>(?(?=\/\/)\/\/[^\r\n]*$|.+?)+?(?(?=<\S+>\s*::=)(?=<\S+>\s*::=)|\Z))";
+    private const string rulePattern = @"(?<rulename><\S+>)\s*::=\s*(?<production>(?(?=\/\/)\/\/[^\r\n]*|.+?)+?(?(?!<\S+>\s*::=)\Z))";
 
     private const string productionPattern = @"(?(?=\/\/)(?:\/\/.*$)|\s*(?<production>(?:[^'""\|\/\/]+|'.*?'|"".*?"")+))";
 

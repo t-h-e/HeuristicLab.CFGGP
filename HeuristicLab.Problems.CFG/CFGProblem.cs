@@ -48,17 +48,12 @@ namespace HeuristicLab.Problems.CFG {
 
     public string Filename { get; set; }
 
-    private const string INSERTCODE = "<insertCodeHere>";
-
     #region Parameter Properties
     public IValueParameter<T> ProblemDataParameter {
       get { return (IValueParameter<T>)Parameters[ProblemDataParameterName]; }
     }
     public IFixedValueParameter<TextValue> GrammarBNFParameter {
       get { return (IFixedValueParameter<TextValue>)Parameters["GrammarBNF"]; }
-    }
-    public IFixedValueParameter<TextValue> EmbedCodeParameter {
-      get { return (IFixedValueParameter<TextValue>)Parameters["EmbedCode"]; }
     }
     public IValueParameter<CFGExpressionGrammar> GrammarParameter {
       get { return (IValueParameter<CFGExpressionGrammar>)Parameters["Grammar"]; }
@@ -81,10 +76,6 @@ namespace HeuristicLab.Problems.CFG {
     public TextValue GrammarBNF {
       get { return GrammarBNFParameter.Value; }
     }
-    public TextValue EmbedCode {
-      get { return EmbedCodeParameter.Value; }
-    }
-
     public CFGExpressionGrammar Grammar {
       get { return GrammarParameter.Value; }
       set { GrammarParameter.Value = value; }
@@ -118,14 +109,11 @@ namespace HeuristicLab.Problems.CFG {
 
     #region Helpers
     private void Initialize(T problemData) {
-      Parameters.Add(new ValueParameter<T>(ProblemDataParameterName, ProblemDataParameterDescription, problemData)); //CFGProblemData.EmptyProblemData));
+      Parameters.Add(new ValueParameter<T>(ProblemDataParameterName, ProblemDataParameterDescription, problemData));
       Parameters.Add(new FixedValueParameter<TextValue>("GrammarBNF", "Grammar in BNF Form.", new TextValue()));
-      Parameters.Add(new FixedValueParameter<TextValue>("EmbedCode", "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue()));
       Parameters.Add(new FixedValueParameter<IntValue>("MaximumSymbolicExpressionTreeDepth", "Maximal depth of the symbolic expression. The minimum depth needed for the algorithm is 3 because two levels are reserved for the ProgramRoot and the Start symbol.", new IntValue(15)));
       Parameters.Add(new FixedValueParameter<IntValue>("MaximumSymbolicExpressionTreeLength", "Maximal length of the symbolic expression.", new IntValue(100)));
       Parameters.Add(new ValueParameter<CFGExpressionGrammar>("Grammar", "The grammar created from the grammar text file.", CFGExpressionGrammar.Empty));
-      Parameters.Add(new FixedValueParameter<StringValue>("Header", "The header of the program.", new StringValue()));
-      Parameters.Add(new FixedValueParameter<StringValue>("Footer", "The footer of the program.", new StringValue()));
 
       Maximization.Value = false;
       MaximizationParameter.Hidden = true;
@@ -143,7 +131,6 @@ namespace HeuristicLab.Problems.CFG {
 
     private void RegisterEventHandlers() {
       GrammarBNFParameter.Value.ValueChanged += new EventHandler(GrammarBNFParameter_Value_ValueChanged);
-      EmbedCodeParameter.Value.ValueChanged += new EventHandler(EmbedCodeFilePathParameter_Value_ValueChanged);
       ProblemDataParameter.ValueChanged += new EventHandler(ProblemDataParameter_ValueChanged);
       if (ProblemDataParameter.Value != null) ProblemDataParameter.Value.Changed += new EventHandler(ProblemData_Changed);
     }
@@ -228,9 +215,6 @@ namespace HeuristicLab.Problems.CFG {
     private void GrammarBNFParameter_Value_ValueChanged(object sender, EventArgs e) {
       CreateTreeFromGrammar();
     }
-    private void EmbedCodeFilePathParameter_Value_ValueChanged(object sender, EventArgs e) {
-      SetCodeHeaderAndFooter();
-    }
     protected override void OnEvaluatorChanged() {
       base.OnEvaluatorChanged();
       ParameterizeEvaluator();
@@ -277,30 +261,13 @@ namespace HeuristicLab.Problems.CFG {
       }
     }
 
-    private void SetCodeHeaderAndFooter() {
-      if (String.IsNullOrWhiteSpace(EmbedCode.Value)) {
-        ProblemData.Header.Value = String.Empty;
-        ProblemData.Footer.Value = String.Empty;
-        return;
-      }
-
-      string embedCode = EmbedCode.Value;
-      int insert = embedCode.IndexOf(INSERTCODE);
-      if (insert > 0) {
-        ProblemData.Header.Value = embedCode.Substring(0, insert);
-        ProblemData.Footer.Value = embedCode.Substring(insert + INSERTCODE.Length, embedCode.Length - insert - INSERTCODE.Length);
-      } else {
-        ProblemData.Header.Value = embedCode;
-        ProblemData.Footer.Value = String.Empty;
-      }
-    }
-
     protected virtual T LoadProblemData(CFGData data) {
       CFGProblemData problemData = new CFGProblemData(data.Input, data.Output);
       problemData.TrainingPartitionParameter.Value.Start = data.TrainingPartitionStart;
       problemData.TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
       problemData.TestPartitionParameter.Value.Start = data.TestPartitionStart;
       problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
+      problemData.EmbedCode.Value = data.Embed;
       return problemData as T;
     }
 
@@ -309,7 +276,6 @@ namespace HeuristicLab.Problems.CFG {
       Description = data.Description;
       ProblemDataParameter.Value = LoadProblemData(data);
       GrammarBNF.Value = data.Grammar;
-      EmbedCode.Value = data.Embed;
     }
   }
 

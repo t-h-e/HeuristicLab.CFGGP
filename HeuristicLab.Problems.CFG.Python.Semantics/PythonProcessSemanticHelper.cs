@@ -79,7 +79,6 @@ for l in lines:
     }
 
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
-
       string traceProgram = traceCodeWithVariables
                           + program;
       traceProgram += traceCodeWithVariables == String.Empty

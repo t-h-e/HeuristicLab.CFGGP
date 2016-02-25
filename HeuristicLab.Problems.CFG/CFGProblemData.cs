@@ -36,8 +36,11 @@ namespace HeuristicLab.Problems.CFG {
     protected const string OutputParameterName = "Output";
     protected const string TrainingPartitionParameterName = "TrainingPartition";
     protected const string TestPartitionParameterName = "TestPartition";
+    protected const string EmbedCodeParameterName = "EmbedCode";
     protected const string HeaderParameterName = "Header";
     protected const string FooterParameterName = "Footer";
+
+    private const string INSERTCODE = "<insertCodeHere>";
 
     private static readonly CFGProblemData emptyProblemData;
     public static CFGProblemData EmptyProblemData {
@@ -54,6 +57,7 @@ namespace HeuristicLab.Problems.CFG {
       problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<TextValue>(EmbedCodeParameterName, "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(HeaderParameterName, "", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(FooterParameterName, "", new TextValue().AsReadOnly()));
       emptyProblemData = problemData;
@@ -71,6 +75,9 @@ namespace HeuristicLab.Problems.CFG {
     }
     public IFixedValueParameter<IntRange> TestPartitionParameter {
       get { return (IFixedValueParameter<IntRange>)Parameters[TestPartitionParameterName]; }
+    }
+    public IFixedValueParameter<TextValue> EmbedCodeParameter {
+      get { return (IFixedValueParameter<TextValue>)Parameters["EmbedCode"]; }
     }
     public IFixedValueParameter<TextValue> HeaderParameter {
       get { return (IFixedValueParameter<TextValue>)Parameters[HeaderParameterName]; }
@@ -96,6 +103,9 @@ namespace HeuristicLab.Problems.CFG {
     }
     public IntRange TestPartition {
       get { return TestPartitionParameter.Value; }
+    }
+    public TextValue EmbedCode {
+      get { return EmbedCodeParameter.Value; }
     }
     public TextValue Header {
       get { return HeaderParameter.Value; }
@@ -163,6 +173,7 @@ namespace HeuristicLab.Problems.CFG {
       Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray(output.ToArray())));
       Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", new IntRange(trainingPartitionStart, trainingPartitionEnd)));
       Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", new IntRange(testPartitionStart, testPartitionEnd)));
+      Parameters.Add(new FixedValueParameter<TextValue>(EmbedCodeParameterName, "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue()));
       Parameters.Add(new FixedValueParameter<TextValue>(HeaderParameterName, "", new TextValue()));
       Parameters.Add(new FixedValueParameter<TextValue>(FooterParameterName, "", new TextValue()));
 
@@ -181,6 +192,13 @@ namespace HeuristicLab.Problems.CFG {
       OutputParameter.Value.ItemChanged += new EventHandler<EventArgs<int>>(Value_ItemChanged);
       TrainingPartition.ValueChanged += new EventHandler(Parameter_ValueChanged);
       TestPartition.ValueChanged += new EventHandler(Parameter_ValueChanged);
+      EmbedCodeParameter.Value.ValueChanged += new EventHandler(EmbedCodeFilePathParameter_Value_ValueChanged);
+    }
+
+    #region Events
+    private void EmbedCodeFilePathParameter_Value_ValueChanged(object sender, EventArgs e) {
+      SetCodeHeaderAndFooter();
+      OnChanged();
     }
 
     private void Value_ItemChanged(object sender, EventArgs<int> e) {
@@ -195,6 +213,25 @@ namespace HeuristicLab.Problems.CFG {
     protected virtual void OnChanged() {
       var listeners = Changed;
       if (listeners != null) listeners(this, EventArgs.Empty);
+    }
+    #endregion
+
+    protected virtual void SetCodeHeaderAndFooter() {
+      if (String.IsNullOrWhiteSpace(EmbedCode.Value)) {
+        Header.Value = String.Empty;
+        Footer.Value = String.Empty;
+        return;
+      }
+
+      string embedCode = EmbedCode.Value;
+      int insert = embedCode.IndexOf(INSERTCODE);
+      if (insert > 0) {
+        Header.Value = embedCode.Substring(0, insert);
+        Footer.Value = embedCode.Substring(insert + INSERTCODE.Length, embedCode.Length - insert - INSERTCODE.Length);
+      } else {
+        Header.Value = embedCode;
+        Footer.Value = String.Empty;
+      }
     }
   }
 }

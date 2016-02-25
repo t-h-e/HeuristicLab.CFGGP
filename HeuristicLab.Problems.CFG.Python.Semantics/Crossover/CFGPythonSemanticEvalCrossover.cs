@@ -20,8 +20,10 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -30,6 +32,7 @@ using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
@@ -142,15 +145,14 @@ for v in variables:
     private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth) {
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) return parent0;
 
-      var p0NodeIndices = semantic0.Select(x => x.TreeNodePrefixPos).ToList();
-      var crossoverPoints0 = parent0.IterateNodesPrefix().ToList().Where((value, index) => p0NodeIndices.Contains(index)).Select(x => new CutPoint(x.Parent, x));
-      var p1NodeIndices = semantic1.Select(x => x.TreeNodePrefixPos).ToList();
-      var p1StatementNodes = parent1.IterateNodesPrefix().ToList().Where((value, index) => p1NodeIndices.Contains(index)).ToList();
-
-      var crossoverPoint0 = crossoverPoints0.SampleRandom(random);
+      var semanticPoint0 = semantic0.SampleRandom(random);
+      var crossoverNode0 = parent0.IterateNodesPrefix().ElementAt(semanticPoint0.TreeNodePrefixPos);
+      var crossoverPoint0 = new CutPoint(crossoverNode0.Parent, crossoverNode0);
       int level = parent0.Root.GetBranchLevel(crossoverPoint0.Child);
       int length = parent0.Root.GetLength() - crossoverPoint0.Child.GetLength();
 
+      var p1NodeIndices = semantic1.Select(x => x.TreeNodePrefixPos).ToList();
+      var p1StatementNodes = parent1.IterateNodesPrefix().Where((value, index) => p1NodeIndices.Contains(index)).ToList();
       var allowedBranches = new List<ISymbolicExpressionTreeNode>();
       p1StatementNodes.ForEach((n) => {
         if (n.GetDepth() + level <= maxTreeDepth && n.GetLength() + length <= maxTreeLength && crossoverPoint0.IsMatchingPointType(n))
@@ -160,8 +162,12 @@ for v in variables:
       if (allowedBranches.Count == 0)
         return parent0;
 
-      // add variable setting to problem data
-      var variableSettings = String.Join("\n", problemData.VariableSettings.Select(x => x.Value));
+      string variableSettings;
+      if (problemData.VariableSettings.Count == 0) {
+        variableSettings = SemanticToPythonVariableSettings(semanticPoint0.Before);
+      } else {
+        variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
+      }
       var variables = problemData.Variables.GetVariableNames().ToList();
 
       // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
@@ -191,10 +197,20 @@ for v in variables:
       return parent0;
     }
 
+    private string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic) {
+      StringBuilder strBuilder = new StringBuilder();
+      foreach (var setting in semantic) {
+        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key,
+                                                         JsonConvert.SerializeObject(setting.Value)));
+      }
+      return strBuilder.ToString();
+    }
+
     private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
-      Dictionary<ISymbolicExpressionTreeNode, JObject> evaluationPerNode = new Dictionary<ISymbolicExpressionTreeNode, JObject>();
+      List<JObject> evaluationPerNode = new List<JObject>();
+      List<double> similarity = new List<double>();
       foreach (var node in compBranches) {
         var parent = node.Parent;
         var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
@@ -204,7 +220,8 @@ for v in variables:
         };
         JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
-        evaluationPerNode.Add(node, json);
+        evaluationPerNode.Add(json);
+        similarity.Add(0);
       }
 
       Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
@@ -212,7 +229,7 @@ for v in variables:
       foreach (var entry in variablesPerType) {
         differences = new List<string>();
         foreach (var variableName in entry.Value) {
-          if (evaluationPerNode.Any(pair => !JToken.EqualityComparer.Equals(jsonOriginal[variableName], pair.Value[variableName]))
+          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonOriginal[variableName], x[variableName]))
           || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], jsonParent0[variableName])) {
             differences.Add(variableName);
           }
@@ -226,20 +243,20 @@ for v in variables:
       if (differencesPerType.Count == 0) return compBranches.SampleRandom(random); // no difference found, crossover with any branch
 
       var typeDifference = differencesPerType.SampleRandom(random);
-      double best = Double.MaxValue;
-      ISymbolicExpressionTreeNode selectedNode = null;
-      foreach (var item in evaluationPerNode) {
-        double cur = 0;
-        foreach (var variableName in typeDifference.Value) {
-          cur += CalculateDifference(jsonParent0[variableName], item.Value[variableName], typeDifference.Key, false);
-        }
-        if (cur > 0 && cur < best) {
-          best = cur;
-          selectedNode = item.Key;
-        }
+      foreach (var variableName in typeDifference.Value) {
+        var variableSimilarity = CalculateDifference(jsonParent0[variableName], evaluationPerNode.Select(x => x[variableName]), typeDifference.Key, true);
+        similarity = similarity.Zip(variableSimilarity, (x, y) => x + y).ToList();
       }
 
-      return selectedNode;
+      double best = Double.MaxValue;
+      int pos = -1;
+      for (int i = 0; i < similarity.Count; i++) {
+        if (similarity[i] < best) {
+          best = similarity[i];
+          pos = i;
+        }
+      }
+      return pos >= 0 ? compBranches.ElementAt(pos) : null;
     }
 
     private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {

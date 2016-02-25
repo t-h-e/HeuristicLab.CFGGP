@@ -20,6 +20,7 @@
 #endregion
 
 
+using System;
 using System.Collections.Generic;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -67,6 +68,22 @@ namespace HeuristicLab.Problems.CFG.Python {
     #endregion
 
     #region properties
+    public string FullHeader {
+      get {
+        string fullHeader = Header == null
+                          ? String.Empty
+                          : Header.Value;
+        return fullHeader;
+      }
+    }
+    public string FullFooter {
+      get {
+        string fullFooter = Footer == null
+                          ? String.Empty
+                          : Footer.Value;
+        return fullFooter;
+      }
+    }
     public TextValue HelperCode {
       get { return HelperCodeParameter.Value; }
     }
@@ -98,6 +115,24 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGPythonProblemData(this, cloner);
+    }
+
+    private const string HELPER_CODE_HEADER =
+@"# *****************************************************************************
+# Helper Code
+# *****************************************************************************";
+    private const string HELPER_CODE_FOOTER =
+    "# *****************************************************************************";
+
+    protected override void SetCodeHeaderAndFooter() {
+      base.SetCodeHeaderAndFooter();
+      int helperCodeHeader = Header.Value.IndexOf(HELPER_CODE_HEADER);
+      if (helperCodeHeader < 0) return;
+
+      int helperCodeFooter = Header.Value.IndexOf(HELPER_CODE_FOOTER, helperCodeHeader + HELPER_CODE_HEADER.Length);
+      if (helperCodeFooter < 0) return;
+
+      HelperCode.Value = Header.Value.Substring(helperCodeHeader, helperCodeFooter + HELPER_CODE_FOOTER.Length);
     }
   }
 }

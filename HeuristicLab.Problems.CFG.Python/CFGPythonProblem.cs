@@ -127,7 +127,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     #region Helpers
     private void InitializeOperators() {
-      //Operators.RemoveAll(x => x is CFGTrainingBestSolutionAnalyzer);
+      Operators.RemoveAll(x => x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() == typeof(CFGTrainingBestSolutionAnalyzer<>));
       Operators.Add(new CFGPythonTrainingBestSolutionAnalyzer());
       Operators.Add(new CFGPythonExceptionAnalyzer());
       ParameterizeOperators();
@@ -160,7 +160,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.TrainingPartitionParameter.Value.End = data.TrainingPartitionEnd;
       problemData.TestPartitionParameter.Value.Start = data.TestPartitionStart;
       problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
-      problemData.HelperCode.Value = data.HelperCode;
+      problemData.EmbedCode.Value = data.Embed;
       return problemData as ICFGPythonProblemData;
     }
   }
