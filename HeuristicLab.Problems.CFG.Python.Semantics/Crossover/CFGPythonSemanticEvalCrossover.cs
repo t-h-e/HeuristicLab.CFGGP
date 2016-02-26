@@ -310,7 +310,7 @@ for v in variables:
         case VariableType.Bool:
           return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>(), normalize);
         case VariableType.Int:
-          return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiff1.Values<long>(), normalize);
+        //  return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiff1.Values<long>(), normalize);
         case VariableType.Float:
           return PythonSemanticComparer.Compare(curDiff0.Values<double>(), curDiff1.Values<double>(), normalize);
         case VariableType.String:
@@ -332,7 +332,7 @@ for v in variables:
         case VariableType.Bool:
           return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiffOthers.Select(x => x.Values<bool>()), normalize);
         case VariableType.Int:
-          return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiffOthers.Select(x => x.Values<long>()), normalize);
+        //  return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiffOthers.Select(x => x.Values<long>()), normalize);
         case VariableType.Float:
           return PythonSemanticComparer.Compare(curDiff0.Values<double>(), curDiffOthers.Select(x => x.Values<double>()), normalize);
         case VariableType.String:

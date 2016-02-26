@@ -36,18 +36,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       return Compare<bool>(first, second, (x, y) => x == y ? 0 : 1, normalize);
     }
 
-    public static double Compare(IEnumerable<long> first, IEnumerable<long> second, bool normalize) {
-      //return Compare<int>(first, second, (x, y) => ((double)Math.Abs(x - y)).IsAlmost(0) ? 0 : 1);
-      return Compare<long>(first, second, (x, y) => Math.Abs(x - y), normalize);
-    }
+    //public static double Compare(IEnumerable<long> first, IEnumerable<long> second, bool normalize) {
+    //  return Compare<long>(first, second, (x, y) => Math.Abs(x - y), normalize);
+    //}
 
     public static double Compare(IEnumerable<double> first, IEnumerable<double> second, bool normalize) {
-      //return Compare<double>(first, second, (x, y) => Math.Abs(x - y).IsAlmost(0) ? 0 : 1);
       return Compare<double>(first, second, (x, y) => Math.Abs(x - y), normalize);
     }
 
     public static double Compare(IEnumerable<string> first, IEnumerable<string> second, bool normalize) {
-      //return Compare<string>(first, second, (x, y) => x.Equals(y) ? 0 : 1);
       return Compare<string>(first, second, LevenshteinDistance, normalize);
     }
 
@@ -113,18 +110,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       return Compare<bool>(first, second, (x, y) => x == y ? 0 : 1, normalize);
     }
 
-    public static IEnumerable<double> Compare(IEnumerable<long> first, IEnumerable<IEnumerable<long>> second, bool normalize) {
-      //return Compare<int>(first, second, (x, y) => ((double)Math.Abs(x - y)).IsAlmost(0) ? 0 : 1);
-      return Compare<long>(first, second, (x, y) => Math.Abs(x - y), normalize);
-    }
+    //public static IEnumerable<double> Compare(IEnumerable<long> first, IEnumerable<IEnumerable<long>> second, bool normalize) {
+    //  return Compare<long>(first, second, (x, y) => Math.Abs(x - y), normalize);
+    //}
 
     public static IEnumerable<double> Compare(IEnumerable<double> first, IEnumerable<IEnumerable<double>> second, bool normalize) {
-      //return Compare<double>(first, second, (x, y) => Math.Abs(x - y).IsAlmost(0) ? 0 : 1);
       return Compare<double>(first, second, (x, y) => Math.Abs(x - y), normalize);
     }
 
     public static IEnumerable<double> Compare(IEnumerable<string> first, IEnumerable<IEnumerable<string>> second, bool normalize) {
-      //return Compare<string>(first, second, (x, y) => x.Equals(y) ? 0 : 1);
       return Compare<string>(first, second, LevenshteinDistance, normalize);
     }
 
@@ -138,7 +132,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       double max = 0;
       int count = 0;
       var firstEnumerator = first.GetEnumerator();
-      var secondEnumerator = second.GetEnumerator();
       while (firstEnumerator.MoveNext() && enumerators.All(x => x.MoveNext())) {
         for (int i = 0; i < enumerators.Count; i++) {
           double cur = distance(firstEnumerator.Current, enumerators[i].Current);
@@ -179,7 +172,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       double max = 0;
       int count = 0;
       var firstEnumerator = first.GetEnumerator();
-      var secondEnumerator = second.GetEnumerator();
       while (firstEnumerator.MoveNext() && enumerators.All(x => x.MoveNext())) {
         for (int i = 0; i < enumerators.Count; i++) {
           double cur = distance(firstEnumerator.Current, enumerators[i].Current);
