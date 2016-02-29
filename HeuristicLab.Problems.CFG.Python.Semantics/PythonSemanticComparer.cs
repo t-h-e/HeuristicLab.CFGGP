@@ -33,19 +33,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     //---------------------------------------------------------------------------------------------------------------
 
     public static double Compare(IEnumerable<bool> first, IEnumerable<bool> second, bool normalize) {
-      return Compare<bool>(first, second, (x, y) => x == y ? 0 : 1, normalize);
+      return Compare(first, second, (x, y) => x == y ? 0 : 1, normalize);
     }
 
-    //public static double Compare(IEnumerable<long> first, IEnumerable<long> second, bool normalize) {
-    //  return Compare<long>(first, second, (x, y) => Math.Abs(x - y), normalize);
-    //}
-
     public static double Compare(IEnumerable<double> first, IEnumerable<double> second, bool normalize) {
-      return Compare<double>(first, second, (x, y) => Math.Abs(x - y), normalize);
+      return Compare(first, second, (x, y) => Math.Abs(x - y), normalize);
     }
 
     public static double Compare(IEnumerable<string> first, IEnumerable<string> second, bool normalize) {
-      return Compare<string>(first, second, LevenshteinDistance, normalize);
+      return Compare(first, second, LevenshteinDistance, normalize);
     }
 
     private static double Compare<T>(IEnumerable<T> first, IEnumerable<T> second, Func<T, T, double> distance, bool normalize) {
@@ -107,19 +103,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     #region base data types multiple
     public static IEnumerable<double> Compare(IEnumerable<bool> first, IEnumerable<IEnumerable<bool>> second, bool normalize) {
-      return Compare<bool>(first, second, (x, y) => x == y ? 0 : 1, normalize);
+      return Compare(first, second, (x, y) => x == y ? 0 : 1, normalize);
     }
 
-    //public static IEnumerable<double> Compare(IEnumerable<long> first, IEnumerable<IEnumerable<long>> second, bool normalize) {
-    //  return Compare<long>(first, second, (x, y) => Math.Abs(x - y), normalize);
-    //}
-
     public static IEnumerable<double> Compare(IEnumerable<double> first, IEnumerable<IEnumerable<double>> second, bool normalize) {
-      return Compare<double>(first, second, (x, y) => Math.Abs(x - y), normalize);
+      return Compare(first, second, (x, y) => Math.Abs(x - y), normalize);
     }
 
     public static IEnumerable<double> Compare(IEnumerable<string> first, IEnumerable<IEnumerable<string>> second, bool normalize) {
-      return Compare<string>(first, second, LevenshteinDistance, normalize);
+      return Compare(first, second, LevenshteinDistance, normalize);
     }
 
     private static IEnumerable<double> Compare<T>(IEnumerable<T> first, IEnumerable<IEnumerable<T>> second, Func<T, T, double> distance, bool normalize) {

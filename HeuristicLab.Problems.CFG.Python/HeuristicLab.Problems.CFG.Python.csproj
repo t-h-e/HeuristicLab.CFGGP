@@ -170,9 +170,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="python_script_evaluation.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="python_script_evaluation.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

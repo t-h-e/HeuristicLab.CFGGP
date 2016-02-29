@@ -32,7 +32,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   /// </summary>
   [Item("CFGPythonTrainingBestSolutionAnalyzer", "An operator that analyzes the training best context free grammar solution.")]
   [StorableClass]
-  public class CFGPythonTrainingBestSolutionAnalyzer : CFGTrainingBestSolutionAnalyzer<CFGPythonProblemData>, ICFGPythonAnalyzer<CFGPythonProblemData> {
+  public class CFGPythonTrainingBestSolutionAnalyzer : CFGTrainingBestSolutionAnalyzer<ICFGPythonProblemData>, ICFGPythonAnalyzer<ICFGPythonProblemData> {
     private const string TimeoutParameterName = "Timeout";
 
     #region parameter properties

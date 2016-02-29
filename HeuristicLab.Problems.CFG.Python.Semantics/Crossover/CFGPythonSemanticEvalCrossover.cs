@@ -310,9 +310,8 @@ for v in variables:
         case VariableType.Bool:
           return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>(), normalize);
         case VariableType.Int:
-        //  return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiff1.Values<long>(), normalize);
         case VariableType.Float:
-          return PythonSemanticComparer.Compare(curDiff0.Values<double>(), curDiff1.Values<double>(), normalize);
+          return PythonSemanticComparer.Compare(ConvertIntJsonToDouble(curDiff0), ConvertIntJsonToDouble(curDiff1), normalize);
         case VariableType.String:
           return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiff1.Values<string>(), normalize);
         case VariableType.List_Bool:
@@ -332,9 +331,8 @@ for v in variables:
         case VariableType.Bool:
           return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiffOthers.Select(x => x.Values<bool>()), normalize);
         case VariableType.Int:
-        //  return PythonSemanticComparer.Compare(curDiff0.Values<long>(), curDiffOthers.Select(x => x.Values<long>()), normalize);
         case VariableType.Float:
-          return PythonSemanticComparer.Compare(curDiff0.Values<double>(), curDiffOthers.Select(x => x.Values<double>()), normalize);
+          return PythonSemanticComparer.Compare(ConvertIntJsonToDouble(curDiff0), curDiffOthers.Select(x => ConvertIntJsonToDouble(x)), normalize);
         case VariableType.String:
           return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiffOthers.Select(x => x.Values<string>()), normalize);
         case VariableType.List_Bool:
@@ -347,6 +345,19 @@ for v in variables:
           return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiffOthers.Select(x => x.Values<List<string>>()), normalize);
       }
       throw new ArgumentException("Variable Type cannot be compared.");
+    }
+
+    /// <summary>
+    /// This method is required to convert Integer values from JSON to double, because of problems with BigInteger conversion to double
+    /// </summary>
+    /// <param name="curDiff0"></param>
+    /// <returns></returns>
+    private IEnumerable<double> ConvertIntJsonToDouble(JToken curDiff0) {
+      var converted = new List<double>();
+      foreach (var child in curDiff0.Children()) {
+        converted.Add((double)child);
+      }
+      return converted;
     }
 
     //copied from SymbolicDataAnalysisExpressionCrossover<T>

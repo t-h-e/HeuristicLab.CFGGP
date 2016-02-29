@@ -22,20 +22,26 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using HeuristicLab.PluginInfrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcess {
+    private const string EVALSCRIPT = "python_script_evaluation.py";
+
     private static Process python;
     private static PythonProcess instance;
 
     private PythonProcess(string pathToPython, string pythonArguments) {
+      CheckIfResourceIsNewer(EVALSCRIPT);
+
       python = new Process {
         StartInfo = new ProcessStartInfo {
           FileName = pathToPython,
-          Arguments = pythonArguments + "python_script_evaluation.py",
+          Arguments = String.Format("{0} {1}", pythonArguments, EVALSCRIPT),
           UseShellExecute = false,
           RedirectStandardOutput = true,
           RedirectStandardInput = true,
@@ -59,11 +65,13 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public bool SetNewPythonPathOrArguments(string pathToPython = "python", string pythonArguments = "") {
+      CheckIfResourceIsNewer(EVALSCRIPT);
+
       if (python != null) python.Kill();
       python = new Process {
         StartInfo = new ProcessStartInfo {
           FileName = pathToPython,
-          Arguments = pythonArguments + " python_script_evaluation.py",
+          Arguments = String.Format("{0} {1}", pythonArguments, EVALSCRIPT),
           UseShellExecute = false,
           RedirectStandardOutput = true,
           RedirectStandardInput = true,
@@ -76,18 +84,28 @@ namespace HeuristicLab.Problems.CFG.Python {
       catch (Win32Exception e) {
         python = null;
         ErrorHandling.ShowErrorDialog(e);
-        return false;
       }
+      return false;
     }
 
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
       if (python == null || python.HasExited) { throw new ArgumentException("No python process has been started."); }
       lock (python) {
         string send = JsonConvert.SerializeObject(es);
-
         python.StandardInput.WriteLine(send);
         python.StandardInput.Flush();
         return JObject.Parse(python.StandardOutput.ReadLine());
+      }
+    }
+
+
+    private void CheckIfResourceIsNewer(string scriptName) {
+      Assembly assembly = GetType().Assembly;
+      if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
+
+      Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", GetType().Namespace, scriptName));
+      using (var fileStream = File.Create(scriptName)) {
+        scriptStream.CopyTo(fileStream);
       }
     }
   }
