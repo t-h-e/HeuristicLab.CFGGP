@@ -50,6 +50,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private const string SemanticsParameterName = "Semantic";
 
     private const string MaxComparesParameterName = "MaxCompares";
+    private const string TimeoutParameterName = "Timeout";
 
     /// <summary>
     /// 0 = variable names
@@ -95,6 +96,9 @@ for v in variables:
     public IValueParameter<IntValue> MaxComparesParameter {
       get { return (IValueParameter<IntValue>)Parameters[MaxComparesParameterName]; }
     }
+    public ILookupParameter<IntValue> TimeoutParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[TimeoutParameterName]; }
+    }
     #endregion
     #region Properties
     public IntValue MaximumSymbolicExpressionTreeLength {
@@ -112,6 +116,7 @@ for v in variables:
     private ItemArray<ItemArray<PythonStatementSemantic>> Semantics {
       get { return SemanticsParameter.ActualValue; }
     }
+    public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
     #endregion
     [StorableConstructor]
     protected CFGPythonSemanticEvalCrossover(bool deserializing) : base(deserializing) { }
@@ -128,6 +133,7 @@ for v in variables:
       Parameters.Add(new LookupParameter<T>(ProblemDataParameterName, "Problem data"));
 
       Parameters.Add(new ValueParameter<IntValue>(MaxComparesParameterName, "Maximum number of branches that ae going to be compared for crossover.", new IntValue(10)));
+      Parameters.Add(new LookupParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)"));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -176,14 +182,16 @@ for v in variables:
       //-------------------------------------TEMP START
       JObject jsonOriginal = PythonProcess.GetInstance().SendAndEvaluateProgram(new EvaluationScript() {
         Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
-        Variables = variables
+        Variables = variables,
+        Timeout = Timeout
       });
       //-------------------------------------TEMP END
 
 
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
         Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), variables, variableSettings),
-        Variables = variables
+        Variables = variables,
+        Timeout = Timeout
       };
       JObject json0 = PythonProcess.GetInstance().SendAndEvaluateProgram(crossoverPointScript0);
       crossoverPoint0.Child.Parent = crossoverPoint0.Parent; // restore parent
@@ -216,7 +224,8 @@ for v in variables:
         var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
           Script = FormatScript(tree1, variables, variableSettings),
-          Variables = variables
+          Variables = variables,
+          Timeout = Timeout
         };
         JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent

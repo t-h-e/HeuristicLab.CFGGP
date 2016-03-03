@@ -135,7 +135,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     private void ParameterizeEvaluator() {
       if (Evaluator != null) {
-        Evaluator.TimeoutParameter.ActualName = TimeoutParameterName;
+        Evaluator.TimeoutParameter.ActualName = TimeoutParameter.Name;
       }
       var treeEvaluator = Evaluator as ISymbolicExpressionTreeOperator;
       if (treeEvaluator != null) {
@@ -149,7 +149,10 @@ namespace HeuristicLab.Problems.CFG.Python {
 
       var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
       foreach (var op in operators.OfType<ICFGPythonAnalyzer<CFGPythonProblemData>>()) {
-        op.TimeoutParameter.ActualName = TimeoutParameterName;
+        op.TimeoutParameter.ActualName = TimeoutParameter.Name;
+      }
+      foreach (var op in operators.OfType<ITimeoutBasedOperator>()) {
+        op.TimeoutParameter.ActualName = TimeoutParameter.Name;
       }
     }
     #endregion

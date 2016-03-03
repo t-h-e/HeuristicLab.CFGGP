@@ -29,20 +29,21 @@ using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcessHelper {
 
-    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, int timeout = 1000) {
+    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, double timeout = 1) {
       return EvaluateProgram(program, PythonHelper.ConvertToPythonValues(input, indices), PythonHelper.ConvertToPythonValues(output, indices), indices, timeout);
     }
 
-    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, int timeout = 1000) {
-      EvaluationScript es = CreateEvaluationScript(program, input, output);
+    public static Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, double timeout = 1) {
+      EvaluationScript es = CreateEvaluationScript(program, input, output, timeout);
       JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(es);
       return GetVariablesFromJson(json, indices.Count());
     }
 
-    protected static EvaluationScript CreateEvaluationScript(string program, string input, string output) {
+    protected static EvaluationScript CreateEvaluationScript(string program, string input, string output, double timeout) {
       return new EvaluationScript() {
         Script = String.Format("inval = {0}\noutval = {1}\n{2}", input, output, program),
-        Variables = new List<string>() { "cases", "caseQuality", "quality" }
+        Variables = new List<string>() { "cases", "caseQuality", "quality" },
+        Timeout = timeout
       };
     }
 

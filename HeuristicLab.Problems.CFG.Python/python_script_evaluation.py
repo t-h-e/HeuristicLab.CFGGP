@@ -1,24 +1,31 @@
 import json
 import threading
+import sys
 
 def worker(script):
-    global exception
+    global exception, stop
     try:
-        exec(script, globals())  # set globals, otherwise the variables are not available to main thread
+        help = {'stop': stop}
+        exec(script, help)
+        results[0] = help
     except BaseException as e:
-        exception = str(e)
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        exception = '{} {} {}'.format(exc_type, exc_obj, e.args)
 
+results = [None]
+stop = [False]
 
 while True:
     message = input()
     message_dict = json.loads(message)
 
-    stop = False
+    stop[0] = False
     t = threading.Thread(target=worker, args=[message_dict['script']])
     t.start()
-    t.join(6)
+    t.join(message_dict['timeout'])
     if t.isAlive():
-        stop = True
+        stop[0] = True
+        t.join()
         print(json.dumps({'exception': 'Timeout occurred.'}))
     elif 'exception' in locals():
         print(json.dumps({'exception': locals()['exception']}))
@@ -26,7 +33,7 @@ while True:
     else:
         ret_message_dict = {}
         for v in message_dict['variables']:
-            if v in locals():
-                ret_message_dict[v] = locals()[v]
+            if v in results[0]:
+                ret_message_dict[v] = results[0][v]
 
         print(json.dumps(ret_message_dict))

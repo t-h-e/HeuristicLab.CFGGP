@@ -28,8 +28,8 @@
 <while> ::= <loop-header>'while '<bool><loop-block>
 
 <loop-header> ::= 'loopBreak% = 0\n'
-// stop is set by outer code to break immediately
-<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop:{:\nbreak\n:}\nloopBreak% += 1:}\n'
+// stop[0] is set by outer code to break immediately
+<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}\n'
 
 // bool
 

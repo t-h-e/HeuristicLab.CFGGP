@@ -22,7 +22,7 @@
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  public interface ICFGPythonSemanticsCrossover<T> : ISymbolicExpressionTreeCrossover, ICFGProblemDataOperator<T>
+  public interface ICFGPythonSemanticsCrossover<T> : ISymbolicExpressionTreeCrossover, ICFGProblemDataOperator<T>, ITimeoutBasedOperator
   where T : class, ICFGPythonProblemData {
   }
 }

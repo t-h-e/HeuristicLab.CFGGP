@@ -72,7 +72,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     #region properties
     public T ProblemData { get { return ProblemDataParameter.ActualValue; } }
-    public int Timeout { get { return TimeoutParameter.ActualValue.Value; } }
+    public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
     public string Program {
       get {
         return PythonHelper.FormatToProgram(ProgramParameter.ActualValue, ProblemData.FullHeader, ProblemData.FullFooter);

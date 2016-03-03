@@ -29,7 +29,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python {
-  public class PythonProcess {
+  public class PythonProcess : IDisposable {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
     private static Process python;
@@ -91,10 +91,17 @@ namespace HeuristicLab.Problems.CFG.Python {
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
       if (python == null || python.HasExited) { throw new ArgumentException("No python process has been started."); }
       lock (python) {
-        string send = JsonConvert.SerializeObject(es);
-        python.StandardInput.WriteLine(send);
-        python.StandardInput.Flush();
-        return JObject.Parse(python.StandardOutput.ReadLine());
+        try {
+          string send = JsonConvert.SerializeObject(es);
+          python.StandardInput.WriteLine(send);
+          python.StandardInput.Flush();
+          return JObject.Parse(python.StandardOutput.ReadLine());
+        }
+        catch (JsonReaderException e) {
+          JObject json = new JObject();
+          json.Add("exception", new JValue(e.Message));
+          return json;
+        }
       }
     }
 
@@ -107,6 +114,10 @@ namespace HeuristicLab.Problems.CFG.Python {
       using (var fileStream = File.Create(scriptName)) {
         scriptStream.CopyTo(fileStream);
       }
+    }
+
+    public void Dispose() {
+      python.Dispose();
     }
   }
 }

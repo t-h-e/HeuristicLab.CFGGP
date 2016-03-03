@@ -33,5 +33,11 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     [JsonProperty("variables")]
     public IList<string> Variables { get; set; }
+
+    /// <summary>
+    /// Timeout in seconds
+    /// </summary>
+    [JsonProperty("timeout")]
+    public double Timeout { get; set; }
   }
 }

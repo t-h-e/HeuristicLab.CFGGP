@@ -17,10 +17,10 @@ variable_list = ['{0}']
 traceTable = {{}}
 
 def trace(frame, event, arg_unused):
-    global past_locals, variable_list, traceTable
+    global past_locals, traceTable, variable_list
 
     if frame.f_code.co_name != 'evolve':
-        return trace
+        return None
 
     relevant_locals = {{}}
     all_locals = frame.f_locals.copy()
@@ -33,18 +33,19 @@ def trace(frame, event, arg_unused):
         # create dict for line number and all variable dicts
         if frame.f_lineno not in traceTable:
             traceTable[frame.f_lineno] = {{}}
-            for var in variable_list:
-                traceTable[frame.f_lineno][var] = []
-        elif len(traceTable[frame.f_lineno][variable_list[0]]) >= {1}:
-            past_locals = relevant_locals
-            return trace
+            for v in variable_list:
+                traceTable[frame.f_lineno][v] = []
+        else:
+            if len(traceTable[frame.f_lineno][variable_list[0]]) >= {1}:
+                past_locals = relevant_locals
+                return trace
 
-        for var in variable_list:
-            if var in relevant_locals:
-                traceTable[frame.f_lineno][var].append(relevant_locals[var])
+        for v in variable_list:
+            if v in relevant_locals:
+                traceTable[frame.f_lineno][v].append(relevant_locals[v])
             else:
                 # actually not needed for IronPython, but added so it works for all python versions
-                traceTable[frame.f_lineno][var].append(None)
+                traceTable[frame.f_lineno][v].append(None)
         past_locals = relevant_locals
     return trace
 
@@ -53,6 +54,8 @@ sys.settrace(trace)
 ";
 
     private const string traceTableReduceEntries = @"
+sys.settrace(None)
+
 lines = sorted(list(traceTable.keys()), reverse=True)
 for i in range(1, len(lines)):
   for v in variable_list:
@@ -78,14 +81,14 @@ for l in lines:
       }
     }
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, int timeout = 1000) {
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, double timeout = 1) {
       string traceProgram = traceCodeWithVariables
                           + program;
       traceProgram += traceCodeWithVariables == String.Empty
                     ? String.Empty
                     : traceTableReduceEntries;
 
-      EvaluationScript es = PythonProcessHelper.CreateEvaluationScript(traceProgram, input, output);
+      EvaluationScript es = PythonProcessHelper.CreateEvaluationScript(traceProgram, input, output, timeout);
       es.Variables.Add("traceTable");
 
       JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(es);
