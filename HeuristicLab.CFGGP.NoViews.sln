@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Misc", "Heuris
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG.Python", "HeuristicLab.Problems.CFG.Python\HeuristicLab.Problems.CFG.Python.csproj", "{CF97234D-9B43-405F-AFEA-DB13685B48EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Problems.CFG.Python.Semantics", "HeuristicLab.Problems.CFG.Python.Semantics\HeuristicLab.Problems.CFG.Python.Semantics.csproj", "{E8BC9B40-560D-4A99-AB10-35FFB1D32C34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeuristicLab.Newtonsoft.Json-8.0.2", "HeuristicLab.Newtonsoft.Json-8.0.2\HeuristicLab.Newtonsoft.Json-8.0.2.csproj", "{2FDF548D-686F-427D-AD8E-86B7D390286A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
