@@ -110,13 +110,14 @@
            | <getStringIndexCall>
            | <string_var_const>'.lstrip()' | <string_var_const>'.rstrip()' | <string_var_const>'.strip()' | <string_var_const>'.lstrip('<string_var_const>')' | <string_var_const>'.rstrip('<string_var_const>')' | <string_var_const>'.strip('<string_var_const>')'
            | <string_var_const>'.capitalize()'
+           | <saveChr>
 
 <string_slice> ::= <string_var_const>'['<int_var_const>':'<int_var_const>']' | <string>'[:'<int_var_const>']' | <string>'['<int_var_const>':]'
 
 <getStringIndexCall> ::= 'getCharFromString('<string_var_const>', '<int_var_const>')'
 
 // Grade only uses marks as string constants
-<string_const> ::= "'"<string_const_part>"'"
+<string_const> ::= "'"<string_literal>"'"
 <string_literal> ::= 'A' | 'B' | 'C' | 'D' | 'F'
 
 <saveChr> ::= 'saveChr('<int>')'
