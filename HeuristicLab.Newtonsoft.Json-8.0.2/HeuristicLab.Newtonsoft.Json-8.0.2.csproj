@@ -38,6 +38,7 @@
   <ItemGroup>
     <Reference Include="HeuristicLab.PluginInfrastructure-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.PluginInfrastructure-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

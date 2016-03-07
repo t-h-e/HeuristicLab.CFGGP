@@ -41,62 +41,77 @@
     <Reference Include="HeuristicLab.Collections-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Collections-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Common-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Common-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Core-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Core-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Data-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Data-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4, Version=3.4.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Encodings.SymbolicExpressionTreeEncoding-3.4.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Operators-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Operators-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Optimization-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Optimization-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Parameters-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Parameters-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Persistence-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Persistence-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.PluginInfrastructure-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.PluginInfrastructure-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Random-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Random-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="IronPython, Version=2.7.5.0, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\IronPython.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Dynamic, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\Microsoft.Dynamic.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\Microsoft.Scripting.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -126,18 +141,22 @@
     <ProjectReference Include="..\HeuristicLab.Misc\HeuristicLab.Misc.csproj">
       <Project>{0e26857a-8f65-4a60-a939-fbe90298afaf}</Project>
       <Name>HeuristicLab.Misc</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\HeuristicLab.Newtonsoft.Json-8.0.2\HeuristicLab.Newtonsoft.Json-8.0.2.csproj">
       <Project>{2fdf548d-686f-427d-ad8e-86b7d390286a}</Project>
       <Name>HeuristicLab.Newtonsoft.Json-8.0.2</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\HeuristicLab.Problems.CFG.Python\HeuristicLab.Problems.CFG.Python.csproj">
       <Project>{cf97234d-9b43-405f-afea-db13685b48ef}</Project>
       <Name>HeuristicLab.Problems.CFG.Python</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\HeuristicLab.Problems.CFG\HeuristicLab.Problems.CFG.csproj">
       <Project>{0c90f665-57a1-4773-8c6e-28e73b8968bc}</Project>
       <Name>HeuristicLab.Problems.CFG</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

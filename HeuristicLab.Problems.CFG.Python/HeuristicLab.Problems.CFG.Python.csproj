@@ -168,6 +168,7 @@
     <ProjectReference Include="..\HeuristicLab.Problems.Instances.CFG\HeuristicLab.Problems.Instances.CFG.csproj">
       <Project>{4996fdbe-c9f3-4a0b-a1f1-8a1a5a1780e1}</Project>
       <Name>HeuristicLab.Problems.Instances.CFG</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
