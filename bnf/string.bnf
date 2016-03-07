@@ -13,8 +13,6 @@
 
 <string> ::= <string_var> | <string_const>
            | '('<string>' + '<string>')'
-           //may not be used
-           | '('<string>' * '<int>')'
            | <string_slice>
            | <getStringIndexCall>
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'

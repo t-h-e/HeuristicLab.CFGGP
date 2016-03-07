@@ -16,7 +16,7 @@
 <string_var> ::= 's0' | 's1' | 's2' | 'res'
 // *****************************************************************************
 
-<code> ::= <code><statement>'\n' | <statement>'\n'
+<code> ::= <code><code> | <statement>'\n'
 
 <statement> ::= <assign> | <compound_stmt>
 <compound_stmt> ::= <if> | <while>
@@ -46,9 +46,11 @@
 
 <bool_assign> ::= <bool_var>' = '<bool>
 
+<bool_var_const> ::= <bool_var> | <bool_const>
+
 <bool> ::= <bool_var> | <bool_const>
-         | <bool_pre> <bool>
-         | '(' <bool> <bool_op> <bool> ')'
+         | <bool_pre> <bool_var_const>
+         | '(' <bool_var_const> <bool_op> <bool_var_const> ')'
          // from int
          | <int> <comp_op> <int>
          // from string
@@ -65,19 +67,24 @@
 
 <int_assign> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
 
+<int_var_const> ::= <int_var> | <int_const>
+
 <int> ::= <int_var> | <int_const>
-        | <arith_prefix><int>
-        | '(' <int> <arith_ops> <int> ')'
-        | <int_arith_ops_protected>'('<int>','<int>')'
-        | 'min('<int>', '<int>')'
-        | 'max('<int>', '<int>')'
-        | 'abs('<int>')'
+        | <arith_prefix><int_var_const>
+        | '(' <int_var_const> <arith_ops> <int_var_const> ')'
+        | <int_arith_ops_protected>'('<int_var_const>','<int_var_const>')'
+        | 'min('<int_var_const>', '<int_var_const>')'
+        | 'max('<int_var_const>', '<int_var_const>')'
+        | 'abs('<int_var_const>')'
         // from string
         | 'len('<string>')' | <saveOrd>
 
 // to avoid problems with leading zeros in python int
 <int_const> ::= 'int('<number>'.0)'
-<number> ::= <number><num> | <num>
+<number> ::= <num> | <num><num> | <num><num><num> | <num><num><num><num> | <num><num><num><num><num>
+           | <num><num><num><num><num><num> | <num><num><num><num><num><num><num>
+           | <num><num><num><num><num><num><num><num> | <num><num><num><num><num><num><num><num><num>
+           | <num><num><num><num><num><num><num><num><num><num>
 <num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 <arith_assign> ::= <arith_ops>'='
@@ -95,19 +102,21 @@
 
 <string_assign> ::= <string_var>' = '<string>
 
+<string_var_const> ::= <string_var> | <string_const>
+
 <string> ::= <string_var> | <string_const>
-           | '('<string>' + '<string>')'
+           | '('<string_var_const>' + '<string_var_const>')'
            | <string_slice>
            | <getStringIndexCall>
-           | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
-           | <string>'.capitalize()'
+           | <string_var_const>'.lstrip()' | <string_var_const>'.rstrip()' | <string_var_const>'.strip()' | <string_var_const>'.lstrip('<string_var_const>')' | <string_var_const>'.rstrip('<string_var_const>')' | <string_var_const>'.strip('<string_var_const>')'
+           | <string_var_const>'.capitalize()'
 
-<string_slice> ::= <string>'['<int>':'<int>']' | <string>'[:'<int>']' | <string>'['<int>':]'
+<string_slice> ::= <string_var_const>'['<int_var_const>':'<int_var_const>']' | <string>'[:'<int_var_const>']' | <string>'['<int_var_const>':]'
 
-<getStringIndexCall> ::= 'getCharFromString('<string>', '<int>')'
+<getStringIndexCall> ::= 'getCharFromString('<string_var_const>', '<int_var_const>')'
 
-<string_const> ::= "'"<string_literal>"'"
-//<string_const_part> ::= <string_const_part><string_literal> | <string_literal><string_const_part> | <string_literal> | <string_literal>
+// Grade only uses marks as string constants
+<string_const> ::= "'"<string_const_part>"'"
 <string_literal> ::= 'A' | 'B' | 'C' | 'D' | 'F'
 
 <saveChr> ::= 'saveChr('<int>')'

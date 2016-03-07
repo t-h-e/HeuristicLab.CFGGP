@@ -29,6 +29,10 @@
 <float_arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
 
 // already contained in int
+<number> ::= <num> | <num><num> | <num><num><num> | <num><num><num><num> | <num><num><num><num><num>
+           | <num><num><num><num><num><num> | <num><num><num><num><num><num><num>
+           | <num><num><num><num><num><num><num><num> | <num><num><num><num><num><num><num><num><num>
+           | <num><num><num><num><num><num><num><num><num><num>
 <num+zero> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 // Return int

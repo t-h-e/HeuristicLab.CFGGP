@@ -40,7 +40,7 @@
 
 // Return bool
 
-<ret_bool> ::= <int_var_const> <comp_op> <int_var_const>
+<ret_bool> ::= <int> <comp_op> <int>
 
 // *****************************************************************************
 // Helper Code

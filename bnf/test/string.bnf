@@ -39,9 +39,9 @@
 
 // Return bool
 
-<ret_bool> ::= <string_var_const>' in '<string_var_const> | <string_var_const>' not in '<string_var_const>
-             | <string_var_const>' == '<string_var_const> | <string_var_const>' != '<string_var_const>
-             | <string_var_const>'.startswith('<string_var_const>')' | <string_var_const>'.endswith('<string_var_const>')'
+<ret_bool> ::= <string>' in '<string> | <string>' not in '<string>
+             | <string>' == '<string> | <string>' != '<string>
+             | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
 
 // *****************************************************************************
 // Helper Code

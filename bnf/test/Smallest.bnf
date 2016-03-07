@@ -14,7 +14,7 @@
 <int_var> ::= 'i0' | 'i1' | 'i2' | 'inList[0]' | 'inList[1]' | 'inList[2]' | 'inList[3]' | 'res'
 // *****************************************************************************
 
-<code> ::= <code><statement>'\n' | <statement>'\n'
+<code> ::= <code><code> | <statement>'\n'
 
 <statement> ::= <assign> | <compound_stmt>
 <compound_stmt> ::= <if> | <while>
@@ -36,7 +36,7 @@
 
 <loop-header> ::= 'loopBreak% = 0\n'
 // stop[0] is set by outer code to break immediately
-<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}'
+<loop-block> ::=':{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}'
 
 // bool
 
