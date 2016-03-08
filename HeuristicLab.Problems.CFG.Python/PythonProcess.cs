@@ -24,7 +24,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using HeuristicLab.PluginInfrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -35,31 +34,13 @@ namespace HeuristicLab.Problems.CFG.Python {
     private static Process python;
     private static PythonProcess instance;
 
-    private PythonProcess(string pathToPython, string pythonArguments) {
-      CheckIfResourceIsNewer(EVALSCRIPT);
-
-      python = new Process {
-        StartInfo = new ProcessStartInfo {
-          FileName = pathToPython,
-          Arguments = String.Format("{0} {1}", pythonArguments, EVALSCRIPT),
-          UseShellExecute = false,
-          RedirectStandardOutput = true,
-          RedirectStandardInput = true,
-          CreateNoWindow = true
-        }
-      };
-      try {
-        python.Start();
-      }
-      catch (Win32Exception e) {
-        python = null;
-        ErrorHandling.ShowErrorDialog(e);
-      }
+    private PythonProcess() {
+      SetNewPythonPathOrArguments();
     }
 
-    public static PythonProcess GetInstance(string pathToPython = "python", string pythonArguments = "") {
+    public static PythonProcess GetInstance() {
       if (instance == null) {
-        instance = new PythonProcess(pathToPython, pythonArguments);
+        instance = new PythonProcess();
       }
       return instance;
     }
@@ -81,16 +62,19 @@ namespace HeuristicLab.Problems.CFG.Python {
       try {
         return python.Start();
       }
-      catch (Win32Exception e) {
+      catch (Win32Exception) {
         python = null;
-        ErrorHandling.ShowErrorDialog(e);
+      }
+      catch (InvalidOperationException) {
+        python = null;
       }
       return false;
     }
 
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
-      if (python == null || python.HasExited) { throw new ArgumentException("No python process has been started."); }
+      if (python == null) { throw new ArgumentException("No python process has been started."); }
       lock (python) {
+        if (python.HasExited) { throw new ArgumentException("Python process has already exited."); }
         try {
           string send = JsonConvert.SerializeObject(es);
           python.StandardInput.WriteLine(send);
@@ -104,7 +88,6 @@ namespace HeuristicLab.Problems.CFG.Python {
         }
       }
     }
-
 
     private void CheckIfResourceIsNewer(string scriptName) {
       Assembly assembly = GetType().Assembly;

@@ -98,6 +98,9 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
+      if (!PythonProcess.GetInstance().SetNewPythonPathOrArguments(PathToPythonParameter.Value.Value)) {
+        PathToPythonParameter.Value.Value = "";
+      }
       RegisterEventHandlers();
     }
 
@@ -155,7 +158,11 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     void PathToPythonParameter_ValueChanged(object sender, EventArgs e) {
-      PythonProcess.GetInstance().SetNewPythonPathOrArguments(PathToPythonParameter.Value.Value);
+      if (!PythonProcess.GetInstance().SetNewPythonPathOrArguments(PathToPythonParameter.Value.Value)) {
+        PathToPythonParameter.Value.ValueChanged -= new EventHandler(PathToPythonParameter_ValueChanged);
+        PathToPythonParameter.Value.Value = "";
+        PathToPythonParameter.Value.ValueChanged += new EventHandler(PathToPythonParameter_ValueChanged);
+      }
     }
   }
 }
