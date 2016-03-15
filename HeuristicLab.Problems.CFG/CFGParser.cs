@@ -28,10 +28,9 @@ using HeuristicLab.PluginInfrastructure;
 
 namespace HeuristicLab.Problems.CFG {
   public class CFGParser {
-    //private const string rulePattern = @"(?<rulename><\S+>)\s*::=\s*(?<production>(?(?=\/\/)\/\/[^\r\n]*$|.+?)+?(?(?=<\S+>\s*::=)(?=<\S+>\s*::=)|\Z))";
-    private const string rulePattern = @"(?<rulename><\S+>)\s*::=\s*(?<production>(?(?=\/\/)\/\/[^\r\n]*|.+?)+?(?(?!<\S+>\s*::=)\Z))";
+    private const string rulePattern = @"(?<rulename><\S+>)\s*::=\s*(?<production>(?:(?=\/\/)\/\/[^\r\n]*|(?!<\S+>\s*::=).+?)+)";
 
-    private const string productionPattern = @"(?(?=\/\/)(?:\/\/.*$)|\s*(?<production>(?:[^'""\|\/\/]+|'.*?'|"".*?"")+))";
+    private const string productionPattern = @"(?=\/\/)(?:\/\/.*$)|(?!\/\/)\s*(?<production>(?:[^'""\|\/\/]+|'.*?'|"".*?"")+)";
 
     private const string ruleInProdPattern = @"\ *([\r\n]+)\ *|([^'""<\r\n]+)|'(.*?)'|""(.*?)""|(?<subrule><[^>|\s]+>)|([<]+)";
 
@@ -92,7 +91,7 @@ namespace HeuristicLab.Problems.CFG {
                   continue;
                 }
 
-                var part = String.Join(String.Empty, Enumerable.Range(1, 6).Select(x => subRule.Groups[x].Value));
+                var part = String.Join(String.Empty, Enumerable.Range(1, subRule.Groups.Count - 1).Select(x => subRule.Groups[x].Value));
                 // unescape characters so that tab and newline can be defined in the grammar
                 if (part.Contains('\\')) {
                   part = part.Replace("\\n", Environment.NewLine);
