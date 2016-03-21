@@ -17,6 +17,7 @@
            | <getStringIndexCall>
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
            | <string>'.capitalize()'
+           | <saveChr>
 
 <string_slice> ::= <string>'['<int>':'<int>']' | <string>'[:'<int>']' | <string>'['<int>':]'
 

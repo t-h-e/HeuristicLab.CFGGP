@@ -42,7 +42,7 @@
 
 <loop-header> ::= 'loopBreak% = 0\n'
 // stop[0] is set by outer code to break immediately
-<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}'
+<loop-block> ::=':{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}'
 
 // int
 

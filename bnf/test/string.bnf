@@ -15,12 +15,11 @@
 
 <string> ::= <string_var> | <string_const>
            | '('<string_var_const>' + '<string_var_const>')'
-           //may not be used
-           | '('<string_var_const>' * '<int_var_const>')'
            | <string_slice>
            | <getStringIndexCall>
            | <string_var_const>'.lstrip()' | <string_var_const>'.rstrip()' | <string_var_const>'.strip()' | <string_var_const>'.lstrip('<string_var_const>')' | <string_var_const>'.rstrip('<string_var_const>')' | <string_var_const>'.strip('<string_var_const>')'
            | <string_var_const>'.capitalize()'
+           | <saveChr>
 
 <string_slice> ::= <string_var_const>'['<int_var_const>':'<int_var_const>']' | <string>'[:'<int_var_const>']' | <string>'['<int_var_const>':]'
 

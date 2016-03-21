@@ -31,6 +31,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcess : IDisposable {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
+    private static Object pythonLock = new Object();
     private static Process python;
     private static PythonProcess instance;
 
@@ -48,32 +49,35 @@ namespace HeuristicLab.Problems.CFG.Python {
     public bool SetNewPythonPathOrArguments(string pathToPython = "python", string pythonArguments = "") {
       CheckIfResourceIsNewer(EVALSCRIPT);
 
-      if (python != null) python.Kill();
-      python = new Process {
-        StartInfo = new ProcessStartInfo {
-          FileName = pathToPython,
-          Arguments = String.Format("{0} {1}", pythonArguments, EVALSCRIPT),
-          UseShellExecute = false,
-          RedirectStandardOutput = true,
-          RedirectStandardInput = true,
-          CreateNoWindow = true
+      lock (pythonLock) {
+        if (python != null) python.Kill();
+        python = new Process {
+          StartInfo = new ProcessStartInfo {
+            FileName = pathToPython,
+            Arguments = String.Format("{0} {1}", pythonArguments, EVALSCRIPT),
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true,
+            CreateNoWindow = true
+          }
+        };
+        try {
+          return python.Start();
         }
-      };
-      try {
-        return python.Start();
+        catch (Win32Exception) {
+          python = null;
+        }
+        catch (InvalidOperationException) {
+          python = null;
+        }
+        return false;
       }
-      catch (Win32Exception) {
-        python = null;
-      }
-      catch (InvalidOperationException) {
-        python = null;
-      }
-      return false;
     }
 
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
-      if (python == null) { throw new ArgumentException("No python process has been started."); }
-      lock (python) {
+      lock (pythonLock) {
+        if (python == null) { throw new ArgumentException("No python process has been started."); }
+        //lock (python) {
         if (python.HasExited) { throw new ArgumentException("Python process has already exited."); }
         try {
           string send = JsonConvert.SerializeObject(es);
@@ -90,12 +94,14 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     private void CheckIfResourceIsNewer(string scriptName) {
-      Assembly assembly = GetType().Assembly;
-      if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
+      lock (pythonLock) {
+        Assembly assembly = GetType().Assembly;
+        if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
 
-      Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", GetType().Namespace, scriptName));
-      using (var fileStream = File.Create(scriptName)) {
-        scriptStream.CopyTo(fileStream);
+        Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", GetType().Namespace, scriptName));
+        using (var fileStream = File.Create(scriptName)) {
+          scriptStream.CopyTo(fileStream);
+        }
       }
     }
 
