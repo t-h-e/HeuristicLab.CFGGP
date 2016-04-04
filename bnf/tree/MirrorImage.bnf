@@ -1,28 +1,36 @@
 // *****************************************************************************
-// Median grammar
+// NegativeToZero grammar
 // *****************************************************************************
 
 // structure
 
 <predefined> ::= 'b0 = b1 = b2 = bool()'
                  'i0 = i1 = i2 = int()'
-                 'res = int()'
+                 'list_int0 = list_int1 = list_int2 = []'
+                 'res = bool()'
                  <code>
 
 // *****************************************************************************
-<bool_var> ::= 'b0' | 'b1' | 'b2'
-<int_var> ::= 'i0' | 'i1' | 'i2' | 'in0' | 'in1' | 'in2' | 'res'
+<bool_var> ::= 'b0' | 'b1' | 'b2' | 'res'
+<int_var> ::= 'i0' | 'i1' | 'i2'
+<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2' | 'in0' | 'in1'
 // *****************************************************************************
 
-<code> ::= <code><statement>'\n' | <statement>'\n'
+<code> ::= <code><code>'\n' | <statement>'\n'
 
-<statement> ::= <assign> | <compound_stmt>
-<compound_stmt> ::= <if> | <while>
+<statement> ::= <simple_stmt> | <compound_stmt>
+<simple_stmt> ::= <call> | <assign>
+<compound_stmt> ::= <if> | <while> | <for>
 
             // from bool
 <assign> ::= <bool_assign>
            // from int
            | <int_assign>
+
+<call> ::= <list_int_var>'.append('<int>')'
+         | <list_int_var>'.insert('<int>','<int>')'
+         | <deleteListItemCall_int>
+         | <setListIndexToCall_int>
 
 <if> ::= <if-then> | <if-then><else>
 
@@ -33,6 +41,9 @@
 
 
 <while> ::= <loop-header>'while '<bool><loop-block>
+        // from list_int
+<for> ::= <loop-header>'for forCounter% in '<list_int><loop-block>
+        | <loop-header>'for '<int_var>' in '<list_int><loop-block>
 
 <loop-header> ::= 'loopBreak% = 0\n'
 // stop[0] is set by outer code to break immediately
@@ -47,6 +58,8 @@
          | '(' <bool> <bool_op> <bool> ')'
          // from int
          | <int> <comp_op> <int>
+         // from list_int
+         | <int> <in_list_comp_op> <list_int>
 
 <bool_op> ::= 'and' | 'or'
 <bool_pre> ::= 'not'
@@ -64,10 +77,13 @@
         | 'min('<int>', '<int>')'
         | 'max('<int>', '<int>')'
         | 'abs('<int>')'
+        // from list_int
+        | <getListIndexCall_int>
+        | 'len('<list_int>')'
 
 // to avoid problems with leading zeros in python int
 <int_const> ::= 'int('<number>'.0)'
-<number> ::= <number><num> | <num>
+<number> ::= <number><number> | <num>
 <num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 <arith_assign> ::= <arith_ops>'='
@@ -80,3 +96,17 @@
 //|'~'
 
 <comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
+
+// list_int
+
+<list_int_assign> ::= <list_int_var>' = '<list_int>
+
+<list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
+<list_int_slice> ::= <list_int>'['<int>':'<int>']' | <list_int>'[:'<int>']' | <list_int>'['<int>':]'
+<list_int_range> ::= 'list(saveRange('<int>','<int>'))'
+
+<getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
+<setListIndexToCall_int> ::= 'setListIndexTo('<list_int>', '<int>', '<int>')'
+<deleteListItemCall_int> ::= 'deleteListItem('<list_int>', '<int>')'
+
+<in_list_comp_op> ::= 'in'|'not in'

@@ -1,0 +1,107 @@
+// *****************************************************************************
+// VectorAverage grammar
+// *****************************************************************************
+
+// structure
+
+<predefined> ::= 'i0 = i1 = i2 = int()'
+                 'f0 = f1 = f2 = float()'
+                 'lf0 = lf1 = lf2 = []'
+                 'res = float()'
+                 <code>
+
+// *****************************************************************************
+<int_var> ::= 'i0' | 'i1' | 'i2'
+<float_var> ::= 'f0' | 'f1' | 'f2' | 'res'
+<list_float_var> ::= 'lf0' | 'lf1' | 'lf2' | 'in0'
+// *****************************************************************************
+
+<code> ::= <code><code>'\n' | <statement>'\n'
+
+<statement> ::= <simple_stmt> | <for>
+<simple_stmt> ::= <call> | <assign>
+
+            // from int
+<assign> ::= <int_assign>
+           // from float
+           | <float_assign>
+           // from list_float
+           | <list_float_assign>
+
+          // from list_float
+<call> ::= <list_float_var>'.append('<float>')'
+         | <list_float_var>'.insert('<int>','<float>')'
+         | <deleteListItemCall_float>
+         | <setListIndexToCall_float>
+
+<block> ::= ':{:\n'<code>':}'
+
+        // from list_float
+<for> ::= <loop-header>'for forCounter% in '<list_float><loop-block>
+        | <loop-header>'for '<float_var>' in '<list_float><loop-block>
+
+<loop-header> ::= 'loopBreak% = 0\n'
+// stop[0] is set by outer code to break immediately
+<loop-block> ::=':{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}'
+
+// int
+
+<int_assign> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
+
+<int> ::= <int_var> | <int_const>
+        | <arith_prefix><int>
+        | '(' <int> <arith_ops> <int> ')'
+        | <int_arith_ops_protected>'('<int>','<int>')'
+        | 'min('<int>', '<int>')'
+        | 'max('<int>', '<int>')'
+        | 'abs('<int>')'
+        // from float
+        | 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))' | 'int('<float>')'
+        // from list_float
+        | 'len('<list_float>')'
+
+// to avoid problems with leading zeros in python int
+<int_const> ::= 'int('<number>'.0)'
+<number> ::= <number><number> | <num>
+<num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
+<arith_assign> ::= <arith_ops>'='
+<arith_ops> ::= '+'|'-'|'*'
+// ** raises ZeroDivision error when 'a = 0; a ** ~a'
+// |'**'
+
+<int_arith_ops_protected> ::= 'divInt' | 'mod'
+<arith_prefix> ::= '+'|'-'
+//|'~'
+
+<comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
+
+// float
+
+<float_assign> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
+
+<float> ::= <float_var> | <float_const> | <int>
+        | <arith_prefix><float>
+        | '(' <float> <arith_ops> <float> ')' | '(' <int> <arith_ops> <float> ')' | '(' <float> <arith_ops> <int> ')'
+        | <float_arith_ops_protected>'('<float>','<float>')' | <float_arith_ops_protected>'('<int>','<float>')' | <float_arith_ops_protected>'('<float>','<int>')'
+        | 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
+        | 'min('<float>', '<float>')' | 'min('<int>', '<float>')' | 'min('<float>', '<int>')'
+        | 'max('<float>', '<float>')' | 'max('<int>', '<float>')' | 'max('<float>', '<int>')'
+        | 'abs('<float>')'
+        // from list_float
+        | <getListIndexCall_float>
+
+<float_const> ::= <number>'.'<number>
+
+<float_arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
+
+// list_float
+
+<list_float_assign> ::= <list_float_var>' = '<list_float>
+
+<list_float> ::= <list_float_var> | <list_float_slice>
+<list_float_slice> ::= <list_float>'['<int>':'<int>']' | <list_float>'[:'<int>']' | <list_float>'['<int>':]'
+
+<getListIndexCall_float> ::= 'getIndexFloatList('<list_float>', '<int>')'
+<setListIndexToCall_float> ::= 'setListIndexTo('<list_float>', '<int>', '<float>')'
+<deleteListItemCall_float> ::= 'deleteListItem('<list_float>', '<int>')'
