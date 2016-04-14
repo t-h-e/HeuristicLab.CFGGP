@@ -40,6 +40,10 @@ while True:
                     ret_message_dict[v] = results[0][v]
 
             print(json.dumps(ret_message_dict))
+    except EOFError as err:
+        # No data was read with input()
+        # HeuristicLab is not running anymore
+        break
     except BaseException as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         print('{} {} {}'.format(exc_type, exc_obj, e.args))

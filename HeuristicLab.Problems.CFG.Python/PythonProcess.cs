@@ -28,10 +28,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python {
-  public class PythonProcess : IDisposable {
+  public class PythonProcess {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
     private static Object pythonLock = new Object();
+
+    /// <summary>
+    /// Process should normally be closed, but the process created closes itself automatically if HeuristicLab is closed
+    /// </summary>
     private static Process python;
     private static PythonProcess instance;
 
@@ -103,10 +107,6 @@ namespace HeuristicLab.Problems.CFG.Python {
           scriptStream.CopyTo(fileStream);
         }
       }
-    }
-
-    public void Dispose() {
-      python.Dispose();
     }
   }
 }
