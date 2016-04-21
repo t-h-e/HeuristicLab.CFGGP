@@ -2,13 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using HeuristicLab.Core;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using IronPython.Runtime;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  public class PythonProcessSemanticHelper : PythonProcessHelper {
+  public class PythonProcessSemanticHelper {
 
     private const string traceCode = @"import sys
 
@@ -69,11 +70,14 @@ for l in lines:
 
     private string traceCodeWithVariables;
 
+    private ILookupParameter<PythonProcess> pythonProcessParameter;
+
     public PythonProcessSemanticHelper() {
       traceCodeWithVariables = String.Empty;
     }
 
-    public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit) {
+    public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit, ILookupParameter<PythonProcess> pythonProcessParameter) {
+      this.pythonProcessParameter = pythonProcessParameter;
       if (variableNames == null || variableNames.Count() == 0 || limit <= 0) {
         traceCodeWithVariables = String.Empty;
       } else {
@@ -88,11 +92,11 @@ for l in lines:
                     ? String.Empty
                     : traceTableReduceEntries;
 
-      EvaluationScript es = PythonProcessHelper.CreateEvaluationScript(traceProgram, input, output, timeout);
+      EvaluationScript es = pythonProcessParameter.ActualValue.CreateEvaluationScript(traceProgram, input, output, timeout);
       es.Variables.Add("traceTable");
 
-      JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(es);
-      var baseResult = PythonProcessHelper.GetVariablesFromJson(json, indices.Count());
+      JObject json = pythonProcessParameter.ActualValue.SendAndEvaluateProgram(es);
+      var baseResult = pythonProcessParameter.ActualValue.GetVariablesFromJson(json, indices.Count());
 
       if (json["traceTable"] == null) {
         return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, new List<PythonStatementSemantic>());

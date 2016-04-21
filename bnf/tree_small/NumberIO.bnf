@@ -29,12 +29,12 @@
 <int_var_const> ::= <int_var> | <int_const>
 
 <int> ::= <int_var> | <int_const>
-        // | <arith_prefix><int>
+        | <arith_prefix><int>
         | '(' <int_var_const> <arith_ops> <int_var_const> ')'
         | <int_arith_ops_protected>'('<int_var_const>','<int_var_const>')'
         | 'min('<int_var_const>', '<int_var_const>')'
         | 'max('<int_var_const>', '<int_var_const>')'
-        // | 'abs('<int>')'
+        | 'abs('<int>')'
         // from float
         | 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))' | 'int('<float>')'
 

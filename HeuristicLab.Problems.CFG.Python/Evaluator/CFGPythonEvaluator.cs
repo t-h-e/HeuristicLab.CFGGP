@@ -19,7 +19,6 @@
  */
 #endregion
 
-using System;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -64,9 +63,8 @@ namespace HeuristicLab.Problems.CFG.Python {
       get { return (IValueLookupParameter<StringValue>)Parameters["PythonOutputCache"]; }
     }
 
-    // TODO may be exchanged with FileValue instead of StringValue
-    public IFixedValueParameter<StringValue> PathToPythonParameter {
-      get { return (IFixedValueParameter<StringValue>)Parameters["PathToPython"]; }
+    public ILookupParameter<PythonProcess> PythonProcessParameter {
+      get { return (ILookupParameter<PythonProcess>)Parameters["PythonProcess"]; }
     }
     #endregion
 
@@ -96,14 +94,6 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
     #endregion
 
-    [StorableHook(HookType.AfterDeserialization)]
-    private void AfterDeserialization() {
-      if (!PythonProcess.GetInstance().SetNewPythonPathOrArguments(PathToPythonParameter.Value.Value)) {
-        PathToPythonParameter.Value.Value = "";
-      }
-      RegisterEventHandlers();
-    }
-
     [StorableConstructor]
     protected CFGPythonEvaluator(bool deserializing) : base(deserializing) { }
     protected CFGPythonEvaluator(CFGPythonEvaluator<T> original, Cloner cloner)
@@ -120,13 +110,10 @@ namespace HeuristicLab.Problems.CFG.Python {
 
       Parameters.Add(new ValueLookupParameter<StringValue>("PythonInputCache", "Cache python input"));
       Parameters.Add(new ValueLookupParameter<StringValue>("PythonOutputCache", "Cache python output"));
-
-      Parameters.Add(new FixedValueParameter<StringValue>("PathToPython", "Path to python", new StringValue("python")));
+      Parameters.Add(new LookupParameter<PythonProcess>("PythonProcess", "Python process"));
 
       SuccessfulCasesParameter.Hidden = true;
       CaseQualitiesParameter.Hidden = true;
-
-      RegisterEventHandlers();
     }
 
     public virtual void ClearCachedValues() {
@@ -139,7 +126,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     public override IOperation InstrumentedApply() {
-      var result = PythonProcessHelper.EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
+      var result = PythonProcessParameter.ActualValue.EvaluateProgram(Program, Input, Output, ProblemData.TrainingIndices, Timeout);
 
       SuccessfulCasesParameter.ActualValue = new BoolArray(result.Item1.ToArray());
       CaseQualitiesParameter.ActualValue = new DoubleArray(result.Item2.ToArray());
@@ -151,18 +138,6 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public IOperation InstrumentedApplyWithoutEvaluation() {
       return base.InstrumentedApply();
-    }
-
-    private void RegisterEventHandlers() {
-      PathToPythonParameter.Value.ValueChanged += new EventHandler(PathToPythonParameter_ValueChanged);
-    }
-
-    void PathToPythonParameter_ValueChanged(object sender, EventArgs e) {
-      if (!PythonProcess.GetInstance().SetNewPythonPathOrArguments(PathToPythonParameter.Value.Value)) {
-        PathToPythonParameter.Value.ValueChanged -= new EventHandler(PathToPythonParameter_ValueChanged);
-        PathToPythonParameter.Value.Value = "";
-        PathToPythonParameter.Value.ValueChanged += new EventHandler(PathToPythonParameter_ValueChanged);
-      }
     }
   }
 }

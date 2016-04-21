@@ -28,12 +28,12 @@
 <int_assign> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
 
 <int> ::= <int_var> | <int_const>
-        // | <arith_prefix><int>
+        | <arith_prefix><int>
         | '(' <int> <arith_ops> <int> ')'
         | <int_arith_ops_protected>'('<int>','<int>')'
         | 'min('<int>', '<int>')'
         | 'max('<int>', '<int>')'
-        // | 'abs('<int>')'
+        | 'abs('<int>')'
         // from float
         | 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))' | 'int('<float>')'
 

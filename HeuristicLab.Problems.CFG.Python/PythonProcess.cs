@@ -20,81 +20,270 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Threading;
+using HeuristicLab.Common;
+using HeuristicLab.Core;
+using HeuristicLab.Data;
+using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python {
-  public class PythonProcess {
+  [Item("Python Process", "Item that runs a Python process")]
+  [StorableClass]
+  public class PythonProcess : NamedItem {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
-    private static Object pythonLock = new Object();
+    private Object pythonLock = new Object();
 
+    #region Fields & Properties
     /// <summary>
     /// Process should normally be closed, but the process created closes itself automatically if HeuristicLab is closed
     /// </summary>
-    private static Process python;
-    private static PythonProcess instance;
-
-    private PythonProcess() {
-      SetNewPythonPathOrArguments();
-    }
-
-    public static PythonProcess GetInstance() {
-      if (instance == null) {
-        instance = new PythonProcess();
+    private Process python;
+    [Storable]
+    private string executable;
+    public string Executable {
+      get { return executable; }
+      set {
+        if (value == executable) return;
+        executable = value;
+        UpdateName();
+        StartPython();
+        OnExecutableChanged();
       }
-      return instance;
+    }
+    [Storable]
+    private string arguments;
+    public string Arguments {
+      get { return arguments; }
+      set {
+        if (value == arguments) return;
+        arguments = value;
+        UpdateName();
+        StartPython();
+        OnArgumentsChanged();
+      }
+    }
+    #endregion
+
+    [StorableConstructor]
+    protected PythonProcess(bool deserializing) : base(deserializing) { }
+    protected PythonProcess(PythonProcess original, Cloner cloner)
+      : base(original, cloner) {
+      executable = original.executable;
+      arguments = original.arguments;
+      UpdateName();
+      StartPython();
     }
 
-    public bool SetNewPythonPathOrArguments(string pathToPython = "python", string pythonArguments = "") {
+    public PythonProcess() : this("python", String.Empty) { }
+    public PythonProcess(string executable, string arguments)
+      : base() {
+      this.executable = executable;
+      this.arguments = arguments;
+      UpdateName();
+      StartPython();
+    }
+
+    public override IDeepCloneable Clone(Cloner cloner) {
+      return new PythonProcess(this, cloner);
+    }
+
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      UpdateName();
+      StartPython();
+    }
+
+    public void StartPython() {
       CheckIfResourceIsNewer(EVALSCRIPT);
 
       lock (pythonLock) {
-        if (python != null) python.Kill();
+        if (python != null && !python.HasExited) python.Kill();
         python = new Process {
           StartInfo = new ProcessStartInfo {
-            FileName = pathToPython,
-            Arguments = String.Format("{0} {1}", pythonArguments, EVALSCRIPT),
+            FileName = executable,
+            Arguments = String.Format("{0} {1}", arguments, EVALSCRIPT),
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardInput = true,
-            CreateNoWindow = true
+            CreateNoWindow = true,
           }
         };
         try {
-          return python.Start();
+          python.Start();
+          OnProcessStarted();
         }
-        catch (Win32Exception) {
+        catch (Win32Exception ex) {
           python = null;
+          OnProcessException(ex);
         }
-        catch (InvalidOperationException) {
+        catch (InvalidOperationException ex) {
           python = null;
+          OnProcessException(ex);
         }
-        return false;
       }
     }
 
+    public bool IsPythonRunning() {
+      return python != null && !python.HasExited;
+    }
+
+    private void UpdateName() {
+      name = string.Format("Process {0} {1}", Path.GetFileNameWithoutExtension(executable), arguments);
+      OnNameChanged();
+    }
+
+    #region Events
+    public event EventHandler ExecutableChanged;
+    protected void OnExecutableChanged() {
+      EventHandler handler = ExecutableChanged;
+      if (handler != null) handler(this, EventArgs.Empty);
+    }
+
+    public event EventHandler ArgumentsChanged;
+    protected void OnArgumentsChanged() {
+      EventHandler handler = ArgumentsChanged;
+      if (handler != null) handler(this, EventArgs.Empty);
+    }
+
+    public event EventHandler ProcessStarted;
+    private void OnProcessStarted() {
+      EventHandler handler = ProcessStarted;
+      if (handler != null) handler(this, EventArgs.Empty);
+    }
+
+    public event EventHandler<EventArgs<Exception>> ProcessException;
+    private void OnProcessException(Exception e) {
+      EventHandler<EventArgs<Exception>> handler = ProcessException;
+      if (handler != null) handler(this, new EventArgs<Exception>(e));
+    }
+    #endregion
+
+
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, StringArray input, StringArray output, IEnumerable<int> indices, double timeout = 1) {
+      return EvaluateProgram(program, PythonHelper.ConvertToPythonValues(input, indices), PythonHelper.ConvertToPythonValues(output, indices), indices, timeout);
+    }
+
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, double timeout = 1) {
+      EvaluationScript es = CreateEvaluationScript(program, input, output, timeout);
+      JObject json = SendAndEvaluateProgram(es);
+      return GetVariablesFromJson(json, indices.Count());
+    }
+
+    public EvaluationScript CreateEvaluationScript(string program, string input, string output, double timeout) {
+      return new EvaluationScript() {
+        Script = String.Format("inval = {0}\noutval = {1}\n{2}", input, output, program),
+        Variables = new List<string>() { "cases", "caseQuality", "quality" },
+        Timeout = timeout
+      };
+    }
+
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> GetVariablesFromJson(JObject json, int numberOfCases) {
+      string exception = !String.IsNullOrWhiteSpace((string)json["exception"]) ? (string)json["exception"] : String.Empty;
+
+      // get return values
+      IEnumerable<bool> cases = json["cases"] != null
+                              ? cases = json["cases"].Select(x => (bool)x)
+                              : cases = Enumerable.Repeat(false, numberOfCases);
+
+      IEnumerable<double> caseQualities = json["caseQualities"] != null
+                                        ? caseQualities = json["caseQualities"].Select(x => (double)x)
+                                        : caseQualities = new List<double>();
+
+      double quality = json["quality"] == null || Double.IsInfinity((double)json["quality"])
+                     ? Double.MaxValue
+                     : (double)json["quality"];
+
+      return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
+    }
+
+    private ConcurrentDictionary<string, ManualResetEventSlim> waitDict = new ConcurrentDictionary<string, ManualResetEventSlim>();
+    private ConcurrentDictionary<string, JObject> resultDict = new ConcurrentDictionary<string, JObject>();
+
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
+      ManualResetEventSlim wh = new ManualResetEventSlim(false);
+      es.Id = Guid.NewGuid().ToString();
+      waitDict.TryAdd(es.Id, wh);
+      string send = JsonConvert.SerializeObject(es);
       lock (pythonLock) {
-        if (python == null) { throw new ArgumentException("No python process has been started."); }
-        //lock (python) {
-        if (python.HasExited) { throw new ArgumentException("Python process has already exited."); }
-        try {
-          string send = JsonConvert.SerializeObject(es);
-          python.StandardInput.WriteLine(send);
-          python.StandardInput.Flush();
-          return JObject.Parse(python.StandardOutput.ReadLine());
+        if (python == null || python.HasExited) {
+          ArgumentException e = new ArgumentException(python == null ? "No python process has been started." : "Python process has already exited.");
+          OnProcessException(e);
+          throw e;
         }
-        catch (JsonReaderException e) {
-          JObject json = new JObject();
-          json.Add("exception", new JValue(e.Message));
-          return json;
-        }
+
+        python.StandardInput.WriteLine(send);
+        python.StandardInput.Flush();
       }
+
+      IncrementPythonWait();
+
+      JObject res;
+      if (wh.WaitHandle.WaitOne((int)(es.Timeout * 1000 * 30))) {
+        if (!resultDict.TryRemove(es.Id, out res)) {
+          res = new JObject();
+          res.Add("exception", new JValue("Something went wrong."));
+        }
+      } else {
+        res = new JObject();
+        res.Add("exception", new JValue("Timeout while waiting for python."));
+      }
+
+      waitDict.TryRemove(es.Id, out wh);
+      return res;
+    }
+
+    private Object readCounterLock = new Object();
+    private int readCounter = 0;
+
+    private Thread readerThread;
+
+    private void IncrementPythonWait() {
+      lock (readCounterLock) {
+        if (readCounter == 0) {
+          //start thread
+          if (readerThread != null && readerThread.IsAlive) {
+            readerThread.Join();
+          }
+          readerThread = new Thread(this.ReadPythonOutput);
+          readerThread.Start();
+        }
+        readCounter++;
+      }
+    }
+
+    private void ReadPythonOutput() {
+      bool continueRead;
+
+      do {
+        continueRead = false;
+        // not locked, otherwise there is no concurrency
+        // only one thread should read StandardOutput
+        // should only be read when python process is running and is not being restarted
+        JObject res = JObject.Parse(python.StandardOutput.ReadLine());
+        string id = res["id"].Value<string>();
+        resultDict.TryAdd(id, res);
+
+        ManualResetEventSlim wh;
+        if (waitDict.TryGetValue(id, out wh)) {
+          wh.Set();
+        }
+
+        lock (readCounterLock) {
+          readCounter--;
+          continueRead = readCounter > 0;
+        }
+
+      } while (continueRead);
     }
 
     private void CheckIfResourceIsNewer(string scriptName) {

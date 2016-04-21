@@ -19,9 +19,12 @@
  */
 #endregion
 
+using HeuristicLab.Core;
+
 namespace HeuristicLab.Problems.CFG.Python {
   public interface ICFGPythonEvaluator<T> : ICFGEvaluator<T>, ITimeoutBasedOperator
   where T : class, ICFGPythonProblemData {
+    ILookupParameter<PythonProcess> PythonProcessParameter { get; }
     void ClearCachedValues();
   }
 }

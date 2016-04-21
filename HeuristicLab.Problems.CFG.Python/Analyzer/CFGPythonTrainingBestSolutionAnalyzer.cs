@@ -39,6 +39,13 @@ namespace HeuristicLab.Problems.CFG.Python {
     public ILookupParameter<IntValue> TimeoutParameter {
       get { return (ILookupParameter<IntValue>)Parameters[TimeoutParameterName]; }
     }
+    public ILookupParameter<PythonProcess> PythonProcessParameter {
+      get { return (ILookupParameter<PythonProcess>)Parameters["PythonProcess"]; }
+    }
+    #endregion
+
+    #region properties
+    public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
     #endregion
 
     [StorableConstructor]
@@ -47,6 +54,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     public CFGPythonTrainingBestSolutionAnalyzer()
       : base() {
       Parameters.Add(new LookupParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped."));
+      Parameters.Add(new LookupParameter<PythonProcess>("PythonProcess", "Python process"));
       UpdateAlwaysParameter.Hidden = true;
     }
 
@@ -55,7 +63,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     protected override CFGSolution CreateCFGSolution(ISymbolicExpressionTree bestTree) {
-      return new CFGPythonSolution(bestTree, ProblemDataParameter.ActualValue, TimeoutParameter.ActualValue);
+      return new CFGPythonSolution(bestTree, ProblemDataParameter.ActualValue, Timeout, PythonProcessParameter.ActualValue);
     }
   }
 }

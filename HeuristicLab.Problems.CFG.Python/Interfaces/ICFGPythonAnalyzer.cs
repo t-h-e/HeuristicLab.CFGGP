@@ -25,5 +25,6 @@ using HeuristicLab.Data;
 namespace HeuristicLab.Problems.CFG.Python {
   public interface ICFGPythonAnalyzer<T> : ICFGAnalyzer<T> where T : class, ICFGPythonProblemData {
     ILookupParameter<IntValue> TimeoutParameter { get; }
+    ILookupParameter<PythonProcess> PythonProcessParameter { get; }
   }
 }

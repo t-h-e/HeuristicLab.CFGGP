@@ -41,6 +41,10 @@ namespace HeuristicLab.Problems.CFG.Python {
     public IValueParameter<IntValue> TimeoutParameter {
       get { return (IValueParameter<IntValue>)Parameters[TimeoutParameterName]; }
     }
+
+    public IFixedValueParameter<PythonProcess> PythonProcessParameter {
+      get { return (IFixedValueParameter<PythonProcess>)Parameters["PythonProcess"]; }
+    }
     #endregion
 
     [StorableConstructor]
@@ -52,6 +56,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     public CFGPythonProblem()
       : base(CFGPythonProblemData.EmptyProblemData, new CFGPythonEvaluator<ICFGPythonProblemData>(), new ProbabilisticTreeCreator()) {
       Parameters.Add(new FixedValueParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)", new IntValue(1000)));
+      Parameters.Add(new FixedValueParameter<PythonProcess>("PythonProcess", "Python process", new PythonProcess()));
 
       SetVariables();
 
@@ -136,6 +141,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     private void ParameterizeEvaluator() {
       if (Evaluator != null) {
         Evaluator.TimeoutParameter.ActualName = TimeoutParameter.Name;
+        Evaluator.PythonProcessParameter.ActualName = PythonProcessParameter.Name;
       }
       var treeEvaluator = Evaluator as ISymbolicExpressionTreeOperator;
       if (treeEvaluator != null) {
@@ -150,6 +156,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
       foreach (var op in operators.OfType<ICFGPythonAnalyzer<CFGPythonProblemData>>()) {
         op.TimeoutParameter.ActualName = TimeoutParameter.Name;
+        op.PythonProcessParameter.ActualName = PythonProcessParameter.Name;
       }
       foreach (var op in operators.OfType<ITimeoutBasedOperator>()) {
         op.TimeoutParameter.ActualName = TimeoutParameter.Name;

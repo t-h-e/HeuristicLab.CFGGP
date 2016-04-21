@@ -2,48 +2,66 @@ import json
 import threading
 import sys
 
-def worker(script):
+
+def worker(msg_id, script):
     global exception, stop
     try:
-        help = {'stop': stop}
-        exec(script, help)
-        results[0] = help
+        help_globals = {'stop': stop[msg_id]}
+        exec(script, help_globals)
+        results[msg_id] = help_globals
     except BaseException as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
-        exception = '{} {} {}'.format(exc_type, exc_obj, e.args)
+        exception[msg_id] = '{} {} {}'.format(exc_type, exc_obj, e.args)
+
+results = {}
+stop = {}
+exception = {}
+
+printLock = threading.Lock()
 
 
-results = [None]
-stop = [False]
+def handle_multicore(message_dict):
+    msg_id = message_dict['id']
+    stop[msg_id] = [False]
+    t = threading.Thread(target=worker, args=[msg_id, message_dict['script']])
+    t.start()
+    t.join(message_dict['timeout'])
+    if t.isAlive():
+        stop[msg_id][0] = True
+        t.join()
+        del results[msg_id]
+        with printLock:
+            print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
+    elif msg_id in exception:
+        with printLock:
+            print(json.dumps({'exception': exception[msg_id]}), flush=True)
+        del exception[msg_id]
+    else:
+        ret_message_dict = {'id' : msg_id}
+        for v in message_dict['variables']:
+            if v in results[msg_id]:
+                ret_message_dict[v] = results[msg_id][v]
 
+        with printLock:
+            print(json.dumps(ret_message_dict), flush=True)
 
-while True:
-    try:
-        message = input()
-        message_dict = json.loads(message)
+        del results[msg_id]
 
-        stop[0] = False
-        t = threading.Thread(target=worker, args=[message_dict['script']])
-        t.start()
-        t.join(message_dict['timeout'])
-        if t.isAlive():
-            stop[0] = True
-            t.join()
-            print(json.dumps({'exception': 'Timeout occurred.'}))
-        elif 'exception' in locals():
-            print(json.dumps({'exception': locals()['exception']}))
-            del exception
-        else:
-            ret_message_dict = {}
-            for v in message_dict['variables']:
-                if v in results[0]:
-                    ret_message_dict[v] = results[0][v]
+    del stop[msg_id]
 
-            print(json.dumps(ret_message_dict))
-    except EOFError as err:
-        # No data was read with input()
-        # HeuristicLab is not running anymore
-        break
-    except BaseException as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        print('{} {} {}'.format(exc_type, exc_obj, e.args))
+#import multiprocessing as mp
+
+if __name__ == '__main__':
+    # p = mp.Pool()
+    while True:
+        try:
+            message = input()
+            message_dict = json.loads(message)
+            #Pool?
+            # p.apply_async(handle_multicore, (message_dict,))
+            t = threading.Thread(target=handle_multicore, args=[message_dict])
+            t.start()
+        except EOFError as err:
+            # No data was read with input()
+            # HeuristicLab is not running anymore
+            break

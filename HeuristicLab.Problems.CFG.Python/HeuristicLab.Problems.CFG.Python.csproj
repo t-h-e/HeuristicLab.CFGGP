@@ -142,7 +142,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PythonHelper.cs" />
     <Compile Include="PythonProcess.cs" />
-    <Compile Include="PythonProcessHelper.cs" />
     <Compile Include="Variable\Variables.cs" />
     <Compile Include="Variable\VariableType.cs" />
   </ItemGroup>

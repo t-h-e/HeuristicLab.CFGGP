@@ -131,7 +131,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PythonProcessSemanticHelper.cs" />
     <Compile Include="PythonSemanticComparer.cs" />
-    <Compile Include="PythonSemanticHelper.cs" />
     <Compile Include="PythonStatementSemantic.cs" />
   </ItemGroup>
   <ItemGroup>

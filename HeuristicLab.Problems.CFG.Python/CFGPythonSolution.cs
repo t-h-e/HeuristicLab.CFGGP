@@ -58,7 +58,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       name = original.Name;
       description = original.Description;
     }
-    public CFGPythonSolution(ISymbolicExpressionTree tree, ICFGPythonProblemData problemData, IntValue timeout)
+    public CFGPythonSolution(ISymbolicExpressionTree tree, ICFGPythonProblemData problemData, double timeout, PythonProcess pythonProcess)
       : base(tree, problemData) {
       name = ItemName;
       description = ItemDescription;
@@ -68,14 +68,14 @@ namespace HeuristicLab.Problems.CFG.Python {
       string code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
       Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));
 
-      var trainingTimeout = timeout.Value * 2;  // increase timeout to make sure it finishes
-      var training = PythonProcessHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, trainingTimeout);
+      var trainingTimeout = timeout * 2;  // increase timeout to make sure it finishes
+      var training = pythonProcess.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, trainingTimeout);
 
       // test timeout should be proportionally bigger than training timeout
-      var testTimeout = (int)((double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * trainingTimeout);
-      testTimeout = testTimeout > timeout.Value ? testTimeout : timeout.Value;
+      var testTimeout = (double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * trainingTimeout;
+      testTimeout = testTimeout > timeout ? testTimeout : timeout;
 
-      var test = PythonProcessHelper.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
+      var test = pythonProcess.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
 
       if (String.IsNullOrEmpty(training.Item4)) {
         Add(new Result(TrainingQuality, "Training quality", new DoubleValue(training.Item3)));

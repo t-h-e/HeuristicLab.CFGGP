@@ -99,7 +99,11 @@ for v in variables:
     public ILookupParameter<IntValue> TimeoutParameter {
       get { return (ILookupParameter<IntValue>)Parameters[TimeoutParameterName]; }
     }
+    public ILookupParameter<PythonProcess> PythonProcessParameter {
+      get { return (ILookupParameter<PythonProcess>)Parameters["PythonProcess"]; }
+    }
     #endregion
+
     #region Properties
     public IntValue MaximumSymbolicExpressionTreeLength {
       get { return MaximumSymbolicExpressionTreeLengthParameter.ActualValue; }
@@ -117,6 +121,7 @@ for v in variables:
       get { return SemanticsParameter.ActualValue; }
     }
     public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
+    public PythonProcess PyProcess { get { return PythonProcessParameter.ActualValue; } }
     #endregion
     [StorableConstructor]
     protected CFGPythonSemanticEvalCrossover(bool deserializing) : base(deserializing) { }
@@ -134,6 +139,8 @@ for v in variables:
 
       Parameters.Add(new ValueParameter<IntValue>(MaxComparesParameterName, "Maximum number of branches that ae going to be compared for crossover.", new IntValue(10)));
       Parameters.Add(new LookupParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)"));
+
+      Parameters.Add(new LookupParameter<PythonProcess>("PythonProcess", "Python process"));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -180,7 +187,7 @@ for v in variables:
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       //-------------------------------------TEMP START
-      JObject jsonOriginal = PythonProcess.GetInstance().SendAndEvaluateProgram(new EvaluationScript() {
+      JObject jsonOriginal = PyProcess.SendAndEvaluateProgram(new EvaluationScript() {
         Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
         Variables = variables,
         Timeout = Timeout
@@ -193,7 +200,7 @@ for v in variables:
         Variables = variables,
         Timeout = Timeout
       };
-      JObject json0 = PythonProcess.GetInstance().SendAndEvaluateProgram(crossoverPointScript0);
+      JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
       crossoverPoint0.Child.Parent = crossoverPoint0.Parent; // restore parent
 
       var compBranches = allowedBranches.SampleRandomWithoutRepetition(random, MaxComparesParameter.Value.Value);
@@ -227,7 +234,7 @@ for v in variables:
           Variables = variables,
           Timeout = Timeout
         };
-        JObject json = PythonProcess.GetInstance().SendAndEvaluateProgram(evaluationScript1);
+        JObject json = PyProcess.SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
         evaluationPerNode.Add(json);
         similarity.Add(0);
