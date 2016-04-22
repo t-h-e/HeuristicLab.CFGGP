@@ -295,6 +295,9 @@ namespace HeuristicLab.Problems.CFG.Python {
           }
         }
       } while (!deadFlag);
+
+      // clear all results that have been read from python, but not been processed due to a timeout
+      resultDict.Clear();
     }
 
     private void CheckIfResourceIsNewer(string scriptName) {
