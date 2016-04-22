@@ -1,7 +1,7 @@
 import json
 import threading
 import sys
-
+import multiprocessing as mp
 
 def worker(msg_id, script):
     global exception, stop
@@ -49,18 +49,16 @@ def handle_multicore(message_dict):
 
     del stop[msg_id]
 
-#import multiprocessing as mp
 
 if __name__ == '__main__':
-    # p = mp.Pool()
+    p = None
     while True:
         try:
             message = input()
             message_dict = json.loads(message)
-            #Pool?
-            # p.apply_async(handle_multicore, (message_dict,))
-            t = threading.Thread(target=handle_multicore, args=[message_dict])
-            t.start()
+            if not p:
+                p = mp.Pool()
+            p.apply_async(handle_multicore, (message_dict,))
         except EOFError as err:
             # No data was read with input()
             # HeuristicLab is not running anymore

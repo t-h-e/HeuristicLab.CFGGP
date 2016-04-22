@@ -41,9 +41,8 @@ namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcess : NamedItem {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
-    private Object pythonLock = new Object();
-
     #region Fields & Properties
+    private Object pythonLock = new Object();
     /// <summary>
     /// Process should normally be closed, but the process created closes itself automatically if HeuristicLab is closed
     /// </summary>
@@ -242,30 +241,37 @@ namespace HeuristicLab.Problems.CFG.Python {
       return res;
     }
 
-    private Object readCounterLock = new Object();
-    private int readCounter = 0;
-
+    private Object readerThreadLock = new Object();
     private Thread readerThread;
 
     private void IncrementPythonWait() {
-      lock (readCounterLock) {
-        if (readCounter == 0) {
-          //start thread
-          if (readerThread != null && readerThread.IsAlive) {
-            readerThread.Join();
-          }
+      lock (readerThreadLock) {
+        if (readerThread == null || !readerThread.IsAlive) {
+          lock (deadFlagLock) { deadFlag = false; }
           readerThread = new Thread(this.ReadPythonOutput);
           readerThread.Start();
+        } else {
+          readCounterSemaphore.Release();
+          lock (deadFlagLock) {
+            if (deadFlag && readCounterSemaphore.CurrentCount != 0) {
+              readCounterSemaphore = new SemaphoreSlim(0, int.MaxValue);
+              deadFlag = false;
+              readerThread.Join();
+              readerThread = new Thread(this.ReadPythonOutput);
+              readerThread.Start();
+            }
+          }
         }
-        readCounter++;
       }
     }
 
+    object deadFlagLock = new Object();
+    bool deadFlag = false;
+    SemaphoreSlim readCounterSemaphore = new SemaphoreSlim(0, int.MaxValue);
+
     private void ReadPythonOutput() {
-      bool continueRead;
 
       do {
-        continueRead = false;
         // not locked, otherwise there is no concurrency
         // only one thread should read StandardOutput
         // should only be read when python process is running and is not being restarted
@@ -278,12 +284,17 @@ namespace HeuristicLab.Problems.CFG.Python {
           wh.Set();
         }
 
-        lock (readCounterLock) {
-          readCounter--;
-          continueRead = readCounter > 0;
+        bool wait = !readCounterSemaphore.Wait(10000);
+        if (wait) {
+          lock (deadFlagLock) {
+            if (readCounterSemaphore.CurrentCount == 0) {
+              deadFlag = true;
+            } else {
+              readCounterSemaphore.Wait();
+            }
+          }
         }
-
-      } while (continueRead);
+      } while (!deadFlag);
     }
 
     private void CheckIfResourceIsNewer(string scriptName) {
