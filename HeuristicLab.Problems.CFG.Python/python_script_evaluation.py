@@ -31,10 +31,10 @@ def handle_multicore(message_dict):
         t.join()
         del results[msg_id]
         with printLock:
-            print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
+            print(json.dumps({'id' : msg_id, 'exception': 'Timeout occurred.'}), flush=True)
     elif msg_id in exception:
         with printLock:
-            print(json.dumps({'exception': exception[msg_id]}), flush=True)
+            print(json.dumps({'id' : msg_id, 'exception': exception[msg_id]}), flush=True)
         del exception[msg_id]
     else:
         ret_message_dict = {'id' : msg_id}
