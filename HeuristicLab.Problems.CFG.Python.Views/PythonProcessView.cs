@@ -66,13 +66,7 @@ namespace HeuristicLab.Problems.CFG.Python.Views {
       } else {
         executableTextBox.Text = Content.Executable;
         argumentsTextBox.Text = Content.Arguments;
-      }
-      if (Content != null && Content.IsPythonRunning()) {
-        statusPictureBox.Image = HeuristicLab.Common.Resources.VSImageLibrary.Default;
-        toolTip.SetToolTip(statusPictureBox, string.Empty);
-      } else {
-        statusPictureBox.Image = HeuristicLab.Common.Resources.VSImageLibrary.Error;
-        toolTip.SetToolTip(statusPictureBox, "Process has not been started or has already exited.");
+        Content.TestPythonStart(); // Process will be started for testing. This will invoke Content_ProcessStarted or Content_ProcessException;
       }
     }
 

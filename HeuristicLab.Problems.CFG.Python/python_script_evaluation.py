@@ -3,8 +3,17 @@ import threading
 import sys
 import multiprocessing as mp
 
+import time
+
+results = {}
+stop = {}
+exception = {}
+
+printLock = threading.Lock() # might not be needed
+
+
 def worker(msg_id, script):
-    global exception, stop
+    global results, stop, exception
     try:
         help_globals = {'stop': stop[msg_id]}
         exec(script, help_globals)
@@ -13,14 +22,9 @@ def worker(msg_id, script):
         exc_type, exc_obj, exc_tb = sys.exc_info()
         exception[msg_id] = '{} {} {}'.format(exc_type, exc_obj, e.args)
 
-results = {}
-stop = {}
-exception = {}
-
-printLock = threading.Lock()
-
 
 def handle_multicore(message_dict):
+    global results, stop, exception
     msg_id = message_dict['id']
     stop[msg_id] = [False]
     t = threading.Thread(target=worker, args=[msg_id, message_dict['script']])
@@ -58,8 +62,14 @@ if __name__ == '__main__':
             message_dict = json.loads(message)
             if not p:
                 p = mp.Pool()
+                # added sleep for one second for windows
+                # see http://stackoverflow.com/questions/36919678/python-multiprocessing-pool-does-not-start-right-away/36931537#36931537
+                # and http://bugs.python.org/issue26883
+                time.sleep(1)
             p.apply_async(handle_multicore, (message_dict,))
         except EOFError as err:
             # No data was read with input()
             # HeuristicLab is not running anymore
+            p.close()
+            p.join()
             break

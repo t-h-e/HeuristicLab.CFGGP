@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -55,7 +56,7 @@ namespace HeuristicLab.Problems.CFG.Python {
         if (value == executable) return;
         executable = value;
         UpdateName();
-        StartPython();
+        TestPythonStart();
         OnExecutableChanged();
       }
     }
@@ -67,11 +68,13 @@ namespace HeuristicLab.Problems.CFG.Python {
         if (value == arguments) return;
         arguments = value;
         UpdateName();
-        StartPython();
+        TestPythonStart();
         OnArgumentsChanged();
       }
     }
     #endregion
+
+    private bool HasPythonBeenStartedBefore = false;
 
     [StorableConstructor]
     protected PythonProcess(bool deserializing) : base(deserializing) { }
@@ -80,7 +83,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       executable = original.executable;
       arguments = original.arguments;
       UpdateName();
-      StartPython();
+      python = CreatePythonProcess();
     }
 
     public PythonProcess() : this("python", String.Empty) { }
@@ -89,7 +92,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       this.executable = executable;
       this.arguments = arguments;
       UpdateName();
-      StartPython();
+      this.python = CreatePythonProcess();
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -99,27 +102,38 @@ namespace HeuristicLab.Problems.CFG.Python {
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
       UpdateName();
-      StartPython();
+      lock (pythonLock) {
+        python = CreatePythonProcess();
+      }
     }
 
-    public void StartPython() {
+    private Process CreatePythonProcess() {
+      return new Process {
+        StartInfo = new ProcessStartInfo {
+          FileName = executable,
+          Arguments = String.Format("{0} {1}", arguments, EVALSCRIPT),
+          UseShellExecute = false,
+          RedirectStandardOutput = true,
+          RedirectStandardInput = true,
+          CreateNoWindow = true,
+        }
+      };
+    }
+
+    public bool TestPythonStart() {
       CheckIfResourceIsNewer(EVALSCRIPT);
 
       lock (pythonLock) {
-        if (python != null && !python.HasExited) python.Kill();
-        python = new Process {
-          StartInfo = new ProcessStartInfo {
-            FileName = executable,
-            Arguments = String.Format("{0} {1}", arguments, EVALSCRIPT),
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardInput = true,
-            CreateNoWindow = true,
-          }
-        };
+        if (python != null && HasPythonBeenStartedBefore && !python.HasExited) python.Kill();
+        python = CreatePythonProcess();
         try {
           python.Start();
           OnProcessStarted();
+          python.Kill();
+
+          // reset flag after testing if the process can be started
+          HasPythonBeenStartedBefore = false;
+          return true;
         }
         catch (Win32Exception ex) {
           python = null;
@@ -130,10 +144,31 @@ namespace HeuristicLab.Problems.CFG.Python {
           OnProcessException(ex);
         }
       }
+      return false;
     }
 
-    public bool IsPythonRunning() {
-      return python != null && !python.HasExited;
+    public void StartPython() {
+      CheckIfResourceIsNewer(EVALSCRIPT);
+
+      lock (pythonLock) {
+        if (python != null && HasPythonBeenStartedBefore && !python.HasExited) python.Kill();
+        python = CreatePythonProcess();
+        try {
+          python.Start();
+          OnProcessStarted();
+
+          // Process has been started
+          HasPythonBeenStartedBefore = true;
+        }
+        catch (Win32Exception ex) {
+          python = null;
+          OnProcessException(ex);
+        }
+        catch (InvalidOperationException ex) {
+          python = null;
+          OnProcessException(ex);
+        }
+      }
     }
 
     private void UpdateName() {
@@ -180,7 +215,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public EvaluationScript CreateEvaluationScript(string program, string input, string output, double timeout) {
       return new EvaluationScript() {
-        Script = String.Format("inval = {0}\noutval = {1}\n{2}", input, output, program),
+        Script = String.Format("inval = {1}{0}outval = {2}{0}{3}", Environment.NewLine, input, output, program),
         Variables = new List<string>() { "cases", "caseQuality", "quality" },
         Timeout = timeout
       };
@@ -214,6 +249,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       waitDict.TryAdd(es.Id, wh);
       string send = JsonConvert.SerializeObject(es);
       lock (pythonLock) {
+        if (!HasPythonBeenStartedBefore && python != null) {
+          StartPython();
+        }
         if (python == null || python.HasExited) {
           ArgumentException e = new ArgumentException(python == null ? "No python process has been started." : "Python process has already exited.");
           OnProcessException(e);
@@ -269,13 +307,30 @@ namespace HeuristicLab.Problems.CFG.Python {
     bool deadFlag = false;
     SemaphoreSlim readCounterSemaphore = new SemaphoreSlim(0, int.MaxValue);
 
+    private static string idInJSONPattern = @"\""id\""\s*:\s*\""(?<id>[\S]*?)\""";
+    private static Regex idInJSONRegex = new Regex(idInJSONPattern);
+
     private void ReadPythonOutput() {
 
       do {
         // not locked, otherwise there is no concurrency
         // only one thread should read StandardOutput
         // should only be read when python process is running and is not being restarted
-        JObject res = JObject.Parse(python.StandardOutput.ReadLine());
+        string readJSON = python.StandardOutput.ReadLine();
+        JObject res;
+        try {
+          res = JObject.Parse(readJSON);
+        }
+        catch (JsonReaderException e) {
+          Match idMatch = idInJSONRegex.Match(readJSON);
+          if (idMatch.Success) {
+            res = new JObject();
+            res["id"] = idMatch.Groups["id"].Value;
+            res["exception"] = e.Message;
+          } else {
+            throw e;
+          }
+        }
         string id = res["id"].Value<string>();
         resultDict.TryAdd(id, res);
 
@@ -301,14 +356,12 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     private void CheckIfResourceIsNewer(string scriptName) {
-      lock (pythonLock) {
-        Assembly assembly = GetType().Assembly;
-        if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
+      Assembly assembly = GetType().Assembly;
+      if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
 
-        Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", GetType().Namespace, scriptName));
-        using (var fileStream = File.Create(scriptName)) {
-          scriptStream.CopyTo(fileStream);
-        }
+      Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", GetType().Namespace, scriptName));
+      using (var fileStream = File.Create(scriptName)) {
+        scriptStream.CopyTo(fileStream);
       }
     }
   }
