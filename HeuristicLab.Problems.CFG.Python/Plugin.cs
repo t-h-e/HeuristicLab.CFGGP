@@ -40,6 +40,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   [PluginDependency("HeuristicLab.Persistence", "3.3")]
   [PluginDependency("HeuristicLab.Problems.CFG", "3.3")]
   [PluginDependency("HeuristicLab.Problems.Instances", "3.3")]
+  [PluginDependency("HeuristicLab.Problems.Instances.CFG", "3.3")]
   public class Plugin : PluginBase {
   }
 }

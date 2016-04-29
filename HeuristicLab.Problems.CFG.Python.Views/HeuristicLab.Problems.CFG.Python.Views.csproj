@@ -39,34 +39,43 @@
     <Reference Include="HeuristicLab.Collections-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Collections-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Common-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Common-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Common.Resources-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Common.Resources-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Core-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Core-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Core.Views-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Core.Views-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.Data.Views-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Data.Views-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.MainForm-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.MainForm-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.MainForm.WindowsForms-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.MainForm.WindowsForms-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="HeuristicLab.PluginInfrastructure-3.3">
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.PluginInfrastructure-3.3.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -94,6 +103,7 @@
     <ProjectReference Include="..\HeuristicLab.Problems.CFG.Python\HeuristicLab.Problems.CFG.Python.csproj">
       <Project>{cf97234d-9b43-405f-afea-db13685b48ef}</Project>
       <Name>HeuristicLab.Problems.CFG.Python</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Core;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
-using IronPython.Runtime;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
