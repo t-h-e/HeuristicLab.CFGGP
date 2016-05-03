@@ -8,7 +8,7 @@
 //         int
 // *****************************************************************************
 
-<list_float_var> ::= 'list_float'
+<list_float_var> ::= 'lf'
 
 <list_float_assign> ::= <list_float_var>' = '<list_float>
 

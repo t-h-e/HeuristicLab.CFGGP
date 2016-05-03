@@ -51,12 +51,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<int, int, int>> loop) {
       var input = loop.Select(x => String.Format("{0}, {1}, {2}", x.Item1, x.Item2, x.Item3)).ToArray();
-      List<string> output = new List<string>(input.Length);
-      foreach (var item in loop) {
-        output.Add(String.Join("\n", Enumerable.Range(item.Item1, (item.Item2 - item.Item1) / item.Item3)).PrepareStringForPython());
-      }
-
+      var output = loop.Select(x => String.Format("[{0}]", String.Join(", ", CreateForLoopIndexResult(x.Item1, x.Item2, x.Item3)))).ToArray();
       return new Tuple<string[], string[]>(input, output.ToArray());
+    }
+
+    private IEnumerable<int> CreateForLoopIndexResult(int start, int end, int step) {
+      for (int cur = start; cur < end; cur += step) {
+        yield return cur;
+      }
     }
 
     private IEnumerable<Tuple<int, int, int>> CreateCasesAroundZero(int n) {

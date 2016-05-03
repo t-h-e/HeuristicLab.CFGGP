@@ -8,10 +8,10 @@
                  'i0 = i1 = i2 = int()'
                  'f0 = f1 = f2 = float()'
                  's0 = s1 = s2 = str()'
-                 'list_bool0 = list_bool1 = list_bool2 = []'
-                 'list_int0 = list_int1 = list_int2 = []'
-                 'list_float0 = list_float1 = list_float2 = []'
-                 'list_string0 = list_string1 = list_string2 = []'
+                 'lb0 = lb1 = lb2 = []'
+                 'li0 = li1 = li2 = []'
+                 'lf0 = lf1 = lf2 = []'
+                 'ls0 = ls1 = ls2 = []'
                  'res = int()'
                  <code>
 
@@ -20,10 +20,10 @@
 <int_var> ::= 'i0' | 'i1' | 'i2'
 <float_var> ::= 'f0' | 'f1' | 'f2'
 <string_var> ::= 's0' | 's1' | 's2'
-<list_bool_var> ::= 'list_bool0' | 'list_bool1' | 'list_bool2'
-<list_int_var> ::= 'list_int0' | 'list_int1' | 'list_int2'
-<list_float_var> ::= 'list_float0' | 'list_float1' | 'list_float2'
-<list_string_var> ::= 'list_string0' | 'list_string1' | 'list_string2'
+<list_bool_var> ::= 'lb0' | 'lb1' | 'lb2'
+<list_int_var> ::= 'li0' | 'li1' | 'li2'
+<list_float_var> ::= 'lf0' | 'lf1' | 'lf2'
+<list_string_var> ::= 'ls0' | 'ls1' | 'ls2'
 // *****************************************************************************
 
 
@@ -206,7 +206,7 @@
 
 <string_const> ::= "'"<string_const_part>"'"
 <string_const_part> ::= <string_const_part><string_literal> | <string_literal>
-<string_literal> ::= '' | '\\n' | '\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
+<string_literal> ::= '' | '\\\n' | '\\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
 
 <saveChr> ::= 'saveChr('<int>')'
 <saveOrd> ::= 'saveOrd('<string>')'

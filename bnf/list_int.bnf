@@ -7,7 +7,7 @@
 //         bool
 // *****************************************************************************
 
-<list_int_var> ::= 'list_int'
+<list_int_var> ::= 'li'
 
 <list_int_assign> ::= <list_int_var>' = '<list_int>
 

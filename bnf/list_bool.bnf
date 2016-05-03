@@ -7,7 +7,7 @@
 //         int
 // *****************************************************************************
 
-<list_bool_var> ::= 'list_bool'
+<list_bool_var> ::= 'lb'
 
 <list_bool_assign> ::= <list_bool_var>' = '<list_bool>
 

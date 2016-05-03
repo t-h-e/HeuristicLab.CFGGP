@@ -8,7 +8,7 @@
 //         int
 // *****************************************************************************
 
-<list_string_var> ::= 'list_string'
+<list_string_var> ::= 'ls'
 
 <list_string_assign> ::= <list_string_var>' = '<list_string>
 
