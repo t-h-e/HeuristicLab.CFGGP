@@ -30,13 +30,14 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG {
   [Item("CFGDummyEvaluator", "An evaluator assigns default values to each individual.")]
   [StorableClass]
-  public class CFGDummyEvaluator : InstrumentedOperator, ICFGEvaluator<ICFGProblemData> {
+  public class CFGDummyEvaluator<T> : InstrumentedOperator, ICFGEvaluator<T>
+   where T : class, ICFGProblemData {
     #region parameters
     public ILookupParameter<ISymbolicExpressionTree> ProgramParameter {
       get { return (ILookupParameter<ISymbolicExpressionTree>)Parameters["Program"]; }
     }
-    public IValueLookupParameter<ICFGProblemData> ProblemDataParameter {
-      get { return (IValueLookupParameter<ICFGProblemData>)Parameters["ProblemData"]; }
+    public IValueLookupParameter<T> ProblemDataParameter {
+      get { return (IValueLookupParameter<T>)Parameters["ProblemData"]; }
     }
     public ILookupParameter<BoolArray> SuccessfulCasesParameter {
       get { return (ILookupParameter<BoolArray>)Parameters["Cases"]; }
@@ -51,21 +52,21 @@ namespace HeuristicLab.Problems.CFG {
 
     [StorableConstructor]
     protected CFGDummyEvaluator(bool deserializing) : base(deserializing) { }
-    protected CFGDummyEvaluator(CFGDummyEvaluator original, Cloner cloner)
+    protected CFGDummyEvaluator(CFGDummyEvaluator<T> original, Cloner cloner)
       : base(original, cloner) {
     }
     public CFGDummyEvaluator()
       : base() {
       Parameters.Add(new LookupParameter<BoolValue>("Maximization", "True if the problem is a maximization problem."));
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("Program", "The program to evaluate."));
-      Parameters.Add(new ValueLookupParameter<ICFGProblemData>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
+      Parameters.Add(new ValueLookupParameter<T>("ProblemData", "The problem data on which the context free grammer solution should be evaluated."));
       Parameters.Add(new LookupParameter<BoolArray>("Cases", "The training cases that have been successfully executed."));
       Parameters.Add(new LookupParameter<DoubleArray>("CaseQualities", "The quality of every single training case for each individual"));
       Parameters.Add(new LookupParameter<DoubleValue>("Quality", "The quality value aka fitness value of the solution."));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGDummyEvaluator(this, cloner);
+      return new CFGDummyEvaluator<T>(this, cloner);
     }
 
     public override IOperation InstrumentedApply() {

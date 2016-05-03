@@ -51,7 +51,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     #region properties
     public virtual bool EnabledByDefault {
-      get { return false; }
+      get { return true; }
     }
     #endregion
 
