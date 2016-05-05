@@ -1,7 +1,8 @@
+import math
+
 # *****************************************************************************
 # Helper Code
 # *****************************************************************************
-import math
 
 def div(nom, denom):
   if denom <= 0.00001:
@@ -79,6 +80,7 @@ def saveSplit(curString, separator):
     return []
   return curString.split(separator)
 
+
 def saveRange(start, end):
   if end > start and abs(start - end) > 10000:
     return range(start, start + 10000)
@@ -87,7 +89,7 @@ def saveRange(start, end):
 # *****************************************************************************
 
 #  evolved function
-def evolve(in0):
+def evolve(in0, in1):
   # constant defines allowed maximum number of all loops performed
   loopBreakConst = 1500
   # initialises variable which should be used to count the number of loop iterations
@@ -98,9 +100,9 @@ def evolve(in0):
 
 
 def fitnessTrainingCase(i, o):
-  eval = evolve(i[0])
+  eval = evolve(i[0], i[1], i[2])
 
-  return [abs(eval - o[0])]
+  return [eval == o[0]]
 
 
 #  function to evaluate fitness
