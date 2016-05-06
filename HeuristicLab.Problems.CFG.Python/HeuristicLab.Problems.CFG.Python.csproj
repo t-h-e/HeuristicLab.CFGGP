@@ -101,11 +101,6 @@
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Problems.Instances-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Scripting, Version=1.1.0.20, Culture=neutral, PublicKeyToken=7f709c5b713576e1, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\HeuristicLab\bin\Microsoft.Scripting.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\Newtonsoft.Json.dll</HintPath>

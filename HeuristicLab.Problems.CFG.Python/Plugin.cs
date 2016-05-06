@@ -31,7 +31,6 @@ namespace HeuristicLab.Problems.CFG.Python {
   [PluginDependency("HeuristicLab.Core", "3.3")]
   [PluginDependency("HeuristicLab.Data", "3.3")]
   [PluginDependency("HeuristicLab.Encodings.SymbolicExpressionTreeEncoding", "3.4")]
-  [PluginDependency("HeuristicLab.IronPython", "2.7.5")]
   [PluginDependency("HeuristicLab.Misc", "3.3")]
   [PluginDependency("HeuristicLab.Newtonsoft.Json", "8.0.2")]
   [PluginDependency("HeuristicLab.Operators", "3.3")]
