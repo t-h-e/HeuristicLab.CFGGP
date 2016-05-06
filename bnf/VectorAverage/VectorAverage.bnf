@@ -6,7 +6,7 @@
 
 <predefined> ::= 'i0 = i1 = i2 = int()'
                  'f0 = f1 = f2 = float()'
-                 'lf0 = lf1 = lf2 = []'
+                 'lf0, lf1, lf2 = [], [], []'
                  'res = float()'
                  <code>
 

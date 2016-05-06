@@ -6,7 +6,7 @@
 
 <predefined> ::= 'b0 = b1 = b2 = bool()'
                  'i0 = i1 = i2 = int()'
-                 'li0 = li1 = li2 = []'
+                 'li0, li1, li2 = [], [], []'
                  'res = []'
                  <code>
 

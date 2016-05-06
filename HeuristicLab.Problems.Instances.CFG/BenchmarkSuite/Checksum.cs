@@ -49,7 +49,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
-      var output = strings.Select(x => String.Format("Check sum is {0}.", CalcChecksum(x).ToString().PythonEscape())).ToArray();
+      var output = strings.Select(x => CalcChecksum(x).ToString().PrepareStringForPython()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

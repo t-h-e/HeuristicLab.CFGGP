@@ -50,7 +50,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
-      var output = strings.Select(x => String.Format("The number of syllables is {0}.", x.Count(y => StringValueGenerator.vowel.Contains(y)))).ToArray();
+      var output = strings.Select(x => x.Count(y => StringValueGenerator.vowel.Contains(y)).ToString()).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 

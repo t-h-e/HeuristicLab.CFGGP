@@ -33,22 +33,22 @@
 <simple_stmt> ::= <call> | <assign>
 <compound_stmt> ::= <if> | <while> | <for>
 
-         // from bool
+         // from list_bool
 <call> ::= <list_bool_var>'.append('<bool>')'
          | <list_bool_var>'.insert('<int>','<bool>')'
          | <deleteListItemCall_bool>
          | <setListIndexToCall_bool>
-         // from int
+         // from list_int
          | <list_int_var>'.append('<int>')'
          | <list_int_var>'.insert('<int>','<int>')'
          | <deleteListItemCall_int>
          | <setListIndexToCall_int>
-         // from float
+         // from list_float
          | <list_float_var>'.append('<float>')'
          | <list_float_var>'.insert('<int>','<float>')'
          | <deleteListItemCall_float>
          | <setListIndexToCall_float>
-         // from string
+         // from list_string
          | <list_string_var>'.append('<string>')'
          | <list_string_var>'.insert('<int>','<string>')'
          | <deleteListItemCall_string>
@@ -66,7 +66,7 @@
             | <list_bool_assign>
             // from list_int
             | <list_int_assign>
-            // from list_flaot
+            // from list_float
             | <list_float_assign>
             // from list_string
             | <list_string_assign>
@@ -79,16 +79,16 @@
 <block> ::= ':{:\n'<code>'\n:}\n'
 
 <while> ::= <loop-header>'while '<bool><loop-block>
-        // from bool
+        // from list_bool
 <for> ::= <loop-header>'for forCounter% in '<list_bool><loop-block>
         | <loop-header>'for '<bool_var>' in '<list_bool><loop-block>
-        //from int
+        //from list_int
         | <loop-header>'for forCounter% in '<list_int><loop-block>
         | <loop-header>'for '<int_var>' in '<list_int><loop-block>
-        //from float
+        //from list_float
         | <loop-header>'for forCounter% in '<list_float><loop-block>
         | <loop-header>'for '<float_var>' in '<list_float><loop-block>
-        // from string
+        // from list_string
         | <loop-header>'for forCounter% in '<list_string><loop-block>
         | <loop-header>'for '<string_var>' in '<list_string><loop-block>
 
