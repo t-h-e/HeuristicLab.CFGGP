@@ -22,7 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Numerics;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class Digits : BenchmarkSuiteDataDescritpor<long> {
@@ -50,20 +50,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<long> x0) {
       var input = x0.Select(x => x.ToString()).ToArray();
-      var output = x0.Select(x => CalcDigits(x).PrepareStringForPython()).ToArray();
+      var output = x0.Select(x => String.Format("[{0}]", String.Join(", ", CalcDigits(x)))).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
-    private string CalcDigits(long x) {
-      long absX = Math.Abs(x);
-      var absXDigitsReverse = absX.ToString().ToCharArray().Reverse();
-      StringBuilder strBuilder = new StringBuilder(String.Join("\n", absXDigitsReverse.Take(absXDigitsReverse.Count() - 1)));
-      strBuilder.Append('\n');
-      if (x < 0) {
-        strBuilder.Append('-');
+    private List<int> CalcDigits(long x) {
+      List<int> digits = new List<int>();
+      BigInteger y = new BigInteger(Math.Abs(x));
+      while (y > 0) {
+        digits.Add((int)(y % 10));
+        y = y / 10;
       }
-      strBuilder.Append(absXDigitsReverse.Last());
-      return strBuilder.ToString();
+      if (x < 0) {
+        digits[digits.Count - 1] *= -1;
+      }
+      return digits;
     }
   }
 }

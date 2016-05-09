@@ -22,7 +22,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class EvenSquares : BenchmarkSuiteDataDescritpor<int> {
@@ -50,20 +49,18 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {
       var input = x0.Select(x => x.ToString()).ToArray();
-      var output = x0.Select(x => CalcEvenSquares(x).PrepareStringForPython()).ToArray();
+      var output = x0.Select(x => String.Format("[{0}]", String.Join(", ", CalcEvenSquares(x)))).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
-    private string CalcEvenSquares(int n) {
-      if (n <= 4) return String.Empty;
+    private List<int> CalcEvenSquares(int n) {
+      List<int> evenSquares = new List<int>();
+      if (n <= 4) return evenSquares;
 
-      StringBuilder strBuilder = new StringBuilder();
       for (int i = 2; i * i < n; i += 2) {
-        strBuilder.Append((i * i).ToString());
-        strBuilder.Append("\n");
+        evenSquares.Add(i * i);
       }
-      strBuilder.Length--;
-      return strBuilder.ToString();
+      return evenSquares;
     }
   }
 }
