@@ -77,7 +77,7 @@ namespace HeuristicLab.Problems.CFG {
       get { return (IFixedValueParameter<IntRange>)Parameters[TestPartitionParameterName]; }
     }
     public IFixedValueParameter<TextValue> EmbedCodeParameter {
-      get { return (IFixedValueParameter<TextValue>)Parameters["EmbedCode"]; }
+      get { return (IFixedValueParameter<TextValue>)Parameters[EmbedCodeParameterName]; }
     }
     public IFixedValueParameter<TextValue> HeaderParameter {
       get { return (IFixedValueParameter<TextValue>)Parameters[HeaderParameterName]; }
