@@ -39,7 +39,7 @@ using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python {
   [Item("Python Process", "Item that runs a Python process")]
   [StorableClass]
-  public class PythonProcess : NamedItem {
+  public class PythonProcess : NamedItem, IDisposable {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
     #region Fields & Properties
@@ -134,12 +134,10 @@ namespace HeuristicLab.Problems.CFG.Python {
           // reset flag after testing if the process can be started
           HasPythonBeenStartedBefore = false;
           return true;
-        }
-        catch (Win32Exception ex) {
+        } catch (Win32Exception ex) {
           python = null;
           OnProcessException(ex);
-        }
-        catch (InvalidOperationException ex) {
+        } catch (InvalidOperationException ex) {
           python = null;
           OnProcessException(ex);
         }
@@ -159,12 +157,10 @@ namespace HeuristicLab.Problems.CFG.Python {
 
           // Process has been started
           HasPythonBeenStartedBefore = true;
-        }
-        catch (Win32Exception ex) {
+        } catch (Win32Exception ex) {
           python = null;
           OnProcessException(ex);
-        }
-        catch (InvalidOperationException ex) {
+        } catch (InvalidOperationException ex) {
           python = null;
           OnProcessException(ex);
         }
@@ -320,8 +316,7 @@ namespace HeuristicLab.Problems.CFG.Python {
         JObject res;
         try {
           res = JObject.Parse(readJSON);
-        }
-        catch (JsonReaderException e) {
+        } catch (JsonReaderException e) {
           Match idMatch = idInJSONRegex.Match(readJSON);
           if (idMatch.Success) {
             res = new JObject();
@@ -363,6 +358,11 @@ namespace HeuristicLab.Problems.CFG.Python {
       using (var fileStream = File.Create(scriptName)) {
         scriptStream.CopyTo(fileStream);
       }
+    }
+
+    public void Dispose() {
+      python.Kill();
+      python.Dispose();
     }
   }
 }
