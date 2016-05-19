@@ -89,7 +89,7 @@ def saveRange(start, end):
 # *****************************************************************************
 
 #  evolved function
-def evolve(in0, in1, in2, in3, in4):
+def evolve(in0, in1, in2):
   # constant defines allowed maximum number of all loops performed
   loopBreakConst = 1500
   # initialises variable which should be used to count the number of loop iterations
