@@ -42,6 +42,11 @@ namespace HeuristicLab.Problems.CFG.Python {
   public class PythonProcess : NamedItem, IDisposable {
     private const string EVALSCRIPT = "python_script_evaluation.py";
 
+    private const string CASES = "cases";
+    private const string CASEQUALITY = "caseQuality";
+    private const string QUALITY = "quality";
+
+
     #region Fields & Properties
     private Object pythonLock = new Object();
     /// <summary>
@@ -212,7 +217,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     public EvaluationScript CreateEvaluationScript(string program, string input, string output, double timeout) {
       return new EvaluationScript() {
         Script = String.Format("inval = {1}{0}outval = {2}{0}{3}", Environment.NewLine, input, output, program),
-        Variables = new List<string>() { "cases", "caseQuality", "quality" },
+        Variables = new List<string>() { CASES, CASEQUALITY, QUALITY },
         Timeout = timeout
       };
     }
@@ -221,17 +226,17 @@ namespace HeuristicLab.Problems.CFG.Python {
       string exception = !String.IsNullOrWhiteSpace((string)json["exception"]) ? (string)json["exception"] : String.Empty;
 
       // get return values
-      IEnumerable<bool> cases = json["cases"] != null
-                              ? cases = json["cases"].Select(x => (bool)x)
+      IEnumerable<bool> cases = json[CASES] != null
+                              ? cases = json[CASES].Select(x => (bool)x)
                               : cases = Enumerable.Repeat(false, numberOfCases);
 
-      IEnumerable<double> caseQualities = json["caseQualities"] != null
-                                        ? caseQualities = json["caseQualities"].Select(x => (double)x)
+      IEnumerable<double> caseQualities = json[CASEQUALITY] != null
+                                        ? caseQualities = json[CASEQUALITY].Select(x => (double)x)
                                         : caseQualities = new List<double>();
 
-      double quality = json["quality"] == null || Double.IsInfinity((double)json["quality"])
+      double quality = json[QUALITY] == null || Double.IsInfinity((double)json[QUALITY])
                      ? Double.MaxValue
-                     : (double)json["quality"];
+                     : (double)json[QUALITY];
 
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
     }
@@ -265,10 +270,14 @@ namespace HeuristicLab.Problems.CFG.Python {
         if (!resultDict.TryRemove(es.Id, out res)) {
           res = new JObject();
           res.Add("exception", new JValue("Something went wrong."));
+          Console.WriteLine("JSON sent (Something went wrong.):");
+          Console.WriteLine(send);
         }
       } else {
         res = new JObject();
         res.Add("exception", new JValue("Timeout while waiting for python."));
+        Console.WriteLine("JSON sent (Timeout while waiting for python.):");
+        Console.WriteLine(send);
       }
 
       waitDict.TryRemove(es.Id, out wh);
@@ -312,26 +321,37 @@ namespace HeuristicLab.Problems.CFG.Python {
         // not locked, otherwise there is no concurrency
         // only one thread should read StandardOutput
         // should only be read when python process is running and is not being restarted
-        string readJSON = python.StandardOutput.ReadLine();
-        JObject res;
+        string readJSON = null;
         try {
-          res = JObject.Parse(readJSON);
-        } catch (JsonReaderException e) {
-          Match idMatch = idInJSONRegex.Match(readJSON);
-          if (idMatch.Success) {
-            res = new JObject();
-            res["id"] = idMatch.Groups["id"].Value;
-            res["exception"] = e.Message;
-          } else {
-            throw e;
-          }
+          readJSON = python.StandardOutput.ReadLine();
+        } catch (InvalidOperationException e) {
+          Console.WriteLine("Pipe might have been broken!?");
+          Console.WriteLine(e);
+          break;
         }
-        string id = res["id"].Value<string>();
-        resultDict.TryAdd(id, res);
 
-        ManualResetEventSlim wh;
-        if (waitDict.TryGetValue(id, out wh)) {
-          wh.Set();
+        if (readJSON != null) {
+          JObject res = null;
+          try {
+            res = JObject.Parse(readJSON);
+          } catch (JsonReaderException e) {
+            Match idMatch = idInJSONRegex.Match(readJSON);
+            if (idMatch.Success) {
+              res = new JObject();
+              res["id"] = idMatch.Groups["id"].Value;
+              res["exception"] = e.Message;
+            }
+          }
+
+          if (res != null) {
+            string id = res["id"].Value<string>();
+            resultDict.TryAdd(id, res);
+
+            ManualResetEventSlim wh;
+            if (waitDict.TryGetValue(id, out wh)) {
+              wh.Set();
+            }
+          }
         }
 
         bool wait = !readCounterSemaphore.Wait(10000);
