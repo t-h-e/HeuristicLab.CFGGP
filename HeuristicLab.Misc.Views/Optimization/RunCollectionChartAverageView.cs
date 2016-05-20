@@ -162,7 +162,7 @@ namespace HeuristicLab.Misc.Views {
 
       var dataTables = visibleRuns.Where(r => r.Results.ContainsKey(resultName)).Select(r => (DataTable)r.Results[resultName]);
       if (dataTables.Count() != visibleRuns.Count()) {
-        using (InfoBox dialog = new InfoBox(String.Format("One or more runs do not contain a data table {0}", resultName), "bla", this)) {
+        using (InfoBox dialog = new InfoBox(String.Format("One or more runs do not contain a data table {0}", resultName), this.Name, this)) {
           dialog.ShowDialog(this);
           return;
         }
@@ -170,8 +170,24 @@ namespace HeuristicLab.Misc.Views {
 
       var dataRows = dataTables.SelectMany(dt => dt.Rows).GroupBy(r => r.Name, r => r);
 
+      int tableCount = dataTables.Count();
       foreach (var row in dataRows) {
-        var averageValues = DataRowsAggregate(Enumerable.Average, row.Select(r => r.Values));
+        var aggreateRows = row.Select(r => (IEnumerable<double>)r.Values).ToList();
+        // check if all rows have the same length
+        if (row.Any(r => r.Values.Count != row.First().Values.Count)) {
+          using (InfoBox dialog = new InfoBox(String.Format("One or more runs do not contain the same number of entries per row {0}", resultName), this.Name, this)) {
+            dialog.ShowDialog(this);
+            return;
+          }
+        }
+
+        // add zero rows for missing rows, otherwise the aggragation is off
+        if (row.Count() < tableCount) {
+          var zeroRows = Enumerable.Repeat(Enumerable.Repeat(0.0, row.First().Values.Count), tableCount - row.Count());
+          aggreateRows.AddRange(zeroRows);
+        }
+
+        var averageValues = DataRowsAggregate(Enumerable.Average, aggreateRows);
         DataRow averageRow = new DataRow(row.Key, "Average of Values", averageValues);
         combinedDataTable.Rows.Add(averageRow);
       }
