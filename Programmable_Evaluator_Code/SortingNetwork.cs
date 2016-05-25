@@ -12,8 +12,8 @@
 
       // create data
       if (Input.ActualValue == null || Output.ActualValue == null
-        || Input.ActualValue.Rows != N_SORTING_NETWORK || Input.ActualValue.Columns != arrayLength
-        || Output.ActualValue.Rows != N_SORTING_NETWORK || Output.ActualValue.Columns != arrayLength) {
+        || ((LongMatrix)Input.ActualValue).Rows != N_SORTING_NETWORK || ((LongMatrix)Input.ActualValue).Columns != arrayLength
+        || ((LongMatrix)Output.ActualValue).Rows != N_SORTING_NETWORK || ((LongMatrix)Output.ActualValue).Columns != arrayLength) {
         long[,] helpInputs;
         long[,] helpOutputs;
 
