@@ -109,6 +109,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Crossover\CFGPythonSemanticEvalCrossover2.cs" />
     <Compile Include="Evaluator\CFGPythonTraceTableEvaluator.cs" />
     <Compile Include="Crossover\CFGPythonSemanticEvalCrossover.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
