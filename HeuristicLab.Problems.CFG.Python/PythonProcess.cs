@@ -271,13 +271,13 @@ namespace HeuristicLab.Problems.CFG.Python {
           res = new JObject();
           res.Add("exception", new JValue("Something went wrong."));
           Console.WriteLine("JSON sent (Something went wrong.):");
-          Console.WriteLine(send);
+          //Console.WriteLine(send);
         }
       } else {
         res = new JObject();
         res.Add("exception", new JValue("Timeout while waiting for python."));
         Console.WriteLine("JSON sent (Timeout while waiting for python.):");
-        Console.WriteLine(send);
+        //Console.WriteLine(send);
       }
 
       waitDict.TryRemove(es.Id, out wh);
@@ -335,6 +335,7 @@ namespace HeuristicLab.Problems.CFG.Python {
           try {
             res = JObject.Parse(readJSON);
           } catch (JsonReaderException e) {
+            Console.WriteLine("JsonReaderException");
             Match idMatch = idInJSONRegex.Match(readJSON);
             if (idMatch.Success) {
               res = new JObject();
@@ -365,6 +366,8 @@ namespace HeuristicLab.Problems.CFG.Python {
           }
         }
       } while (!deadFlag);
+
+      //Console.WriteLine(String.Format("Read thread ends with {0} entries in the result dict and {1} entries in the wait dict.", resultDict.Count, waitDict.Count));
 
       // clear all results that have been read from python, but not been processed due to a timeout
       resultDict.Clear();

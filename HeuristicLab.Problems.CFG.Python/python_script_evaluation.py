@@ -9,7 +9,7 @@ results = {}
 stop = {}
 exception = {}
 
-printLock = threading.Lock() # might not be needed
+printLock = threading.Lock()
 
 
 def worker(msg_id, script):
@@ -24,7 +24,7 @@ def worker(msg_id, script):
 
 
 def handle_multicore(message_dict):
-    global results, stop, exception
+    global results, stop, exception, printLock
     msg_id = message_dict['id']
     stop[msg_id] = [False]
     t = threading.Thread(target=worker, args=[msg_id, message_dict['script']])
