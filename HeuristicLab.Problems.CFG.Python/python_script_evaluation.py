@@ -9,7 +9,7 @@ results = {}
 stop = {}
 exception = {}
 
-printLock = threading.Lock()
+printLock = mp.Lock()
 
 
 def worker(msg_id, script):
@@ -33,7 +33,8 @@ def handle_multicore(message_dict):
     if t.isAlive():
         stop[msg_id][0] = True
         t.join()
-        del results[msg_id]
+        if msg_id in results:  # has to be check, because in case of an exception after a timeout no result is going to be set
+            del results[msg_id]
         with printLock:
             print(json.dumps({'id' : msg_id, 'exception': 'Timeout occurred.'}), flush=True)
     elif msg_id in exception:

@@ -266,7 +266,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       IncrementPythonWait();
 
       JObject res;
-      if (wh.WaitHandle.WaitOne((int)(es.Timeout * 1000 * 30))) {
+      if (wh.WaitHandle.WaitOne(30 * 1000)) {
         if (!resultDict.TryRemove(es.Id, out res)) {
           res = new JObject();
           res.Add("exception", new JValue("Something went wrong."));
@@ -277,10 +277,25 @@ namespace HeuristicLab.Problems.CFG.Python {
         res = new JObject();
         res.Add("exception", new JValue("Timeout while waiting for python."));
         Console.WriteLine("JSON sent (Timeout while waiting for python.):");
-        //Console.WriteLine(send);
+        Console.WriteLine(send);
+        Console.WriteLine(String.Format("Currently {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
+        Console.WriteLine("Continue waiting 1h");
+        if (!wh.WaitHandle.WaitOne(60 * 60 * 1000)) {
+          Console.WriteLine(String.Format("Update Currently {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
+          Console.WriteLine("Continue waiting indefinitely");
+          wh.WaitHandle.WaitOne();
+          Console.WriteLine("finished waiting");
+          Console.WriteLine(String.Format("Now {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
+        }
       }
 
-      waitDict.TryRemove(es.Id, out wh);
+      if (!waitDict.TryRemove(es.Id, out wh)) {
+        Console.WriteLine("Waithandle was not removed.");
+        Console.WriteLine(send);
+        Console.WriteLine(res);
+        Console.WriteLine(es.Id);
+
+      }
       return res;
     }
 
@@ -335,12 +350,15 @@ namespace HeuristicLab.Problems.CFG.Python {
           try {
             res = JObject.Parse(readJSON);
           } catch (JsonReaderException e) {
-            Console.WriteLine("JsonReaderException");
+            Console.WriteLine("JsonReaderException, received:");
+            Console.WriteLine(readJSON);
             Match idMatch = idInJSONRegex.Match(readJSON);
             if (idMatch.Success) {
               res = new JObject();
               res["id"] = idMatch.Groups["id"].Value;
               res["exception"] = e.Message;
+            } else {
+              System.Console.WriteLine("Could not find id in read value");
             }
           }
 
@@ -351,8 +369,14 @@ namespace HeuristicLab.Problems.CFG.Python {
             ManualResetEventSlim wh;
             if (waitDict.TryGetValue(id, out wh)) {
               wh.Set();
+            } else {
+              System.Console.WriteLine("Didn't get wait handle for id: " + id);
             }
+          } else {
+            System.Console.WriteLine("JSON was null");
           }
+        } else {
+          System.Console.WriteLine("read value was null");
         }
 
         bool wait = !readCounterSemaphore.Wait(10000);
@@ -367,7 +391,7 @@ namespace HeuristicLab.Problems.CFG.Python {
         }
       } while (!deadFlag);
 
-      //Console.WriteLine(String.Format("Read thread ends with {0} entries in the result dict and {1} entries in the wait dict.", resultDict.Count, waitDict.Count));
+      Console.WriteLine(String.Format("Read thread ends with {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
 
       // clear all results that have been read from python, but not been processed due to a timeout
       resultDict.Clear();
