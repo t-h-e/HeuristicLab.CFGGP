@@ -20,7 +20,6 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -29,6 +28,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -47,12 +47,9 @@ namespace HeuristicLab.Problems.CFG.Python {
     private const string QUALITY = "quality";
 
 
+    private EvaluationThreadPool evaluationThreadPool;
+
     #region Fields & Properties
-    private Object pythonLock = new Object();
-    /// <summary>
-    /// Process should normally be closed, but the process created closes itself automatically if HeuristicLab is closed
-    /// </summary>
-    private Process python;
     [Storable]
     private string executable;
     public string Executable {
@@ -79,8 +76,6 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
     #endregion
 
-    private bool HasPythonBeenStartedBefore = false;
-
     [StorableConstructor]
     protected PythonProcess(bool deserializing) : base(deserializing) { }
     protected PythonProcess(PythonProcess original, Cloner cloner)
@@ -88,7 +83,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       executable = original.executable;
       arguments = original.arguments;
       UpdateName();
-      python = CreatePythonProcess();
+      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, Environment.ProcessorCount);
     }
 
     public PythonProcess() : this("python", String.Empty) { }
@@ -97,7 +92,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       this.executable = executable;
       this.arguments = arguments;
       UpdateName();
-      this.python = CreatePythonProcess();
+      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, Environment.ProcessorCount);
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -107,69 +102,23 @@ namespace HeuristicLab.Problems.CFG.Python {
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
       UpdateName();
-      lock (pythonLock) {
-        python = CreatePythonProcess();
-      }
-    }
-
-    private Process CreatePythonProcess() {
-      return new Process {
-        StartInfo = new ProcessStartInfo {
-          FileName = executable,
-          Arguments = String.Format("{0} {1}", arguments, EVALSCRIPT),
-          UseShellExecute = false,
-          RedirectStandardOutput = true,
-          RedirectStandardInput = true,
-          CreateNoWindow = true,
-        }
-      };
+      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, Environment.ProcessorCount);
     }
 
     public bool TestPythonStart() {
       CheckIfResourceIsNewer(EVALSCRIPT);
-
-      lock (pythonLock) {
-        if (python != null && HasPythonBeenStartedBefore && !python.HasExited) python.Kill();
-        python = CreatePythonProcess();
-        try {
-          python.Start();
-          OnProcessStarted();
-          python.Kill();
-
-          // reset flag after testing if the process can be started
-          HasPythonBeenStartedBefore = false;
-          return true;
-        } catch (Win32Exception ex) {
-          python = null;
-          OnProcessException(ex);
-        } catch (InvalidOperationException ex) {
-          python = null;
-          OnProcessException(ex);
-        }
+      Process python = CreatePythonProcess(executable, arguments);
+      try {
+        python.Start();
+        OnProcessStarted();
+        python.Kill();
+        return true;
+      } catch (Win32Exception ex) {
+        OnProcessException(ex);
+      } catch (InvalidOperationException ex) {
+        OnProcessException(ex);
       }
       return false;
-    }
-
-    public void StartPython() {
-      CheckIfResourceIsNewer(EVALSCRIPT);
-
-      lock (pythonLock) {
-        if (python != null && HasPythonBeenStartedBefore && !python.HasExited) python.Kill();
-        python = CreatePythonProcess();
-        try {
-          python.Start();
-          OnProcessStarted();
-
-          // Process has been started
-          HasPythonBeenStartedBefore = true;
-        } catch (Win32Exception ex) {
-          python = null;
-          OnProcessException(ex);
-        } catch (InvalidOperationException ex) {
-          python = null;
-          OnProcessException(ex);
-        }
-      }
     }
 
     private void UpdateName() {
@@ -241,112 +190,144 @@ namespace HeuristicLab.Problems.CFG.Python {
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
     }
 
-    private ConcurrentDictionary<string, ManualResetEventSlim> waitDict = new ConcurrentDictionary<string, ManualResetEventSlim>();
-    private ConcurrentDictionary<string, JObject> resultDict = new ConcurrentDictionary<string, JObject>();
-
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
       ManualResetEventSlim wh = new ManualResetEventSlim(false);
       es.Id = Guid.NewGuid().ToString();
-      waitDict.TryAdd(es.Id, wh);
       string send = JsonConvert.SerializeObject(es);
-      lock (pythonLock) {
-        if (!HasPythonBeenStartedBefore && python != null) {
-          StartPython();
-        }
-        if (python == null || python.HasExited) {
-          ArgumentException e = new ArgumentException(python == null ? "No python process has been started." : "Python process has already exited.");
-          OnProcessException(e);
-          throw e;
-        }
 
-        python.StandardInput.WriteLine(send);
-        python.StandardInput.Flush();
-      }
+      var et = new EvalTask(send, wh);
 
-      IncrementPythonWait();
+      evaluationThreadPool.EnqueueTask(et);
 
-      JObject res;
-      if (wh.WaitHandle.WaitOne(30 * 1000)) {
-        if (!resultDict.TryRemove(es.Id, out res)) {
-          res = new JObject();
-          res.Add("exception", new JValue("Something went wrong."));
-          Console.WriteLine("JSON sent (Something went wrong.):");
-          //Console.WriteLine(send);
-        }
-      } else {
-        res = new JObject();
-        res.Add("exception", new JValue("Timeout while waiting for python."));
-        Console.WriteLine("JSON sent (Timeout while waiting for python.):");
-        Console.WriteLine(send);
-        Console.WriteLine(String.Format("Currently {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
-        Console.WriteLine("Continue waiting 1h");
-        if (!wh.WaitHandle.WaitOne(60 * 60 * 1000)) {
-          Console.WriteLine(String.Format("Update Currently {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
-          Console.WriteLine("Continue waiting indefinitely");
-          wh.WaitHandle.WaitOne();
-          Console.WriteLine("finished waiting");
-          Console.WriteLine(String.Format("Now {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
-        }
-      }
+      wh.Wait();
 
-      if (!waitDict.TryRemove(es.Id, out wh)) {
-        Console.WriteLine("Waithandle was not removed.");
-        Console.WriteLine(send);
-        Console.WriteLine(res);
-        Console.WriteLine(es.Id);
-
-      }
-      return res;
+      return et.Result;
     }
 
-    private Object readerThreadLock = new Object();
-    private Thread readerThread;
+    private static void CheckIfResourceIsNewer(string scriptName) {
+      Assembly assembly = typeof(PythonProcess).Assembly;
+      if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
 
-    private void IncrementPythonWait() {
-      lock (readerThreadLock) {
-        if (readerThread == null || !readerThread.IsAlive) {
-          lock (deadFlagLock) { deadFlag = false; }
-          readerThread = new Thread(this.ReadPythonOutput);
-          readerThread.Start();
-        } else {
-          readCounterSemaphore.Release();
-          lock (deadFlagLock) {
-            if (deadFlag && readCounterSemaphore.CurrentCount != 0) {
-              readCounterSemaphore = new SemaphoreSlim(0, int.MaxValue);
-              deadFlag = false;
-              readerThread.Join();
-              readerThread = new Thread(this.ReadPythonOutput);
-              readerThread.Start();
+      Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", typeof(PythonProcess).Namespace, scriptName));
+      using (var fileStream = File.Create(scriptName)) {
+        scriptStream.CopyTo(fileStream);
+      }
+    }
+
+    public void Dispose() {
+      evaluationThreadPool.Dispose();
+    }
+
+    private static Process CreatePythonProcess(string executable, string arguments) {
+      return new Process {
+        StartInfo = new ProcessStartInfo {
+          FileName = executable,
+          Arguments = String.Format("{0} {1}", arguments, EVALSCRIPT),
+          UseShellExecute = false,
+          RedirectStandardOutput = true,
+          RedirectStandardInput = true,
+          CreateNoWindow = true,
+        }
+      };
+    }
+
+    private class EvalTask {
+      public ManualResetEventSlim WaitHandle { get; }
+      public string EvalString { get; }
+
+      public JObject Result { get; set; }
+
+      public EvalTask(string EvalString, ManualResetEventSlim WaitHandle) {
+        this.EvalString = EvalString;
+        this.WaitHandle = WaitHandle;
+      }
+    }
+
+    private class EvaluationThreadPool : IDisposable {
+      readonly object _locker = new object();
+      readonly List<Thread> _workers;
+      readonly Queue<EvalTask> _taskQueue = new Queue<EvalTask>();
+      readonly int workerCount;
+
+      readonly object hasBeenStarted_locker = new object();
+      private bool hasBeenStarted;
+
+      private string executable;
+      private string arguments;
+
+      private static string idInJSONPattern = @"\""id\""\s*:\s*\""(?<id>[\S]*?)\""";
+      private static Regex idInJSONRegex = new Regex(idInJSONPattern);
+
+      public EvaluationThreadPool(string executable, string arguments, int workerCount) {
+        CheckIfResourceIsNewer(EVALSCRIPT);
+        this.executable = executable;
+        this.arguments = arguments;
+        this.workerCount = workerCount;
+        _workers = new List<Thread>(workerCount);
+
+        hasBeenStarted = false;
+      }
+
+      public void EnqueueTask(EvalTask task) {
+        lock (hasBeenStarted_locker) {
+          if (!hasBeenStarted) {
+            for (int i = 0; i < workerCount; i++) {
+              Thread t = new Thread(Consume) { IsBackground = true, Name = string.Format("EvaluationThreadPool worker {0}", i) };
+              _workers.Add(t);
+              t.Start();
             }
+            hasBeenStarted = true;
           }
         }
-      }
-    }
 
-    object deadFlagLock = new Object();
-    bool deadFlag = false;
-    SemaphoreSlim readCounterSemaphore = new SemaphoreSlim(0, int.MaxValue);
-
-    private static string idInJSONPattern = @"\""id\""\s*:\s*\""(?<id>[\S]*?)\""";
-    private static Regex idInJSONRegex = new Regex(idInJSONPattern);
-
-    private void ReadPythonOutput() {
-
-      do {
-        // not locked, otherwise there is no concurrency
-        // only one thread should read StandardOutput
-        // should only be read when python process is running and is not being restarted
-        string readJSON = null;
-        try {
-          readJSON = python.StandardOutput.ReadLine();
-        } catch (InvalidOperationException e) {
-          Console.WriteLine("Pipe might have been broken!?");
-          Console.WriteLine(e);
-          break;
+        lock (_locker) {
+          _taskQueue.Enqueue(task);
+          Monitor.PulseAll(_locker);
         }
+      }
 
-        if (readJSON != null) {
+      void Consume() {
+        Process python = CreatePythonProcess(executable, arguments);
+        python.Start();
+
+        while (true) {
+          EvalTask item;
+          lock (_locker) {
+            while (_taskQueue.Count == 0) Monitor.Wait(_locker);
+            item = _taskQueue.Dequeue();
+          }
+          if (item == null) return;
+
+          python.StandardInput.WriteLine(item.EvalString);
+          python.StandardInput.Flush();
+
+          Task<string> read = null;
+          try {
+            read = python.StandardOutput.ReadLineAsync();
+          } catch (InvalidOperationException e) {
+            Console.WriteLine("Pipe might have been broken!?");
+            Console.WriteLine(e);
+            break;
+          }
+
           JObject res = null;
+
+          if (!read.Wait(30 * 1000)) {
+            res = new JObject();
+            res["exception"] = "Timeout while waiting for python to return";
+            item.Result = res;
+            item.WaitHandle.Set();
+            // read not was successfull
+            Console.WriteLine("I killed a process and i liked it.");
+            python.Kill();
+            python.Dispose();
+            python = CreatePythonProcess(executable, arguments);
+            python.Start();
+            continue;
+          }
+
+          // read was successfull
+          string readJSON = read.Result;
           try {
             res = JObject.Parse(readJSON);
           } catch (JsonReaderException e) {
@@ -358,58 +339,19 @@ namespace HeuristicLab.Problems.CFG.Python {
               res["id"] = idMatch.Groups["id"].Value;
               res["exception"] = e.Message;
             } else {
-              System.Console.WriteLine("Could not find id in read value");
+              Console.WriteLine("Could not find id in read value");
             }
           }
 
-          if (res != null) {
-            string id = res["id"].Value<string>();
-            resultDict.TryAdd(id, res);
-
-            ManualResetEventSlim wh;
-            if (waitDict.TryGetValue(id, out wh)) {
-              wh.Set();
-            } else {
-              System.Console.WriteLine("Didn't get wait handle for id: " + id);
-            }
-          } else {
-            System.Console.WriteLine("JSON was null");
-          }
-        } else {
-          System.Console.WriteLine("read value was null");
+          item.Result = res;
+          item.WaitHandle.Set();
         }
-
-        bool wait = !readCounterSemaphore.Wait(10000);
-        if (wait) {
-          lock (deadFlagLock) {
-            if (readCounterSemaphore.CurrentCount == 0) {
-              deadFlag = true;
-            } else {
-              readCounterSemaphore.Wait();
-            }
-          }
-        }
-      } while (!deadFlag);
-
-      Console.WriteLine(String.Format("Read thread ends with {0} entries in the result dict and {1} entries in the wait dict. readCounterSemaphore.CurrentCount: {2}", resultDict.Count, waitDict.Count, readCounterSemaphore.CurrentCount));
-
-      // clear all results that have been read from python, but not been processed due to a timeout
-      resultDict.Clear();
-    }
-
-    private void CheckIfResourceIsNewer(string scriptName) {
-      Assembly assembly = GetType().Assembly;
-      if (File.Exists(scriptName) && File.GetLastWriteTime(scriptName) >= File.GetLastWriteTime(assembly.Location)) return;
-
-      Stream scriptStream = assembly.GetManifestResourceStream(String.Format("{0}.{1}", GetType().Namespace, scriptName));
-      using (var fileStream = File.Create(scriptName)) {
-        scriptStream.CopyTo(fileStream);
       }
-    }
 
-    public void Dispose() {
-      python.Kill();
-      python.Dispose();
+      public void Dispose() {
+        _workers.ForEach(thread => EnqueueTask(null));
+        _workers.ForEach(thread => thread.Join());
+      }
     }
   }
 }

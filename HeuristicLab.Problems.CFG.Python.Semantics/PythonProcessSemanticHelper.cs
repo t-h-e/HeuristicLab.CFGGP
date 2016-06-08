@@ -134,8 +134,8 @@ for l in lines:
         int after = -1;
         int pos = traceChanges.IndexOf(linesBefore.Max());
         if (pos + 1 < traceChanges.Count // has to be in the array
-          // there cannot be another line which comes after the current one, but before the trace change
-          // otherwise the current line did not change anything
+                                         // there cannot be another line which comes after the current one, but before the trace change
+                                         // otherwise the current line did not change anything
           && !symbolLines.Any(x => x > symbolLine.Value && x < traceChanges[pos + 1])) {
           after = traceChanges[pos + 1];
         }
