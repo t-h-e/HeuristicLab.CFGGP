@@ -94,8 +94,8 @@ def evolve(in0, in1):
 def fitnessTrainingCase(i, o):
   eval = evolve(i[0], i[1])
 
-  # add 2000 extra error for length difference, because that's the maximum difference between two elements
-  return [sum([abs(x[0] - x[1]) for x in zip(eval,o[0])]) + abs(len(eval) - len(o[0])) * 2000]
+  # add 10000 extra error for length difference, as it is done in the reference implementation
+  return [abs(x[0] - x[1]) for x in zip(eval,o[0])] + [10000] * abs(len(eval) - len(o[0]))
 
 
 #  function to evaluate fitness

@@ -337,7 +337,11 @@ namespace HeuristicLab.Problems.CFG.Python {
             if (idMatch.Success) {
               res = new JObject();
               res["id"] = idMatch.Groups["id"].Value;
-              res["exception"] = e.Message;
+              if (e.Message.StartsWith("JSON integer")) {
+                res["exception"] = "JSON integer";
+              } else {
+                res["exception"] = e.Message;
+              }
             } else {
               Console.WriteLine("Could not find id in read value");
             }
