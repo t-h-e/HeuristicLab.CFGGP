@@ -146,6 +146,12 @@ for l in lines:
             Before = before,
             After = traceTable[after],
           });
+        } else {
+          semantics.Add(new PythonStatementSemantic() {
+            TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
+            Before = before,
+            After = new Dictionary<string, IList>(),
+          });
         }
       }
 
