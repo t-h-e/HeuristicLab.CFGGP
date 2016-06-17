@@ -29,6 +29,7 @@ using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
@@ -36,10 +37,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  [Item("PythonSemanticEvaluationCrossover2", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
+  [Item("SemanticCrossoverAnalyzationCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
   [StorableClass]
-  public class CFGPythonSemanticEvalCrossover2<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
-                                                ICFGPythonSemanticsCrossover<T>
+  public class SemanticCrossoverAnalyzationCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
+                                                ICFGPythonSemanticsCrossover<T>, IIterationBasedOperator
   where T : class, ICFGPythonProblemData {
     private const string InternalCrossoverPointProbabilityParameterName = "InternalCrossoverPointProbability";
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
@@ -52,6 +53,22 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     private const string MaxComparesParameterName = "MaxCompares";
     private const string TimeoutParameterName = "Timeout";
+
+    private const string NumberOfPossibleBranchesSelectedParameterName = "NumberOfPossibleBranchesSelected";
+    private const string NumberOfNoChangeDetectedParameterName = "NumberOfNoChangeDetected";
+
+    private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarity";
+    private const string TypeDifferencesParameterName = "TypeDifferences";
+
+    private const string ParentSimilairyPerTypeParameterName = "ParentSimilairyPerType";
+    private const string ParentSimilairyAverageParameterName = "ParentSimilairyAverage";
+    private const string ParentSimilairyAverageAllXOParameterName = "ParentSimilairyAverageAllXO";
+    private const string NewSimilairyAveragePerTypeParameterName = "NewSimilairyAveragePerType";
+    private const string NewSimilairyAverageParameterName = "NewSimilairyAverage";
+    private const string NewSimilairyAverageAllXOParameterName = "NewSimilairyAverageAllXO";
+
+    private const string NewSimilarityCrossoverCountParameterName = "NewSimilarityCrossoverCount";
+    private const string ParentsSimilarityCrossoverCountParameterName = "ParentsSimilarityCrossoverCount";  // how often has the similarity crossover been applied (only counts when it really has been used. A similarity > 0 has been found.)
 
     /// <summary>
     /// 0 = variable names
@@ -106,6 +123,48 @@ for v in variables:
     public ILookupParameter<PythonProcess> PythonProcessParameter {
       get { return (ILookupParameter<PythonProcess>)Parameters["PythonProcess"]; }
     }
+    public ILookupParameter<IntValue> IterationsParameter {
+      get { return (ILookupParameter<IntValue>)Parameters["Iterations"]; }
+    }
+    public IValueLookupParameter<IntValue> MaximumIterationsParameter {
+      get { return (IValueLookupParameter<IntValue>)Parameters["MaximumIterations"]; }
+    }
+    public ILookupParameter<IntValue> NumberOfPossibleBranchesSelectedParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[NumberOfPossibleBranchesSelectedParameterName]; }
+    }
+    public ILookupParameter<IntValue> NumberOfNoChangeDetectedParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[NumberOfNoChangeDetectedParameterName]; }
+    }
+    public ILookupParameter<StringValue> TypeSelectedForSimilarityParameter {
+      get { return (ILookupParameter<StringValue>)Parameters[TypeSelectedForSimilarityParameterName]; }
+    }
+    public ILookupParameter<ItemList<StringValue>> TypeDifferencesParameter {
+      get { return (ILookupParameter<ItemList<StringValue>>)Parameters[TypeDifferencesParameterName]; }
+    }
+    public ILookupParameter<ItemDictionary<StringValue, DoubleValue>> NewSimilairyAveragePerTypeParameter {
+      get { return (ILookupParameter<ItemDictionary<StringValue, DoubleValue>>)Parameters[NewSimilairyAveragePerTypeParameterName]; }
+    }
+    public ILookupParameter<DoubleValue> NewSimilairyAverageParameter {
+      get { return (ILookupParameter<DoubleValue>)Parameters[NewSimilairyAverageParameterName]; }
+    }
+    public ILookupParameter<DoubleValue> NewSimilairyAverageAllXOParameter {
+      get { return (ILookupParameter<DoubleValue>)Parameters[NewSimilairyAverageAllXOParameterName]; }
+    }
+    public ILookupParameter<ItemArray<ItemDictionary<StringValue, DoubleValue>>> ParentSimilairyPerTypeParameter {
+      get { return (ScopeTreeLookupParameter<ItemDictionary<StringValue, DoubleValue>>)Parameters[ParentSimilairyPerTypeParameterName]; }
+    }
+    public ILookupParameter<ItemArray<DoubleValue>> ParentSimilairyAverageParameter {
+      get { return (ScopeTreeLookupParameter<DoubleValue>)Parameters[ParentSimilairyAverageParameterName]; }
+    }
+    public ILookupParameter<ItemArray<DoubleValue>> ParentSimilairyAverageAllXOParameter {
+      get { return (ScopeTreeLookupParameter<DoubleValue>)Parameters[ParentSimilairyAverageAllXOParameterName]; }
+    }
+    public ILookupParameter<ItemArray<IntValue>> ParentsSimilarityCrossoverCountParameter {
+      get { return (ScopeTreeLookupParameter<IntValue>)Parameters[ParentsSimilarityCrossoverCountParameterName]; }
+    }
+    public ILookupParameter<IntValue> NewSimilarityCrossoverCountParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[NewSimilarityCrossoverCountParameterName]; }
+    }
     #endregion
 
     #region Properties
@@ -129,11 +188,51 @@ for v in variables:
     }
     public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
     public PythonProcess PyProcess { get { return PythonProcessParameter.ActualValue; } }
+    public int Iterations {
+      get { return IterationsParameter.ActualValue.Value; }
+    }
+    public int NumberOfPossibleBranchesSelected {
+      set { NumberOfPossibleBranchesSelectedParameter.ActualValue = new IntValue(value); }
+    }
+    public int NumberOfNoChangeDetected {
+      set { NumberOfNoChangeDetectedParameter.ActualValue = new IntValue(value); }
+    }
+    public string TypeSelectedForSimilarity {
+      set { TypeSelectedForSimilarityParameter.ActualValue = new StringValue(value); }
+    }
+    public ItemList<StringValue> TypeDifferences {
+      set { TypeDifferencesParameter.ActualValue = value; }
+    }
+    public ItemDictionary<StringValue, DoubleValue> NewSimilairyAveragePerType {
+      set { NewSimilairyAveragePerTypeParameter.ActualValue = value; }
+    }
+    public double NewSimilairyAverage {
+      set { NewSimilairyAverageParameter.ActualValue = new DoubleValue(value); }
+    }
+    public double NewSimilairyAverageAllXO {
+      set { NewSimilairyAverageAllXOParameter.ActualValue = new DoubleValue(value); }
+    }
+    public ItemArray<ItemDictionary<StringValue, DoubleValue>> ParentSimilairyPerType {
+      get { return ParentSimilairyPerTypeParameter.ActualValue; }
+    }
+    public ItemArray<DoubleValue> ParentSimilairyAverage {
+      get { return ParentSimilairyAverageParameter.ActualValue; }
+    }
+    public ItemArray<DoubleValue> ParentSimilairyAverageAllXO {
+      get { return ParentSimilairyAverageAllXOParameter.ActualValue; }
+    }
+    public ItemArray<IntValue> ParentsSimilarityCrossoverCount {
+      get { return ParentsSimilarityCrossoverCountParameter.ActualValue; }
+    }
+    public int NewSimilarityCrossoverCount {
+      get { return NewSimilarityCrossoverCountParameter.ActualValue.Value; }
+      set { NewSimilarityCrossoverCountParameter.ActualValue = new IntValue(value); }
+    }
     #endregion
     [StorableConstructor]
-    protected CFGPythonSemanticEvalCrossover2(bool deserializing) : base(deserializing) { }
-    protected CFGPythonSemanticEvalCrossover2(CFGPythonSemanticEvalCrossover2<T> original, Cloner cloner) : base(original, cloner) { }
-    public CFGPythonSemanticEvalCrossover2()
+    protected SemanticCrossoverAnalyzationCrossover(bool deserializing) : base(deserializing) { }
+    protected SemanticCrossoverAnalyzationCrossover(SemanticCrossoverAnalyzationCrossover<T> original, Cloner cloner) : base(original, cloner) { }
+    public SemanticCrossoverAnalyzationCrossover()
       : base() {
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeDepthParameterName, "The maximal depth of the symbolic expression tree (a tree with one node has depth = 0)."));
@@ -149,10 +248,26 @@ for v in variables:
       Parameters.Add(new LookupParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)"));
 
       Parameters.Add(new LookupParameter<PythonProcess>("PythonProcess", "Python process"));
+
+      Parameters.Add(new LookupParameter<IntValue>("Iterations", "Optional: A value indicating the current iteration."));
+      Parameters.Add(new ValueLookupParameter<IntValue>("MaximumIterations", "Unused", new IntValue(-1)));
+
+      Parameters.Add(new LookupParameter<IntValue>(NumberOfPossibleBranchesSelectedParameterName, ""));
+      Parameters.Add(new LookupParameter<IntValue>(NumberOfNoChangeDetectedParameterName, ""));
+      Parameters.Add(new LookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
+      Parameters.Add(new LookupParameter<ItemList<StringValue>>(TypeDifferencesParameterName, ""));
+      Parameters.Add(new LookupParameter<ItemDictionary<StringValue, DoubleValue>>(NewSimilairyAveragePerTypeParameterName, ""));
+      Parameters.Add(new LookupParameter<DoubleValue>(NewSimilairyAverageParameterName, ""));
+      Parameters.Add(new LookupParameter<DoubleValue>(NewSimilairyAverageAllXOParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ItemDictionary<StringValue, DoubleValue>>(ParentSimilairyPerTypeParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(ParentSimilairyAverageParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(ParentSimilairyAverageAllXOParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(ParentsSimilarityCrossoverCountParameterName, ""));
+      Parameters.Add(new LookupParameter<IntValue>(NewSimilarityCrossoverCountParameterName, ""));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new CFGPythonSemanticEvalCrossover2<T>(this, cloner);
+      return new SemanticCrossoverAnalyzationCrossover<T>(this, cloner);
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
@@ -160,11 +275,13 @@ for v in variables:
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
           MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
 
+      AddStatistics();
       return parent0;
     }
 
     private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability) {
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
+        AddStatistics();
         return parent0;
       }
 
@@ -187,6 +304,7 @@ for v in variables:
       if (crossoverPoint0.IsMatchingPointType(null)) allowedBranches.Add(null);
 
       if (allowedBranches.Count == 0) {
+        AddStatistics();
         return parent0;
       } else {
         // select MaxCompares random crossover points
@@ -203,6 +321,9 @@ for v in variables:
           }
         }
 
+        // set NumberOfPossibleBranchesSelected
+        NumberOfPossibleBranchesSelected = compBranches.Count;
+
         // get possible semantic positions
         var statementProductions = ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <code>")).Symbols;
         var statementProductionNames = statementProductions.Select(x => x.Name);
@@ -215,6 +336,7 @@ for v in variables:
 
         if (statement == null) {
           Swap(crossoverPoint0, compBranches.SampleRandom(random));
+          AddStatistics();
           return parent0;
         }
 
@@ -252,7 +374,36 @@ for v in variables:
           Swap(crossoverPoint0, selectedBranch);
       }
 
+      AddStatistics();
       return parent0;
+    }
+
+    private void AddStatistics() {
+      double sum = 0;
+      int count = 0;
+      for (int i = 0; i < ParentSimilairyAverage.Length; i++) {
+        sum += ParentSimilairyAverage[i].Value * ParentsSimilarityCrossoverCount[i].Value;
+        count += ParentsSimilarityCrossoverCount[i].Value;
+      }
+      if (NewSimilairyAverageParameter.ActualValue != null) {
+        sum += NewSimilairyAverageParameter.ActualValue.Value;
+        count++;
+      }
+      if (count != 0) {
+        NewSimilairyAverage = sum / count;
+        NewSimilarityCrossoverCount = count;
+      } else {
+        NewSimilairyAverage = 0;
+        NewSimilarityCrossoverCount = 0;
+      }
+
+      sum = 0;
+      count = 1 + (int)(Math.Pow(2, Iterations) * 2);
+      for (int i = 0; i < ParentSimilairyAverageAllXO.Length; i++) {
+        sum += ParentSimilairyAverageAllXO[i].Value * Math.Pow(2, Iterations - 1);
+      }
+      sum += NewSimilairyAverageParameter.ActualValue != null ? NewSimilairyAverageParameter.ActualValue.Value : 0.0;
+      NewSimilairyAverageAllXO = sum / count;
     }
 
     private string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic) {
@@ -309,14 +460,24 @@ for v in variables:
         }
       }
 
+      // set TypeDifferences
+      TypeDifferences = new ItemList<StringValue>(differencesPerType.Select(x => new StringValue(x.Key.ToString())));
+
       if (differencesPerType.Count == 0) return compBranches.SampleRandom(random); // no difference found, crossover with any branch
 
       var typeDifference = differencesPerType.SampleRandom(random);
+
+      //set TypeSelectedForSimilarity
+      TypeSelectedForSimilarity = typeDifference.Key.ToString();
+
       foreach (var variableName in typeDifference.Value) {
         var variableSimilarity = CalculateDifference(jsonParent0[variableName], evaluationPerNode.Select(x => x[variableName]), typeDifference.Key, true);
         similarity = similarity.Zip(variableSimilarity, (x, y) => x + y).ToList();
       }
       similarity = similarity.Select(x => x / typeDifference.Value.Count).ToList(); // normalize between 0 and 1 again (actually not necessary)
+
+      // set NumberOfNoChangeDetected
+      NumberOfNoChangeDetected = similarity.Count(x => x.IsAlmost(0.0));
 
       double best = Double.MaxValue;
       int pos = -1;
@@ -326,6 +487,13 @@ for v in variables:
           pos = i;
         }
       }
+
+      // set
+      if (pos >= 0) {
+        NewSimilairyAverage = best;
+        NewSimilarityCrossoverCount = 1;
+      }
+
       return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
     }
 

@@ -151,6 +151,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Crossover\SemanticAnalyzationCrossover.cs" />
     <Compile Include="Crossover\CFGPythonSemanticEvalCrossover2.cs" />
     <Compile Include="Evaluator\CFGPythonTraceTableEvaluator.cs" />
     <Compile Include="Crossover\CFGPythonSemanticEvalCrossover.cs" />
@@ -186,7 +187,9 @@
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Analyzer\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

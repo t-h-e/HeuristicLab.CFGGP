@@ -136,7 +136,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       if (!normalize) return sum;
 
-      double denom = max * count;
+      double denom = sum.Max();
       for (int i = 0; i < sum.Count; i++) {
         if (sum[i] == 0) continue;
         if (denom.IsAlmost(0)) sum[i] = 1;
@@ -176,7 +176,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       if (!normalize) return sum;
 
-      double denom = max * count;
+      double denom = sum.Max();
       for (int i = 0; i < sum.Count; i++) {
         if (sum[i] == 0) continue;
         if (denom.IsAlmost(0)) sum[i] = 1;
