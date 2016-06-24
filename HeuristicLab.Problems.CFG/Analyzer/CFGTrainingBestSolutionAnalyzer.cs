@@ -130,20 +130,6 @@ namespace HeuristicLab.Problems.CFG {
       return new CFGTrainingBestSolutionAnalyzer<T>(this, cloner);
     }
 
-    [StorableHook(HookType.AfterDeserialization)]
-    private void AfterDeserialization() {
-      if (!Parameters.ContainsKey(UpdateAlwaysParameterName)) {
-        Parameters.Add(new FixedValueParameter<BoolValue>(UpdateAlwaysParameterName, "Determines if the best training solution should always be updated regardless of its quality.", new BoolValue(false)));
-        UpdateAlwaysParameter.Hidden = true;
-      }
-      if (!Parameters.ContainsKey(TrainingBestSolutionGenerationParameterName))
-        Parameters.Add(new LookupParameter<IntValue>(TrainingBestSolutionGenerationParameterName, "The generation in which the best training solution was found."));
-      if (!Parameters.ContainsKey(IterationsParameterName))
-        Parameters.Add(new LookupParameter<IntValue>(IterationsParameterName, "The number of performed iterations."));
-      if (!Parameters.ContainsKey(MaximumIterationsParameterName))
-        Parameters.Add(new ValueLookupParameter<IntValue>(MaximumIterationsParameterName, "The maximum number of performed iterations.") { Hidden = true });
-    }
-
     public override IOperation Apply() {
       #region find best tree
       double bestQuality = double.PositiveInfinity;

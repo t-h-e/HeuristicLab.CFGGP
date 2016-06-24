@@ -124,7 +124,7 @@ for v in variables:
     public ICFGPythonProblemData ProblemData {
       get { return ProblemDataParameter.ActualValue; }
     }
-    private ItemArray<ItemArray<PythonStatementSemantic>> Semantics {
+    public ItemArray<ItemArray<PythonStatementSemantic>> Semantics {
       get { return SemanticsParameter.ActualValue; }
     }
     public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
@@ -329,7 +329,7 @@ for v in variables:
       return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
     }
 
-    private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
+    protected string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
       Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
       string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
       return String.Format(EVAL_TRACE_SCRIPT, ProblemData.HelperCode.Value,
@@ -340,28 +340,28 @@ for v in variables:
                                               PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
     }
 
-    private double CalculateDifference(JToken curDiff0, JToken curDiff1, VariableType variableType, bool normalize) {
-      switch (variableType) {
-        case VariableType.Bool:
-          return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>(), normalize);
-        case VariableType.Int:
-        case VariableType.Float:
-          return PythonSemanticComparer.Compare(ConvertIntJsonToDouble(curDiff0), ConvertIntJsonToDouble(curDiff1), normalize);
-        case VariableType.String:
-          return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiff1.Values<string>(), normalize);
-        case VariableType.List_Bool:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiff1.Values<List<bool>>(), normalize);
-        case VariableType.List_Int:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiff1.Values<List<int>>(), normalize);
-        case VariableType.List_Float:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiff1.Values<List<double>>(), normalize);
-        case VariableType.List_String:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiff1.Values<List<string>>(), normalize);
-      }
-      throw new ArgumentException("Variable Type cannot be compared.");
-    }
+    //protected double CalculateDifference(JToken curDiff0, JToken curDiff1, VariableType variableType, bool normalize) {
+    //  switch (variableType) {
+    //    case VariableType.Bool:
+    //      return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>(), normalize);
+    //    case VariableType.Int:
+    //    case VariableType.Float:
+    //      return PythonSemanticComparer.Compare(ConvertIntJsonToDouble(curDiff0), ConvertIntJsonToDouble(curDiff1), normalize);
+    //    case VariableType.String:
+    //      return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiff1.Values<string>(), normalize);
+    //    case VariableType.List_Bool:
+    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiff1.Values<List<bool>>(), normalize);
+    //    case VariableType.List_Int:
+    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiff1.Values<List<int>>(), normalize);
+    //    case VariableType.List_Float:
+    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiff1.Values<List<double>>(), normalize);
+    //    case VariableType.List_String:
+    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiff1.Values<List<string>>(), normalize);
+    //  }
+    //  throw new ArgumentException("Variable Type cannot be compared.");
+    //}
 
-    private IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {
+    protected IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {
       switch (variableType) {
         case VariableType.Bool:
           return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiffOthers.Select(x => x.Values<bool>()), normalize);
@@ -396,7 +396,7 @@ for v in variables:
     }
 
     // copied from SubtreeCrossover
-    private static void SelectCrossoverPoint(IRandom random, ISymbolicExpressionTree parent0, double internalNodeProbability, int maxBranchLength, int maxBranchDepth, out CutPoint crossoverPoint) {
+    protected static void SelectCrossoverPoint(IRandom random, ISymbolicExpressionTree parent0, double internalNodeProbability, int maxBranchLength, int maxBranchDepth, out CutPoint crossoverPoint) {
       if (internalNodeProbability < 0.0 || internalNodeProbability > 1.0) throw new ArgumentException("internalNodeProbability");
       List<CutPoint> internalCrossoverPoints = new List<CutPoint>();
       List<CutPoint> leafCrossoverPoints = new List<CutPoint>();
@@ -420,8 +420,7 @@ for v in variables:
             internalCrossoverPoints.Add(new CutPoint(n, n.SubtreeCount));
           }
         }
-      }
-    );
+      });
 
       if (random.NextDouble() < internalNodeProbability) {
         // select from internal node if possible
@@ -442,7 +441,7 @@ for v in variables:
     }
 
     //copied from SubtreeCrossover
-    private static ISymbolicExpressionTreeNode SelectRandomBranch(IRandom random, IEnumerable<ISymbolicExpressionTreeNode> branches, double internalNodeProbability) {
+    protected static ISymbolicExpressionTreeNode SelectRandomBranch(IRandom random, IEnumerable<ISymbolicExpressionTreeNode> branches, double internalNodeProbability) {
       if (internalNodeProbability < 0.0 || internalNodeProbability > 1.0) throw new ArgumentException("internalNodeProbability");
       List<ISymbolicExpressionTreeNode> allowedInternalBranches;
       List<ISymbolicExpressionTreeNode> allowedLeafBranches;

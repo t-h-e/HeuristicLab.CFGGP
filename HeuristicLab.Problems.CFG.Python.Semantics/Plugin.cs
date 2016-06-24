@@ -24,6 +24,7 @@ using HeuristicLab.PluginInfrastructure;
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [Plugin("HeuristicLab.Problems.CFG.Python.Semantics", "Provides classes to create grammar based problems in python", "3.3.12.0")]
   [PluginFile("HeuristicLab.Problems.CFG.Python.Semantics.dll", PluginFileType.Assembly)]
+  [PluginDependency("HeuristicLab.Analysis", "3.3")]
   [PluginDependency("HeuristicLab.Collections", "3.3")]
   [PluginDependency("HeuristicLab.Common", "3.3")]
   [PluginDependency("HeuristicLab.Core", "3.3")]

@@ -1,44 +1,64 @@
 import json
 import threading
 import sys
+import queue
 
-results = ''
-exception = ''
+#results = {}
+exception = ['']
 stop = [False]
 
+consume = queue.Queue()
+produced = queue.Queue()
 
-def worker(script):
-    global results, stop, exception
-    try:
-        help_globals = {'stop': stop}
-        exec(script, help_globals)
-        results = help_globals
-    except BaseException as e:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        exception = '{} {} {}'.format(exc_type, exc_obj, e.args)
+def worker():
+    global stop, exception
+    while True:
+        script = consume.get()
+        if script == None:
+            break
+        else:
+            try:
+                help_globals = {'stop': stop}
+                exec(script, help_globals)
+                produced.put(help_globals)
+                #results = help_globals
+            except BaseException as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                exception[0] = '{} {} {}'.format(exc_type, exc_obj, e.args)
+                produced.put(help_globals)
+        consume.task_done()
+
+
 
 if __name__ == '__main__':
+    t = threading.Thread(target=worker)
+    t.start()
     while True:
         try:
             message = input()
         except EOFError as err:
             # No data was read with input()
             # HeuristicLab is not running anymore
+            # stop thread
+            consume.put(None)
+            t.join(5)
             break
-        
-        message_dict = json.loads(message)
 
+        message_dict = json.loads(message)
         stop[0] = [False]
-        t = threading.Thread(target=worker, args=[message_dict['script']])
-        t.start()
-        t.join(message_dict['timeout'])
-        if t.isAlive():
+        consume.put(message_dict['script'])
+        try:
+            results = produced.get(message_dict['timeout'])
+        except queue.Empty:
+            results = None
+        # t.join(message_dict['timeout'])
+        if not results:
             stop[0] = True
-            t.join()
+            produced.get()
+            # t.join()
             print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
-        elif exception:
-            print(json.dumps({'exception': exception}), flush=True)
-            exception = ''
+        elif exception[0]:
+            print(json.dumps({'exception': exception[0]}), flush=True)
         else:
             ret_message_dict = {}
             for v in message_dict['variables']:
@@ -47,4 +67,5 @@ if __name__ == '__main__':
 
             print(json.dumps(ret_message_dict), flush=True)
 
-            results = ''
+        # results = {}
+        exception[0] = ''
