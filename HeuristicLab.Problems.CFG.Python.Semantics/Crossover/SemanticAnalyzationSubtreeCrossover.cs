@@ -130,12 +130,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
-      JObject jsonOriginal = PyProcess.SendAndEvaluateProgram(new EvaluationScript() {
-        Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
-        Variables = variables,
-        Timeout = Timeout
-      });
-
       var statementParent = statement.Parent;
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
         Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), variables, variableSettings),
@@ -147,13 +141,16 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       // return value is not needed as this operator does normal subtree crossover
       // statement is only called for statistics
-      SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.Variables.GetTypesOfVariables());
+      SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.Variables.GetTypesOfVariables());
 
       // perform the actual swap
-      if (selectedBranch != null)
+      if (selectedBranch != null) {
         Swap(crossoverPoint0, selectedBranch);
+        AddStatistics(semantic0, parent0); // parent one has been chaned is no considered the child
+      } else {
+        AddStatistics();
+      }
 
-      AddStatistics();
       return parent0;
     }
   }

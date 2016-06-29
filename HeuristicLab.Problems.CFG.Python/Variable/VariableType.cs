@@ -19,7 +19,15 @@
  */
 #endregion
 
+using System.Collections.Generic;
+
 namespace HeuristicLab.Problems.CFG.Python {
+  public static class Extensions {
+    private static List<VariableType> listTypes = new List<VariableType>() { VariableType.List_Bool, VariableType.List_Float, VariableType.List_Int, VariableType.List_String };
+    public static bool IsListType(this VariableType type) {
+      return listTypes.Contains(type);
+    }
+  }
   public enum VariableType {
     Bool, Int, Float, String, List_Bool, List_Int, List_Float, List_String
   }

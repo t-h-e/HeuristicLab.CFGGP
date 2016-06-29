@@ -230,12 +230,6 @@ for v in variables:
         // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
         var rootSymbol = new ProgramRootSymbol();
         var startSymbol = new StartSymbol();
-        JObject jsonOriginal = PyProcess.SendAndEvaluateProgram(new EvaluationScript() {
-          Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
-          Variables = variables,
-          Timeout = Timeout
-        });
-
         var statementParent = statement.Parent;
         EvaluationScript crossoverPointScript0 = new EvaluationScript() {
           Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), variables, variableSettings),
@@ -245,7 +239,7 @@ for v in variables:
         JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
         statement.Parent = statementParent; // restore parent
 
-        ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.Variables.GetTypesOfVariables());
+        ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.Variables.GetTypesOfVariables());
 
         // perform the actual swap
         if (selectedBranch != null)
@@ -264,7 +258,7 @@ for v in variables:
       return strBuilder.ToString();
     }
 
-    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
+    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       var statementNodetParent = statementNode.Parent; // save statement parent
@@ -298,8 +292,7 @@ for v in variables:
       foreach (var entry in variablesPerType) {
         differences = new List<string>();
         foreach (var variableName in entry.Value) {
-          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonOriginal[variableName], x[variableName]))
-          || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], jsonParent0[variableName])) {
+          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonParent0[variableName], x[variableName]))) {
             differences.Add(variableName);
           }
         }
@@ -340,27 +333,6 @@ for v in variables:
                                               PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
     }
 
-    //protected double CalculateDifference(JToken curDiff0, JToken curDiff1, VariableType variableType, bool normalize) {
-    //  switch (variableType) {
-    //    case VariableType.Bool:
-    //      return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>(), normalize);
-    //    case VariableType.Int:
-    //    case VariableType.Float:
-    //      return PythonSemanticComparer.Compare(ConvertIntJsonToDouble(curDiff0), ConvertIntJsonToDouble(curDiff1), normalize);
-    //    case VariableType.String:
-    //      return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiff1.Values<string>(), normalize);
-    //    case VariableType.List_Bool:
-    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiff1.Values<List<bool>>(), normalize);
-    //    case VariableType.List_Int:
-    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiff1.Values<List<int>>(), normalize);
-    //    case VariableType.List_Float:
-    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiff1.Values<List<double>>(), normalize);
-    //    case VariableType.List_String:
-    //      return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiff1.Values<List<string>>(), normalize);
-    //  }
-    //  throw new ArgumentException("Variable Type cannot be compared.");
-    //}
-
     protected IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {
       switch (variableType) {
         case VariableType.Bool:
@@ -371,13 +343,13 @@ for v in variables:
         case VariableType.String:
           return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiffOthers.Select(x => x.Values<string>()), normalize);
         case VariableType.List_Bool:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiffOthers.Select(x => x.Values<List<bool>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<bool>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<bool>().ToList())), normalize);
         case VariableType.List_Int:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiffOthers.Select(x => x.Values<List<int>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<int>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<int>().ToList())), normalize);
         case VariableType.List_Float:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiffOthers.Select(x => x.Values<List<double>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<double>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<double>().ToList())), normalize);
         case VariableType.List_String:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiffOthers.Select(x => x.Values<List<string>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<string>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<string>().ToList())), normalize);
       }
       throw new ArgumentException("Variable Type cannot be compared.");
     }

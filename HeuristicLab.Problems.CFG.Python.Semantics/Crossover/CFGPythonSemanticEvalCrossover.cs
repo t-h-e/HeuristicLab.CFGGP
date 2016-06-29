@@ -194,7 +194,6 @@ for v in variables:
       });
       //-------------------------------------TEMP END
 
-
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
         Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), variables, variableSettings),
         Variables = variables,

@@ -66,7 +66,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public CFGPythonTraceTableEvaluator() {
       Parameters.Add(new LookupParameter<ISymbolicExpressionTree>("SymbolicExpressionTree", ""));
       Parameters.Add(new FixedValueParameter<ReadOnlyItemList<StringValue>>("TraceVariableNames", "", new ReadOnlyItemList<StringValue>()));
-      Parameters.Add(new FixedValueParameter<IntValue>("LimitTrace", "", new IntValue(25)));
+      Parameters.Add(new FixedValueParameter<IntValue>("LimitTrace", "", new IntValue(1000)));
       Parameters.Add(new LookupParameter<ItemArray<PythonStatementSemantic>>("Semantic", ""));
 
       pythonSemanticHelper = new PythonProcessSemanticHelper(TraceVariableNames, LimitTrace, PythonProcessParameter);

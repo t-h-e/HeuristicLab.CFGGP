@@ -42,22 +42,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
   where T : class, ICFGPythonProblemData {
     private const string NumberOfPossibleBranchesSelectedParameterName = "NumberOfPossibleBranchesSelected";
     private const string NumberOfNoChangeDetectedParameterName = "NumberOfNoChangeDetected";
-
     private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarity";
-    private const string TypeDifferencesParameterName = "TypeDifferences";
 
-    private const string ParentSimilarityAveragePerTypeParameterName = "ParentSimilarityAveragePerType";
-    private const string ParentSimilarityAverageParameterName = "ParentSimilarityAverage";
-    private const string NewSimilarityAveragePerTypeParameterName = "NewSimilarityAveragePerType";
-    private const string NewSimilarityAverageParameterName = "NewSimilarityAverage";
-
-    private const string NewSimilarityCrossoverCountParameterName = "NewSimilarityCrossoverCount";
-    private const string ParentsSimilarityCrossoverCountParameterName = "ParentsSimilarityCrossoverCount";  // how often has the similarity crossover been applied (only counts when it really has been used. A similarity > 0 has been found.)
-
-    private const string SimilarityParameterName = "Similarity";
+    private const string SemanticallyEquivalentCrossoverParameterName = "SemanticallyEquivalentCrossover";
+    private const string SemanticallyDifferentFromRootedParentParameterName = "SemanticallyDifferentFromRootedParent";
+    private const string SemanticLocalityParameterName = "SemanticLocality";
+    private const string ConstructiveEffectParameterName = "ConstructiveEffect";
 
     private const string QualityParameterName = "Quality";
-    private const string ParentQualityParameterName = "ParentQuality";
 
     #region Parameter Properties
     public ILookupParameter<IntValue> IterationsParameter {
@@ -75,35 +67,21 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public ILookupParameter<StringValue> TypeSelectedForSimilarityParameter {
       get { return (ILookupParameter<StringValue>)Parameters[TypeSelectedForSimilarityParameterName]; }
     }
-    public ILookupParameter<ItemList<StringValue>> TypeDifferencesParameter {
-      get { return (ILookupParameter<ItemList<StringValue>>)Parameters[TypeDifferencesParameterName]; }
+    public ILookupParameter<IntValue> SemanticallyEquivalentCrossoverParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[SemanticallyEquivalentCrossoverParameterName]; }
     }
-    public ILookupParameter<ItemDictionary<StringValue, DoubleValue>> NewSimilarityAveragePerTypeParameter {
-      get { return (ILookupParameter<ItemDictionary<StringValue, DoubleValue>>)Parameters[NewSimilarityAveragePerTypeParameterName]; }
+    public ILookupParameter<BoolValue> SemanticallyDifferentFromRootedParentParameter {
+      get { return (ILookupParameter<BoolValue>)Parameters[SemanticallyDifferentFromRootedParentParameterName]; }
     }
-    public ILookupParameter<DoubleValue> NewSimilarityAverageParameter {
-      get { return (ILookupParameter<DoubleValue>)Parameters[NewSimilarityAverageParameterName]; }
+    public ILookupParameter<DoubleValue> SemanticLocalityParameter {
+      get { return (ILookupParameter<DoubleValue>)Parameters[SemanticLocalityParameterName]; }
     }
-    public ILookupParameter<ItemArray<ItemDictionary<StringValue, DoubleValue>>> ParentSimilarityPerTypeParameter {
-      get { return (ScopeTreeLookupParameter<ItemDictionary<StringValue, DoubleValue>>)Parameters[ParentSimilarityAveragePerTypeParameterName]; }
+    public ILookupParameter<IntValue> ConstructiveEffectParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[ConstructiveEffectParameterName]; }
     }
-    public ILookupParameter<ItemArray<DoubleValue>> ParentSimilarityAverageParameter {
-      get { return (ScopeTreeLookupParameter<DoubleValue>)Parameters[ParentSimilarityAverageParameterName]; }
-    }
-    public ILookupParameter<ItemArray<IntValue>> ParentsSimilarityCrossoverCountParameter {
-      get { return (ScopeTreeLookupParameter<IntValue>)Parameters[ParentsSimilarityCrossoverCountParameterName]; }
-    }
-    public ILookupParameter<IntValue> NewSimilarityCrossoverCountParameter {
-      get { return (ILookupParameter<IntValue>)Parameters[NewSimilarityCrossoverCountParameterName]; }
-    }
-    public ILookupParameter<DoubleValue> SimilarityParameter {
-      get { return (ILookupParameter<DoubleValue>)Parameters[SimilarityParameterName]; }
-    }
+    // Quality values of the parents
     public IScopeTreeLookupParameter<DoubleValue> QualityParameter {
       get { return (IScopeTreeLookupParameter<DoubleValue>)Parameters[QualityParameterName]; }
-    }
-    public ILookupParameter<ItemArray<DoubleValue>> ParentQualityParameter {
-      get { return (ILookupParameter<ItemArray<DoubleValue>>)Parameters[ParentQualityParameterName]; }
     }
     #endregion
 
@@ -117,31 +95,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public int NumberOfNoChangeDetected {
       set { NumberOfNoChangeDetectedParameter.ActualValue = new IntValue(value); }
     }
-    public string TypeSelectedForSimilarity {
-      set { TypeSelectedForSimilarityParameter.ActualValue = new StringValue(value); }
-    }
-    public ItemList<StringValue> TypeDifferences {
-      set { TypeDifferencesParameter.ActualValue = value; }
-    }
-    public ItemDictionary<StringValue, DoubleValue> NewSimilarityAveragePerType {
-      set { NewSimilarityAveragePerTypeParameter.ActualValue = value; }
-    }
-    public double NewSimilarityAverage {
-      set { NewSimilarityAverageParameter.ActualValue = new DoubleValue(value); }
-    }
-    public ItemArray<ItemDictionary<StringValue, DoubleValue>> ParentSimilarityPerType {
-      get { return ParentSimilarityPerTypeParameter.ActualValue; }
-    }
-    public ItemArray<DoubleValue> ParentSimilarityAverage {
-      get { return ParentSimilarityAverageParameter.ActualValue; }
-    }
-    public ItemArray<IntValue> ParentsSimilarityCrossoverCount {
-      get { return ParentsSimilarityCrossoverCountParameter.ActualValue; }
-    }
-    public int NewSimilarityCrossoverCount {
-      get { return NewSimilarityCrossoverCountParameter.ActualValue.Value; }
-      set { NewSimilarityCrossoverCountParameter.ActualValue = new IntValue(value); }
-    }
+
     #endregion
     [StorableConstructor]
     protected SemanticCrossoverAnalyzationCrossover(bool deserializing) : base(deserializing) { }
@@ -154,22 +108,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       Parameters.Add(new LookupParameter<IntValue>(NumberOfPossibleBranchesSelectedParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(NumberOfNoChangeDetectedParameterName, ""));
       Parameters.Add(new LookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
-      Parameters.Add(new LookupParameter<ItemList<StringValue>>(TypeDifferencesParameterName, ""));
-      Parameters.Add(new LookupParameter<ItemDictionary<StringValue, DoubleValue>>(NewSimilarityAveragePerTypeParameterName, ""));
-      Parameters.Add(new LookupParameter<DoubleValue>(NewSimilarityAverageParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<ItemDictionary<StringValue, DoubleValue>>(ParentSimilarityAveragePerTypeParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(ParentSimilarityAverageParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(ParentsSimilarityCrossoverCountParameterName, ""));
-      Parameters.Add(new LookupParameter<IntValue>(NewSimilarityCrossoverCountParameterName, ""));
 
-      Parameters.Add(new LookupParameter<DoubleValue>(SimilarityParameterName, ""));
+      Parameters.Add(new LookupParameter<IntValue>(SemanticallyEquivalentCrossoverParameterName, ""));
+      Parameters.Add(new LookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
+      Parameters.Add(new LookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
+      Parameters.Add(new LookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
+
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(QualityParameterName, "The qualities of the trees that should be analyzed."));
-      Parameters.Add(new LookupParameter<ItemArray<DoubleValue>>(ParentQualityParameterName, ""));
-
-      ParentSimilarityPerTypeParameter.ActualName = NewSimilarityAveragePerTypeParameter.Name;
-      ParentSimilarityAverageParameter.ActualName = NewSimilarityAverageParameter.Name;
-
-      ParentsSimilarityCrossoverCountParameter.ActualName = NewSimilarityCrossoverCountParameter.Name;
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -177,7 +122,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
-      ParentQualityParameter.ActualValue = QualityParameter.ActualValue;
       if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value)
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
           MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
@@ -260,12 +204,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
-      JObject jsonOriginal = PyProcess.SendAndEvaluateProgram(new EvaluationScript() {
-        Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
-        Variables = variables,
-        Timeout = Timeout
-      });
-
       var statementParent = statement.Parent;
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
         Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), variables, variableSettings),
@@ -275,36 +213,115 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
       statement.Parent = statementParent; // restore parent
 
-      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.Variables.GetTypesOfVariables());
+      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.Variables.GetTypesOfVariables());
 
       // perform the actual swap
-      if (selectedBranch != null)
-        Swap(crossoverPoint0, selectedBranch);
+      if (selectedBranch != null) {
 
-      AddStatistics();
+        if (SemanticallyEquivalentCrossoverParameter.ActualValue != null && SemanticallyEquivalentCrossoverParameter.ActualValue.Value == 1) {
+          // check semantic equlivalence again to make sure there is really no semantic difference
+          var statementNodetParent = statement.Parent; // save statement parent
+          var evaluationTree = CreateTreeFromNode(random, statement, rootSymbol, startSymbol); // this will affect statementNode.Parent
+          var parent = selectedBranch.Parent; // save parent
+
+          crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
+          crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, selectedBranch); // this will affect node.Parent
+
+          EvaluationScript evaluationScript1 = new EvaluationScript() {
+            Script = FormatScript(evaluationTree, variables, variableSettings),
+            Variables = variables,
+            Timeout = Timeout
+          };
+          JObject jsonBranch = PyProcess.SendAndEvaluateProgram(evaluationScript1);
+          selectedBranch.Parent = parent; // restore parent
+          statement.Parent = statementNodetParent; // restore statement parent
+          crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
+          crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
+
+          foreach (var entry in problemData.Variables.GetTypesOfVariables()) {
+            foreach (var variableName in entry.Value) {
+              if (!JToken.EqualityComparer.Equals(json0[variableName], jsonBranch[variableName])) {
+                SemanticallyEquivalentCrossoverParameter.ActualValue.Value = 2;
+                break;
+              }
+            }
+          }
+        }
+
+        Swap(crossoverPoint0, selectedBranch);
+        AddStatistics(semantic0, parent0); // parent one has been chaned is no considered the child
+      } else {
+        AddStatistics();
+      }
+
       return parent0;
     }
 
-    protected void AddStatistics() {
-      double sum = 0;
-      int count = 0;
-      for (int i = 0; i < ParentSimilarityAverage.Length; i++) {
-        sum += ParentSimilarityAverage[i].Value * ParentsSimilarityCrossoverCount[i].Value;
-        count += ParentsSimilarityCrossoverCount[i].Value;
+    protected void AddStatistics(ItemArray<PythonStatementSemantic> semantic0 = null, ISymbolicExpressionTree child = null) {
+      var parentQualities = QualityParameter.ActualValue;
+      double parent0Quality = parentQualities[0].Value;
+      double parent1Quality = parentQualities[1].Value;
+
+      if (child == null || semantic0 == null) {// no crossover happend
+        SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0);
+        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
+        SemanticLocalityParameter.ActualValue = new DoubleValue(0.0);
+        ConstructiveEffectParameter.ActualValue = new IntValue(parent0Quality < parent1Quality ? 1 : 0);
+        return;
       }
-      if (NewSimilarityAverageParameter.ActualValue != null) {
-        SimilarityParameter.ActualValue = new DoubleValue(NewSimilarityAverageParameter.ActualValue.Value);
-        sum += NewSimilarityAverageParameter.ActualValue.Value;
-        count++;
+
+      if (SemanticallyEquivalentCrossoverParameter.ActualValue == null) { SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0); }
+
+      var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000, PythonProcessParameter); //Attention fixed value for trace  // object created for every crossover
+
+      var childResults = pythonSemanticHelper.EvaluateAndTraceProgram(PythonHelper.FormatToProgram(child, ProblemData.FullHeader, ProblemData.FullFooter),
+                                             PythonHelper.ConvertToPythonValues(ProblemData.Input, ProblemData.TrainingIndices),
+                                             PythonHelper.ConvertToPythonValues(ProblemData.Output, ProblemData.TrainingIndices),
+                                             ProblemData.TrainingIndices,
+                                             ProblemData.FullHeader,
+                                             child,
+                                             Timeout);
+
+      var childQuality = childResults.Item3;
+      SemanticLocalityParameter.ActualValue = new DoubleValue(Math.Abs(parent0Quality - childQuality));
+      ConstructiveEffectParameter.ActualValue = new IntValue(childQuality < parent0Quality
+                                                                ? childQuality < parent1Quality ? 2 : 1
+                                                                : 0);
+
+      var parent0Semantic = semantic0.Last();
+      var childSemantic = childResults.Item5.Last();
+
+      var parent0Res = parent0Semantic.After.Keys.Contains("res") ? parent0Semantic.After["res"] : parent0Semantic.Before["res"];
+      var child0Res = childSemantic.After.Keys.Contains("res") ? childSemantic.After["res"] : childSemantic.Before["res"];
+
+      var enumParent = parent0Res.GetEnumerator();
+      var enumChild = child0Res.GetEnumerator();
+
+      SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
+
+      var type = ProblemData.Variables.GetTypesOfVariables().First(x => x.Value.Contains("res")).Key;
+      if (type.IsListType()) {// not list 
+        // always move forward both enumerators (do not use short-circuit evaluation!)
+        while (enumParent.MoveNext() & enumChild.MoveNext()) {
+          if (!JToken.EqualityComparer.Equals((JArray)enumParent.Current, (JArray)enumChild.Current)) {
+            SemanticallyDifferentFromRootedParentParameter.ActualValue.Value = true;
+            break;
+          }
+        }
+        if (enumParent.MoveNext() || enumChild.MoveNext()) {
+          SemanticallyDifferentFromRootedParentParameter.ActualValue.Value = true;
+        }
       } else {
-        SimilarityParameter.ActualValue = new DoubleValue(0.0);
-      }
-      if (count != 0) {
-        NewSimilarityAverage = sum / count;
-        NewSimilarityCrossoverCount = count;
-      } else {
-        NewSimilarityAverage = 0;
-        NewSimilarityCrossoverCount = 0;
+        // always move forward both enumerators (do not use short-circuit evaluation!)
+        while (enumParent.MoveNext() & enumChild.MoveNext()) {
+          if (!enumParent.Current.Equals(enumChild.Current)) {
+            SemanticallyDifferentFromRootedParentParameter.ActualValue.Value = true;
+            break;
+          }
+        }
+        if (enumParent.MoveNext() || enumChild.MoveNext()) {
+          SemanticallyDifferentFromRootedParentParameter.ActualValue.Value = true;
+        }
       }
     }
 
@@ -317,7 +334,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       return strBuilder.ToString();
     }
 
-    protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
+    protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, IDictionary<VariableType, List<string>> variablesPerType) { // JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       var statementNodetParent = statementNode.Parent; // save statement parent
@@ -351,8 +368,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       foreach (var entry in variablesPerType) {
         differences = new List<string>();
         foreach (var variableName in entry.Value) {
-          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonOriginal[variableName], x[variableName]))
-          || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], jsonParent0[variableName])) {
+          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonParent0[variableName], x[variableName]))) {
             differences.Add(variableName);
           }
         }
@@ -362,15 +378,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         }
       }
 
-      // set TypeDifferences
-      TypeDifferences = new ItemList<StringValue>(differencesPerType.Select(x => new StringValue(x.Key.ToString())));
-
       if (differencesPerType.Count == 0) return compBranches.SampleRandom(random); // no difference found, crossover with any branch
 
       var typeDifference = differencesPerType.SampleRandom(random);
 
       //set TypeSelectedForSimilarity
-      TypeSelectedForSimilarity = typeDifference.Key.ToString();
+      TypeSelectedForSimilarityParameter.ActualValue = new StringValue(typeDifference.Key.ToString());
 
       foreach (var variableName in typeDifference.Value) {
         var variableSimilarity = CalculateDifference(jsonParent0[variableName], evaluationPerNode.Select(x => x[variableName]), typeDifference.Key, true);
@@ -390,11 +403,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         }
       }
 
-      // set
-      if (pos >= 0) {
-        NewSimilarityAverage = best;
-        NewSimilarityCrossoverCount = 1;
-      }
+      // set SemanticallyEquivalentCrossover
+      SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(pos >= 0 ? 2 : 1);
 
       return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
     }
