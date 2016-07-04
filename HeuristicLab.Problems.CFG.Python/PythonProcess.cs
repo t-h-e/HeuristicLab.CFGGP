@@ -19,6 +19,8 @@
  */
 #endregion
 
+//#define DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -28,7 +30,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -289,6 +290,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       void Consume() {
         Process python = CreatePythonProcess(executable, arguments);
         python.Start();
+        python.StandardInput.AutoFlush = true;
 
         while (true) {
           EvalTask item;
@@ -298,36 +300,21 @@ namespace HeuristicLab.Problems.CFG.Python {
           }
           if (item == null) return;
 
-          python.StandardInput.WriteLine(item.EvalString);
-          python.StandardInput.Flush();
+#if DEBUG
+          lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, item.EvalString)); } }
+#endif
 
-          Task<string> read = null;
-          try {
-            read = python.StandardOutput.ReadLineAsync();
-          } catch (InvalidOperationException e) {
-            Console.WriteLine("Pipe might have been broken!?");
-            Console.WriteLine(e);
-            break;
-          }
+          python.StandardInput.WriteLine(item.EvalString);
+#if DEBUG
+          lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, "Sent")); } }
+#endif
+
+          string readJSON = python.StandardOutput.ReadLine();
+#if DEBUG
+          lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, "Received")); } }
+#endif
 
           JObject res = null;
-
-          if (!read.Wait(30 * 1000)) {
-            res = new JObject();
-            res["exception"] = "Timeout while waiting for python to return";
-            item.Result = res;
-            item.WaitHandle.Set();
-            // read not was successfull
-            Console.WriteLine("I killed a process and i liked it.");
-            python.Kill();
-            python.Dispose();
-            python = CreatePythonProcess(executable, arguments);
-            python.Start();
-            continue;
-          }
-
-          // read was successfull
-          string readJSON = read.Result;
           try {
             res = JObject.Parse(readJSON);
           } catch (JsonReaderException e) {
