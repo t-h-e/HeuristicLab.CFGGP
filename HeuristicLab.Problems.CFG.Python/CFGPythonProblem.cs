@@ -25,6 +25,7 @@ using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Misc;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Problems.Instances.CFG;
@@ -33,7 +34,7 @@ namespace HeuristicLab.Problems.CFG.Python {
   [Item("CFG Python Problem", "Generate python code to solve a problem defined by input and output pairs.")]
   [Creatable(CreatableAttribute.Categories.GeneticProgrammingProblems, Priority = 152)]
   [StorableClass]
-  public class CFGPythonProblem : CFGProblem<ICFGPythonProblemData, ICFGPythonEvaluator<ICFGPythonProblemData>>, IDisposable {
+  public class CFGPythonProblem : CFGProblem<ICFGPythonProblemData, ICFGPythonEvaluator<ICFGPythonProblemData>>, IParallelEvaluatorProblem, IDisposable {
 
     private const string TimeoutParameterName = "Timeout";
 
@@ -41,22 +42,30 @@ namespace HeuristicLab.Problems.CFG.Python {
     public IValueParameter<IntValue> TimeoutParameter {
       get { return (IValueParameter<IntValue>)Parameters[TimeoutParameterName]; }
     }
-
     public IFixedValueParameter<PythonProcess> PythonProcessParameter {
       get { return (IFixedValueParameter<PythonProcess>)Parameters["PythonProcess"]; }
     }
+    public IFixedValueParameter<IntValue> DegreeOfParallelismParameter {
+      get { return (IFixedValueParameter<IntValue>)Parameters["DegreeOfParallelism"]; }
+    }
     #endregion
-
+    #region Properties
+    public PythonProcess PythonProcess { get { return PythonProcessParameter.Value; } }
+    public int DegreeOfParallelism { get { return DegreeOfParallelismParameter.Value.Value; } }
+    #endregion
     [StorableConstructor]
     protected CFGPythonProblem(bool deserializing) : base(deserializing) { }
     protected CFGPythonProblem(CFGPythonProblem original, Cloner cloner)
       : base(original, cloner) {
+      RegisterEventHandlers();
     }
 
     public CFGPythonProblem()
       : base(CFGPythonProblemData.EmptyProblemData, new CFGPythonEvaluator<ICFGPythonProblemData>(), new ProbabilisticTreeCreator()) {
       Parameters.Add(new FixedValueParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)", new IntValue(1000)));
+      Parameters.Add(new FixedValueParameter<IntValue>("DegreeOfParallelism", "Should be set to the same value as the degree of parallelism of the ParallelEngine or to 1", new IntValue(-1)));
       Parameters.Add(new FixedValueParameter<PythonProcess>("PythonProcess", "Python process", new PythonProcess()));
+      PythonProcess.DegreeOfParallelism = DegreeOfParallelism;
 
       SetVariables();
 
@@ -72,6 +81,10 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
+      if (!Parameters.ContainsKey("DegreeOfParallelism")) {
+        Parameters.Add(new FixedValueParameter<IntValue>("DegreeOfParallelism", "Should be set to the same value as the degree of parallelism of the ParallelEngine or to 1", new IntValue(-1)));
+        PythonProcess.DegreeOfParallelism = DegreeOfParallelism;
+      }
       RegisterEventHandlers();
     }
 
@@ -81,6 +94,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       if (GrammarParameter.Value != null) {
         GrammarParameter.Value.Changed += new EventHandler(GrammarParameter_Value_Changed);
       }
+      DegreeOfParallelismParameter.Value.ValueChanged += new EventHandler(DegreeOfParallelismParameter_Value_ValueChanged);
     }
 
     private void GrammarParameter_ValueChanged(object sender, EventArgs e) {
@@ -94,25 +108,8 @@ namespace HeuristicLab.Problems.CFG.Python {
       SetVariables();
     }
 
-    private void SetVariables() {
-      ProblemData.Variables.Clear();
-      if (Grammar != null && Grammar != CFGExpressionGrammar.Empty) {
-        var variableSymbols = Grammar.Symbols.Where(x => x.Enabled && x is GroupSymbol && x.Name.StartsWith("Rule: <") && x.Name.EndsWith("_var>")).Cast<GroupSymbol>();
-        foreach (var varSy in variableSymbols) {
-          VariableType type = (VariableType)Enum.Parse(typeof(VariableType), varSy.Name.Substring("Rule: <".Length, varSy.Name.Length - "Rule: <".Length - "_var>".Length), true);
-          var variables = varSy.Symbols.Where(s => s.Enabled).ToDictionary(s => s.Name.Trim(new char[] { '\'', '"' }), x => type);
-          ProblemData.Variables.Add(variables);
-        }
-      }
-
-      SetVariablesToOperators();
-    }
-
-    private void SetVariablesToOperators() {
-      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
-      foreach (var op in operators.OfType<ICFGPythonVariableSet>()) {
-        op.SetVariables(ProblemData.Variables.GetVariableNames());
-      }
+    private void DegreeOfParallelismParameter_Value_ValueChanged(object sender, EventArgs e) {
+      PythonProcessParameter.Value.DegreeOfParallelism = DegreeOfParallelismParameter.Value.Value;
     }
 
     protected override void OnEvaluatorChanged() {
@@ -160,6 +157,26 @@ namespace HeuristicLab.Problems.CFG.Python {
       }
       foreach (var op in operators.OfType<ITimeoutBasedOperator>()) {
         op.TimeoutParameter.ActualName = TimeoutParameter.Name;
+      }
+    }
+    private void SetVariables() {
+      ProblemData.Variables.Clear();
+      if (Grammar != null && Grammar != CFGExpressionGrammar.Empty) {
+        var variableSymbols = Grammar.Symbols.Where(x => x.Enabled && x is GroupSymbol && x.Name.StartsWith("Rule: <") && x.Name.EndsWith("_var>")).Cast<GroupSymbol>();
+        foreach (var varSy in variableSymbols) {
+          VariableType type = (VariableType)Enum.Parse(typeof(VariableType), varSy.Name.Substring("Rule: <".Length, varSy.Name.Length - "Rule: <".Length - "_var>".Length), true);
+          var variables = varSy.Symbols.Where(s => s.Enabled).ToDictionary(s => s.Name.Trim(new char[] { '\'', '"' }), x => type);
+          ProblemData.Variables.Add(variables);
+        }
+      }
+
+      SetVariablesToOperators();
+    }
+
+    private void SetVariablesToOperators() {
+      var operators = Parameters.OfType<IValueParameter>().Select(p => p.Value).OfType<IOperator>().Union(Operators).ToList();
+      foreach (var op in operators.OfType<ICFGPythonVariableSet>()) {
+        op.SetVariables(ProblemData.Variables.GetVariableNames());
       }
     }
     #endregion

@@ -17,14 +17,13 @@ def worker():
     while True:
         script = consume.get()
         if script:
+            help_globals = {'stop': stop}
             try:
-                help_globals = {'stop': stop}
                 exec(script, help_globals)
-                produced.put(help_globals)
             except BaseException as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 exception[0] = '{} {} {}'.format(exc_type, exc_obj, e.args)
-                produced.put({'exception': exception[0]}) # something other than None or an empty list/dict has to be set, otherwise the main thread expects that this thread has not stopped
+            produced.put(help_globals)
         else:
             break
         consume.task_done()
@@ -64,8 +63,8 @@ if __name__ == '__main__':
             for v in message_dict['variables']:
                 if v in results:
                     ret_message_dict[v] = results[v]
-
             print(json.dumps(ret_message_dict), flush=True)
             logging.debug('Sent output normal')
 
+        produced.task_done()
         exception[0] = ''

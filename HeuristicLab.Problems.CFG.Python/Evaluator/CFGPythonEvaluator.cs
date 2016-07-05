@@ -116,11 +116,6 @@ namespace HeuristicLab.Problems.CFG.Python {
       CaseQualitiesParameter.Hidden = true;
     }
 
-    public virtual void ClearCachedValues() {
-      InputParameter.Value = null;
-      OutputParameter.Value = null;
-    }
-
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGPythonEvaluator<T>(this, cloner);
     }
@@ -138,6 +133,11 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public IOperation InstrumentedApplyWithoutEvaluation() {
       return base.InstrumentedApply();
+    }
+
+    public virtual void ClearCachedValues() {
+      InputParameter.Value = null;
+      OutputParameter.Value = null;
     }
   }
 }

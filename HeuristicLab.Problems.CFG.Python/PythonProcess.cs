@@ -47,7 +47,6 @@ namespace HeuristicLab.Problems.CFG.Python {
     private const string CASEQUALITY = "caseQuality";
     private const string QUALITY = "quality";
 
-
     private EvaluationThreadPool evaluationThreadPool;
 
     #region Fields & Properties
@@ -61,6 +60,8 @@ namespace HeuristicLab.Problems.CFG.Python {
         UpdateName();
         TestPythonStart();
         OnExecutableChanged();
+        if (evaluationThreadPool != null) { evaluationThreadPool.Dispose(); }
+        evaluationThreadPool = new EvaluationThreadPool(executable, arguments, degreeOfParallelism);
       }
     }
     [Storable]
@@ -73,6 +74,19 @@ namespace HeuristicLab.Problems.CFG.Python {
         UpdateName();
         TestPythonStart();
         OnArgumentsChanged();
+        if (evaluationThreadPool != null) { evaluationThreadPool.Dispose(); }
+        evaluationThreadPool = new EvaluationThreadPool(executable, arguments, degreeOfParallelism);
+      }
+    }
+    [Storable]
+    private int degreeOfParallelism;
+    public int DegreeOfParallelism {
+      get { return degreeOfParallelism; }
+      set {
+        if (value == degreeOfParallelism) return;
+        degreeOfParallelism = value;
+        if (evaluationThreadPool != null) { evaluationThreadPool.Dispose(); }
+        evaluationThreadPool = new EvaluationThreadPool(executable, arguments, degreeOfParallelism);
       }
     }
     #endregion
@@ -83,8 +97,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       : base(original, cloner) {
       executable = original.executable;
       arguments = original.arguments;
+      degreeOfParallelism = original.degreeOfParallelism;
       UpdateName();
-      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, Environment.ProcessorCount);
+      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, degreeOfParallelism);
     }
 
     public PythonProcess() : this("python", String.Empty) { }
@@ -92,8 +107,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       : base() {
       this.executable = executable;
       this.arguments = arguments;
+      degreeOfParallelism = -1;
       UpdateName();
-      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, Environment.ProcessorCount);
+      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, degreeOfParallelism);
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -103,7 +119,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     [StorableHook(HookType.AfterDeserialization)]
     private void AfterDeserialization() {
       UpdateName();
-      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, Environment.ProcessorCount);
+      evaluationThreadPool = new EvaluationThreadPool(executable, arguments, degreeOfParallelism);
     }
 
     public bool TestPythonStart() {
@@ -245,16 +261,16 @@ namespace HeuristicLab.Problems.CFG.Python {
     }
 
     private class EvaluationThreadPool : IDisposable {
-      readonly object _locker = new object();
-      readonly List<Thread> _workers;
-      readonly Queue<EvalTask> _taskQueue = new Queue<EvalTask>();
-      readonly int workerCount;
+      private readonly object _locker = new object();
+      private readonly List<Thread> _workers;
+      private readonly Queue<EvalTask> _taskQueue = new Queue<EvalTask>();
+      private readonly int workerCount;
 
-      readonly object hasBeenStarted_locker = new object();
+      private readonly object hasBeenStarted_locker = new object();
       private bool hasBeenStarted;
 
-      private string executable;
-      private string arguments;
+      private readonly string executable;
+      private readonly string arguments;
 
       private static string idInJSONPattern = @"\""id\""\s*:\s*\""(?<id>[\S]*?)\""";
       private static Regex idInJSONRegex = new Regex(idInJSONPattern);
@@ -263,10 +279,14 @@ namespace HeuristicLab.Problems.CFG.Python {
         CheckIfResourceIsNewer(EVALSCRIPT);
         this.executable = executable;
         this.arguments = arguments;
-        this.workerCount = workerCount;
-        _workers = new List<Thread>(workerCount);
+        this.workerCount = workerCount <= 0
+                         ? Environment.ProcessorCount
+                         : workerCount;
+        _workers = new List<Thread>(this.workerCount);
 
-        hasBeenStarted = false;
+        lock (hasBeenStarted_locker) {
+          hasBeenStarted = false;
+        }
       }
 
       public void EnqueueTask(EvalTask task) {
@@ -298,8 +318,11 @@ namespace HeuristicLab.Problems.CFG.Python {
             while (_taskQueue.Count == 0) Monitor.Wait(_locker);
             item = _taskQueue.Dequeue();
           }
-          if (item == null) return;
-
+          if (item == null) {
+            python.Kill();
+            python.Dispose();
+            return;
+          }
 #if DEBUG
           lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, item.EvalString)); } }
 #endif
