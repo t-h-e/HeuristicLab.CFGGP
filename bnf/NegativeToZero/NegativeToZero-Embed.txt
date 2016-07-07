@@ -101,18 +101,7 @@ def evolve(in0):
 def fitnessTrainingCase(i, o):
   eval = evolve(i[0])
 
-  calc = 0
-  first = min(len(o[0]), len(eval))
-  for a in range(0, first):
-      calc += abs(o[0][a] - eval[a])
-
-  if len(o[0]) < len(eval):
-    for a in range(0, len(eval)):
-        calc += 5000
-  elif len(o[0]) > len(eval):
-    for a in range(0, len(o[0])):
-        calc += 5000
-  return [calc]
+  return [abs(x[0] - x[1]) for x in zip(eval, o[0])] + ([5000] * (len(o[0]) - len(eval)) + [0] if len(o[0]) > len(eval) else [5000 * (len(eval) - len(o[0]))])
 
 
 #  function to evaluate fitness

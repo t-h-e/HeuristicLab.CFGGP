@@ -19,6 +19,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
@@ -74,6 +75,7 @@ namespace HeuristicLab.Misc {
         caseQualities.RemoveAt(i);
       }
 
+      if (caseQualities.Any(x => x.Count() != caseQualities[0].Length)) { throw new ArgumentException("Not all case qualities have the same length"); }
 
       IScope[] selected = new IScope[count];
 

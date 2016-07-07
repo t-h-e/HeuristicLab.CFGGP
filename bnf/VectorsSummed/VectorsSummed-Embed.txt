@@ -95,7 +95,7 @@ def fitnessTrainingCase(i, o):
   eval = evolve(i[0], i[1])
 
   # add 10000 extra error for length difference, as it is done in the reference implementation
-  return [abs(x[0] - x[1]) for x in zip(eval,o[0])] + [10000] * abs(len(eval) - len(o[0]))
+  return [abs(x[0] - x[1]) for x in zip(eval, o[0])] + ([10000] * (len(o[0]) - len(eval)) + [0] if len(o[0]) > len(eval) else [10000 * (len(eval) - len(o[0]))])
 
 
 #  function to evaluate fitness
