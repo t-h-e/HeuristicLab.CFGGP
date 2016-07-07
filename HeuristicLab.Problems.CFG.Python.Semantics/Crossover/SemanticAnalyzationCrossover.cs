@@ -40,6 +40,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
   public class SemanticCrossoverAnalyzationCrossover<T> : CFGPythonSemanticEvalCrossover2<T>, IIterationBasedOperator
   where T : class, ICFGPythonProblemData {
+    private const string NumberOfAllowedBranchesParameterName = "NumberOfAllowedBranches";
     private const string NumberOfPossibleBranchesSelectedParameterName = "NumberOfPossibleBranchesSelected";
     private const string NumberOfNoChangeDetectedParameterName = "NumberOfNoChangeDetected";
     private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarity";
@@ -57,6 +58,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
     public IValueLookupParameter<IntValue> MaximumIterationsParameter {
       get { return (IValueLookupParameter<IntValue>)Parameters["MaximumIterations"]; }
+    }
+    public ILookupParameter<IntValue> NumberOfAllowedBranchesParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[NumberOfAllowedBranchesParameterName]; }
     }
     public ILookupParameter<IntValue> NumberOfPossibleBranchesSelectedParameter {
       get { return (ILookupParameter<IntValue>)Parameters[NumberOfPossibleBranchesSelectedParameterName]; }
@@ -89,6 +93,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public int Iterations {
       get { return IterationsParameter.ActualValue.Value; }
     }
+    public int NumberOfAllowedBranches {
+      set { NumberOfAllowedBranchesParameter.ActualValue = new IntValue(value); }
+    }
     public int NumberOfPossibleBranchesSelected {
       set { NumberOfPossibleBranchesSelectedParameter.ActualValue = new IntValue(value); }
     }
@@ -105,6 +112,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       Parameters.Add(new LookupParameter<IntValue>("Iterations", "Optional: A value indicating the current iteration."));
       Parameters.Add(new ValueLookupParameter<IntValue>("MaximumIterations", "Unused", new IntValue(-1)));
 
+      Parameters.Add(new LookupParameter<IntValue>(NumberOfAllowedBranchesParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(NumberOfPossibleBranchesSelectedParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(NumberOfNoChangeDetectedParameterName, ""));
       Parameters.Add(new LookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
@@ -153,6 +161,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       });
       // empty branch
       if (crossoverPoint0.IsMatchingPointType(null)) allowedBranches.Add(null);
+
+      // set NumberOfAllowedBranches
+      NumberOfAllowedBranches = allowedBranches.Count;
 
       if (allowedBranches.Count == 0) {
         AddStatistics();
@@ -258,6 +269,16 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     protected void AddStatistics(ItemArray<PythonStatementSemantic> semantic0 = null, ISymbolicExpressionTree child = null) {
+      if (NumberOfPossibleBranchesSelectedParameter.ActualValue == null) {
+        NumberOfPossibleBranchesSelected = 0;
+      }
+      if (NumberOfAllowedBranchesParameter.ActualValue == null) {
+        NumberOfAllowedBranches = 0;
+      }
+      if (NumberOfNoChangeDetectedParameter.ActualValue == null) {
+        NumberOfNoChangeDetected = 0;
+      }
+
       var parentQualities = QualityParameter.ActualValue;
       double parent0Quality = parentQualities[0].Value;
       double parent1Quality = parentQualities[1].Value;

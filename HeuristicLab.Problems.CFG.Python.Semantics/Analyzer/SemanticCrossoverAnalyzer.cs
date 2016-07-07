@@ -37,6 +37,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     private const string BestTrainingSimilarityAverage = "Best Training Similarity Average";
     private const string BestTrainingCrossoverCount = "Best Training Crossover Count";
 
+    private const string NumberOfAllowedBranchesParameterName = "NumberOfAllowedBranches";
+    private const string NumberOfPossibleBranchesSelectedParameterName = "NumberOfPossibleBranchesSelected";
+    private const string NumberOfNoChangeDetectedParameterName = "NumberOfNoChangeDetected";
+    private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarity";
+
     private const string SemanticallyEquivalentCrossoverParameterName = "SemanticallyEquivalentCrossover";
     private const string SemanticallyDifferentFromRootedParentParameterName = "SemanticallyDifferentFromRootedParent";
     private const string SemanticLocalityParameterName = "SemanticLocality";
@@ -48,6 +53,18 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     }
     public IValueLookupParameter<IntValue> MaximumIterationsParameter {
       get { return (IValueLookupParameter<IntValue>)Parameters["MaximumIterations"]; }
+    }
+    public IScopeTreeLookupParameter<IntValue> NumberOfAllowedBranchesParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfAllowedBranchesParameterName]; }
+    }
+    public IScopeTreeLookupParameter<IntValue> NumberOfPossibleBranchesSelectedParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfPossibleBranchesSelectedParameterName]; }
+    }
+    public IScopeTreeLookupParameter<IntValue> NumberOfNoChangeDetectedParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfNoChangeDetectedParameterName]; }
+    }
+    public IScopeTreeLookupParameter<StringValue> TypeSelectedForSimilarityParameter {
+      get { return (IScopeTreeLookupParameter<StringValue>)Parameters[TypeSelectedForSimilarityParameterName]; }
     }
     public IScopeTreeLookupParameter<IntValue> SemanticallyEquivalentCrossoverParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[SemanticallyEquivalentCrossoverParameterName]; }
@@ -96,6 +113,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       Parameters.Add(new LookupParameter<IntValue>("Iterations", "Optional: A value indicating the current iteration."));
       Parameters.Add(new ValueLookupParameter<IntValue>("MaximumIterations", "Unused", new IntValue(-1)));
 
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfAllowedBranchesParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfPossibleBranchesSelectedParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfNoChangeDetectedParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
+
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticallyEquivalentCrossoverParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
@@ -112,21 +134,76 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public override IOperation Apply() {
       if (IterationsParameter.ActualValue.Value <= 0) { return base.Apply(); }
 
+      var numberOfAllowedBranches = NumberOfAllowedBranchesParameter.ActualValue.ToArray();
+      var numberOfPossibleBranchesSelected = NumberOfPossibleBranchesSelectedParameter.ActualValue.ToArray();
+      var numberOfNoChangeDetected = NumberOfNoChangeDetectedParameter.ActualValue.ToArray();
+      var typeSelectedForSimilarity = TypeSelectedForSimilarityParameter.ActualValue.ToArray();
+
+      AddAverageTableEntry(numberOfAllowedBranches, NumberOfAllowedBranchesParameterName);
+      AddAverageTableEntry(numberOfPossibleBranchesSelected, NumberOfPossibleBranchesSelectedParameterName);
+      AddAverageTableEntry(numberOfNoChangeDetected, NumberOfNoChangeDetectedParameterName);
+      AddTypeSelectedForSimilarityTableEntry(typeSelectedForSimilarity);
+
       var semanticallyEquivalentCrossover = SemanticallyEquivalentCrossoverParameter.ActualValue.ToArray();
       var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.ToArray();
       var semanticLocality = SemanticLocalityParameter.ActualValue.Average(x => x.Value);
       var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
-      ResultCollection results = ResultsParameter.ActualValue;
 
-      AddSemanticallyEquivalentCrossoverTableEntry(semanticallyEquivalentCrossover, results);
-      AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent, results);
-      AddSemanticLocalityTableEntry(semanticLocality, results);
-      AddConstructiveEffectTableEntry(constructiveEffect, results);
+      AddSemanticallyEquivalentCrossoverTableEntry(semanticallyEquivalentCrossover);
+      AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent);
+      AddSemanticLocalityTableEntry(semanticLocality);
+      AddConstructiveEffectTableEntry(constructiveEffect);
 
       return base.Apply();
     }
 
-    private void AddSemanticallyEquivalentCrossoverTableEntry(IntValue[] semanticallyEquivalentCrossover, ResultCollection results) {
+    private void AddTypeSelectedForSimilarityTableEntry(StringValue[] typeSelectedForSimilarity) {
+      if (!ResultCollection.ContainsKey(TypeSelectedForSimilarityParameterName)) {
+        var newTable = new DataTable(TypeSelectedForSimilarityParameterName, "");
+        newTable.VisualProperties.YAxisTitle = "Percentage";
+        newTable.VisualProperties.YAxisMaximumAuto = false;
+
+        ResultCollection.Add(new Result(TypeSelectedForSimilarityParameterName, newTable));
+      }
+      var table = ((DataTable)ResultCollection[TypeSelectedForSimilarityParameterName].Value);
+
+      // all rows must have the same number of values so we can just take the first
+      int numberOfValues = table.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
+
+      double count = typeSelectedForSimilarity.Count();
+      var groupedValues = typeSelectedForSimilarity.Select(x => x.Value).GroupBy(x => x);
+      foreach (var type in groupedValues) {
+        if (!table.Rows.ContainsKey(type.Key)) {
+          // initialize a new row for the symbol and pad with zeros
+          DataRow row = new DataRow(type.Key, "", Enumerable.Repeat(0.0, numberOfValues));
+          row.VisualProperties.StartIndexZero = true;
+          table.Rows.Add(row);
+        }
+        table.Rows[type.Key].Values.Add(type.Count() / count * 100);
+      }
+
+      // add a zero for each data row that was not modified in the previous loop 
+      foreach (var row in table.Rows.Where(r => r.Values.Count != numberOfValues + 1))
+        row.Values.Add(0.0);
+    }
+
+    private void AddAverageTableEntry(IntValue[] values, string tableName) {
+      if (!ResultCollection.ContainsKey(tableName)) {
+        var newTable = new DataTable(tableName, "");
+        newTable.VisualProperties.YAxisTitle = "Average";
+        newTable.VisualProperties.YAxisMaximumAuto = false;
+
+        DataRow row = new DataRow("Average");
+        row.VisualProperties.StartIndexZero = true;
+        newTable.Rows.Add(row);
+
+        ResultCollection.Add(new Result(tableName, newTable));
+      }
+      var table = ((DataTable)ResultCollection[tableName].Value);
+      table.Rows["Average"].Values.Add(values.Select(x => x.Value).Average());
+    }
+
+    private void AddSemanticallyEquivalentCrossoverTableEntry(IntValue[] semanticallyEquivalentCrossover) {
       if (SemanticallyEquivalentCrossoverDataTable == null) {
         var table = new DataTable(SemanticallyEquivalentCrossoverParameterName, "");
         table.VisualProperties.YAxisTitle = "Percentage";
@@ -162,7 +239,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       SemanticallyEquivalentCrossoverDataTable.Rows["Different"].Values.Add(semanticallyEquivalentCrossoverCount[2] / total * 100.0);
     }
 
-    private void AddSemanticallyDifferentFromRootedParentTableEntry(BoolValue[] semanticallyDifferentFromRootedParent, ResultCollection results) {
+    private void AddSemanticallyDifferentFromRootedParentTableEntry(BoolValue[] semanticallyDifferentFromRootedParent) {
       if (SemanticallyDifferentFromRootedParentDataTable == null) {
         var table = new DataTable(SemanticallyDifferentFromRootedParentParameterName, "");
         table.VisualProperties.YAxisTitle = "Percentage";
@@ -185,7 +262,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       SemanticallyDifferentFromRootedParentDataTable.Rows["Same As Parent"].Values.Add((semanticallyDifferentFromRootedParent.Length - different) / semanticallyDifferentFromRootedParent.Length * 100.0);
     }
 
-    private void AddSemanticLocalityTableEntry(double average, ResultCollection results) {
+    private void AddSemanticLocalityTableEntry(double average) {
       if (SemanticLocalityDataTable == null) {
         var table = new DataTable(SemanticLocalityParameterName, "");
         table.VisualProperties.YAxisTitle = "Average Fitness Change";
@@ -199,7 +276,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       SemanticLocalityDataTable.Rows["Sematic Locality"].Values.Add(average);
     }
 
-    private void AddConstructiveEffectTableEntry(IntValue[] constructiveEffect, ResultCollection results) {
+    private void AddConstructiveEffectTableEntry(IntValue[] constructiveEffect) {
       if (ConstructiveEffectDataTable == null) {
         var table = new DataTable(ConstructiveEffectParameterName, "");
         table.VisualProperties.YAxisTitle = "Percentage";
@@ -226,7 +303,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       }
 
       ConstructiveEffectDataTable.Rows["Worse than rooted"].Values.Add(constructiveEffectCount[0] / constructiveEffect.Length * 100.0);
-      ConstructiveEffectDataTable.Rows["Better than rooted"].Values.Add(constructiveEffectCount[1] / constructiveEffect.Length * 100.0);
+      ConstructiveEffectDataTable.Rows["Better than rooted"].Values.Add((constructiveEffectCount[1] + constructiveEffectCount[2]) / constructiveEffect.Length * 100.0);
       ConstructiveEffectDataTable.Rows["Better than both"].Values.Add(constructiveEffectCount[2] / constructiveEffect.Length * 100.0);
     }
   }

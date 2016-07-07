@@ -78,6 +78,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // empty branch
       if (crossoverPoint0.IsMatchingPointType(null)) allowedBranches.Add(null);
 
+      // set NumberOfAllowedBranches
+      NumberOfAllowedBranches = allowedBranches.Count;
+
       if (allowedBranches.Count == 0) {
         AddStatistics();
         return parent0;

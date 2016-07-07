@@ -19,7 +19,7 @@
  */
 #endregion
 
-//#define DEBUG
+//#define LOG_COMMUNICATION
 
 using System;
 using System.Collections.Generic;
@@ -323,17 +323,17 @@ namespace HeuristicLab.Problems.CFG.Python {
             python.Dispose();
             return;
           }
-#if DEBUG
+#if LOG_COMMUNICATION
           lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, item.EvalString)); } }
 #endif
 
           python.StandardInput.WriteLine(item.EvalString);
-#if DEBUG
+#if LOG_COMMUNICATION
           lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, "Sent")); } }
 #endif
 
           string readJSON = python.StandardOutput.ReadLine();
-#if DEBUG
+#if LOG_COMMUNICATION
           lock (_locker) { using (StreamWriter file = new StreamWriter(@"HL_log.txt", true)) { file.WriteLine(String.Format("{0} {1} {2}", Thread.CurrentThread.ManagedThreadId, python.Id, "Received")); } }
 #endif
 
