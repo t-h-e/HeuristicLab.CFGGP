@@ -44,7 +44,7 @@ if __name__ == '__main__':
             break
 
         message_dict = json.loads(message)
-        stop[0] = [False]
+        stop[0] = False
         consume.put(message_dict['script'])
         try:
             results = produced.get(message_dict['timeout'])
