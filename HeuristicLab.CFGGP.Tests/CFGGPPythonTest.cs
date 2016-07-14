@@ -67,6 +67,29 @@ namespace HeuristicLab.CFGGP.Tests {
       Assert.IsTrue(exceptionTable.Rows["No Exception"].Values.All(x => x == 1));
     }
 
+    [TestMethod]
+    [TestCategory("Samples.Execute")]
+    [TestProperty("Time", "long")]
+    public void RunGpSymbolicRegressionSampleTestSolutionFound() {
+      var ga = CreateGpSymbolicRegressionSample();
+      ga.SetSeedRandomly.Value = false;
+      ga.Seed.Value = 1901283838;
+      SamplesUtils.RunAlgorithm(ga);
+      Assert.AreEqual(0, SamplesUtils.GetDoubleResult(ga, "BestQuality"));
+      Assert.AreEqual(10504690.242, SamplesUtils.GetDoubleResult(ga, "CurrentAverageQuality"));
+      Assert.AreEqual(1434460000, SamplesUtils.GetDoubleResult(ga, "CurrentWorstQuality"));
+      Assert.AreEqual(10480, SamplesUtils.GetIntResult(ga, "EvaluatedSolutions"));
+      var bestTrainingSolution = (CFGPythonSolution)ga.Results["Best training solution"].Value;
+      Assert.AreEqual(0, ((DoubleValue)bestTrainingSolution["Training Quality"].Value).Value);
+      Assert.AreEqual(0, ((DoubleValue)bestTrainingSolution["Test Quality"].Value).Value);
+      Assert.AreEqual(1.0, ((PercentValue)bestTrainingSolution["Training Solved Cases Percentage"].Value).Value);
+      Assert.AreEqual(1.0, ((PercentValue)bestTrainingSolution["Test Solved Cases Percentage"].Value).Value);
+      var exceptionTable = (DataTable)ga.Results["Exception frequencies"].Value;
+      Assert.AreEqual(1, exceptionTable.Rows.Count);
+      Assert.IsTrue(exceptionTable.Rows.ContainsKey("No Exception"));
+      Assert.IsTrue(exceptionTable.Rows["No Exception"].Values.All(x => x == 1));
+    }
+
     private GeneticAlgorithm CreateGpSymbolicRegressionSample() {
       GeneticAlgorithm ga = new GeneticAlgorithm();
       #region Problem Configuration
