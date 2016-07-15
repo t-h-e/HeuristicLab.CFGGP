@@ -28,7 +28,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -272,9 +271,6 @@ namespace HeuristicLab.Problems.CFG.Python {
       private readonly string executable;
       private readonly string arguments;
 
-      private static string idInJSONPattern = @"\""id\""\s*:\s*\""(?<id>[\S]*?)\""";
-      private static Regex idInJSONRegex = new Regex(idInJSONPattern);
-
       public EvaluationThreadPool(string executable, string arguments, int workerCount) {
         CheckIfResourceIsNewer(EVALSCRIPT);
         this.executable = executable;
@@ -341,19 +337,11 @@ namespace HeuristicLab.Problems.CFG.Python {
           try {
             res = JObject.Parse(readJSON);
           } catch (JsonReaderException e) {
-            Console.WriteLine("JsonReaderException, received:");
-            Console.WriteLine(readJSON);
-            Match idMatch = idInJSONRegex.Match(readJSON);
-            if (idMatch.Success) {
-              res = new JObject();
-              res["id"] = idMatch.Groups["id"].Value;
-              if (e.Message.StartsWith("JSON integer")) {
-                res["exception"] = "JSON integer";
-              } else {
-                res["exception"] = e.Message;
-              }
+            res = new JObject();
+            if (e.Message.StartsWith("JSON integer")) {
+              res["exception"] = "JSON integer";
             } else {
-              Console.WriteLine("Could not find id in read value");
+              res["exception"] = e.Message;
             }
           }
 
