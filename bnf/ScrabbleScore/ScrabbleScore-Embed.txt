@@ -103,7 +103,7 @@ def evolve(in0):
   loopBreakConst = 1500
   # initialises variable which should be used to count the number of loop iterations
   loopBreak = 0
-  # stop[0] is a boolean flag which should be used to check if the EA wants the program to stop[0]
+  # stop.value is a boolean flag which should be used to check if the EA wants the program to stop.value
   <insertCodeHere>
   return res
 

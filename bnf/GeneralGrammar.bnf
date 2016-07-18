@@ -68,8 +68,8 @@
         | <loop-header>'for '<int_var>' in '<list><loop-block>
 
 <loop-header> ::= 'loopBreak% = 0\n'
-// stop[0] is set by program to break immediately
-<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop[0]:{:\nbreak\n:}\nloopBreak% += 1:}\n'
+// stop.value is set by program to break immediately
+<loop-block> ::=' :{:\n'<code>'\nif loopBreak% > loopBreakConst or stop.value:{:\nbreak\n:}\nloopBreak% += 1:}\n'
 
 <comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
 <int_in_list_comp_op> ::= 'in'|'not in'

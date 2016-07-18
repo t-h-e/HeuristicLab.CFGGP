@@ -1,36 +1,49 @@
 import json
-import threading
+import multiprocessing as mp
 import sys
-import queue
+from queue import Empty
+from types import ModuleType
 import logging
 logging.basicConfig(filename='python_log.txt', format='%(asctime)s:%(process)d:%(thread)d:%(message)s', level=logging.INFO) # set to DEBUG for debug info ;)
 
-exception = ['']
-stop = [False]
 
-consume = queue.Queue()
-produced = queue.Queue()
+class Worker(mp.Process):
+    def __init__(self, consume, produce):
+        super(Worker, self).__init__()
+        self.consume = consume
+        self.produce = produce
+        self.stop = mp.Value('b', False)
 
+    def run(self):
+        while True:
+            exception = None
+            self.stop.value = False
+            script = self.consume.get()
+            if script:
+                help_globals = {'stop': self.stop}
+                try:
+                    exec(script, help_globals)
+                except BaseException as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    exception = '{} {} {}'.format(exc_type, exc_obj, e.args)
+                if exception:
+                    self.produce.put({'exception': exception})
+                else:
+                    self.produce.put({key: value for key, value in help_globals.items()
+                                      if not callable(value) and             # cannot be a function
+                                      not isinstance(value, ModuleType) and  # cannot be a module
+                                      key not in ['__builtins__', 'stop']})  # cannot be built ins or synchronized objects
+            else:
+                break
 
-def worker():
-    global stop, exception
-    while True:
-        script = consume.get()
-        if script:
-            help_globals = {'stop': stop}
-            try:
-                exec(script, help_globals)
-            except BaseException as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                exception[0] = '{} {} {}'.format(exc_type, exc_obj, e.args)
-            produced.put(help_globals)
-        else:
-            break
-        consume.task_done()
+    def stop_current(self):
+        self.stop.value = True
 
 if __name__ == '__main__':
-    t = threading.Thread(target=worker)
-    t.start()
+    consume = mp.Queue()
+    produce = mp.Queue()
+    p = Worker(consume, produce)
+    p.start()
     while True:
         try:
             message = input()
@@ -40,23 +53,23 @@ if __name__ == '__main__':
             # HeuristicLab is not running anymore
             # stop thread
             consume.put(None)
-            t.join(5)
+            if not p.join(5):
+                p.terminate()
             break
 
         message_dict = json.loads(message)
-        stop[0] = False
         consume.put(message_dict['script'])
         try:
-            results = produced.get(message_dict['timeout'])
-        except queue.Empty:
+            results = produce.get(block=True, timeout=1.0)
+        except Empty:
             results = None
         if not results:
-            stop[0] = True
-            produced.get()
+            p.stop_current()
+            produce.get()
             print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
             logging.debug('Sent output timeout')
-        elif exception[0]:
-            print(json.dumps({'exception': exception[0]}), flush=True)
+        elif 'exception' in results:
+            print(json.dumps(results), flush=True)
             logging.debug('Sent output exception')
         else:
             ret_message_dict = {}
@@ -65,6 +78,3 @@ if __name__ == '__main__':
                     ret_message_dict[v] = results[v]
             print(json.dumps(ret_message_dict), flush=True)
             logging.debug('Sent output normal')
-
-        produced.task_done()
-        exception[0] = ''

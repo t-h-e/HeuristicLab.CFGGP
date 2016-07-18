@@ -341,6 +341,7 @@ namespace HeuristicLab.Problems.CFG.Python {
             if (e.Message.StartsWith("JSON integer")) {
               res["exception"] = "JSON integer";
             } else {
+              Console.WriteLine(readJSON);
               res["exception"] = e.Message;
             }
           }
