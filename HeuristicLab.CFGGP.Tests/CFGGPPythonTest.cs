@@ -19,6 +19,8 @@
  */
 #endregion
 
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using HeuristicLab.Algorithms.GeneticAlgorithm;
@@ -88,6 +90,23 @@ namespace HeuristicLab.CFGGP.Tests {
       Assert.AreEqual(1, exceptionTable.Rows.Count);
       Assert.IsTrue(exceptionTable.Rows.ContainsKey("No Exception"));
       Assert.IsTrue(exceptionTable.Rows["No Exception"].Values.All(x => x == 1));
+    }
+
+    [TestMethod]
+    [TestCategory("Samples.Execute")]
+    [TestProperty("Time", "long")]
+    public void DisposePythonProcesses() {
+      var ga = CreateGpSymbolicRegressionSample();
+      ga.SetSeedRandomly.Value = false;
+      ga.Seed.Value = 1901283838;
+      var before = Process.GetProcessesByName("python").Length;
+      SamplesUtils.RunAlgorithm(ga);
+      var after = Process.GetProcessesByName("python").Length;
+      Assert.AreEqual(before + Environment.ProcessorCount * 2, after);
+      (ga.Problem as CFGPythonProblem).Dispose();
+      //Thread.Sleep(1000);
+      var afterDispose = Process.GetProcessesByName("python").Length;
+      Assert.AreEqual(before, afterDispose);
     }
 
     private GeneticAlgorithm CreateGpSymbolicRegressionSample() {

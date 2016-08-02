@@ -22,6 +22,7 @@
 //#define LOG_COMMUNICATION
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -127,7 +128,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       try {
         python.Start();
         OnProcessStarted();
-        python.Kill();
+        python.StandardInput.Close(); // python process terminates by itself if standard input closes
         return true;
       } catch (Win32Exception ex) {
         OnProcessException(ex);
@@ -206,6 +207,14 @@ namespace HeuristicLab.Problems.CFG.Python {
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
     }
 
+    /// <summary>
+    /// added evalTaskBag for debugging purposes
+    /// </summary>
+    private ConcurrentBag<EvalTask> evalTaskBag = new ConcurrentBag<EvalTask>();
+    public IEnumerable<string> GetIndidividuals() {
+      return evalTaskBag.Select(x => x.EvalString);
+    }
+
     public JObject SendAndEvaluateProgram(EvaluationScript es) {
       ManualResetEventSlim wh = new ManualResetEventSlim(false);
       es.Id = Guid.NewGuid().ToString();
@@ -213,9 +222,14 @@ namespace HeuristicLab.Problems.CFG.Python {
 
       var et = new EvalTask(send, wh);
 
+      evalTaskBag.Add(et);
       evaluationThreadPool.EnqueueTask(et);
 
       wh.Wait();
+      EvalTask help;
+      if (!evalTaskBag.TryTake(out help)) {
+        Console.WriteLine("Could not remove item from bag!");
+      }
 
       return et.Result;
     }
@@ -315,8 +329,7 @@ namespace HeuristicLab.Problems.CFG.Python {
             item = _taskQueue.Dequeue();
           }
           if (item == null) {
-            python.Kill();
-            python.Dispose();
+            python.StandardInput.Close(); // python process terminates by itself if standard input closes
             return;
           }
 #if LOG_COMMUNICATION

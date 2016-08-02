@@ -6,6 +6,9 @@ from types import ModuleType
 import logging
 logging.basicConfig(filename='python_log.txt', format='%(asctime)s:%(process)d:%(thread)d:%(message)s', level=logging.INFO) # set to DEBUG for debug info ;)
 
+#import os
+#logging.basicConfig(filename='python_log_' + str(os.getpid()) + '.txt', format='%(asctime)s:%(process)d:%(thread)d:%(message)s', level=logging.DEBUG) # set to DEBUG for debug info ;)
+
 
 class Worker(mp.Process):
     def __init__(self, consume, produce):
