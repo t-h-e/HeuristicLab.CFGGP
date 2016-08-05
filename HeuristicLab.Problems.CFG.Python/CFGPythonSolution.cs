@@ -20,6 +20,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
@@ -51,6 +52,11 @@ namespace HeuristicLab.Problems.CFG.Python {
     private const string TestSolvedCasesPercentage = "Test Solved Cases Percentage";
     private const string TestSolvedCaseQualities = "Test Case Qualities";
 
+    private static readonly List<string> ResultKeys = new List<string>() {
+      TrainingException, TrainingQuality, TrainingSolvedCases, TrainingSolvedCasesPercentage, TrainingSolvedCaseQualities,
+      TestException, TestQuality, TestSolvedCases, TestSolvedCasesPercentage, TestSolvedCaseQualities
+    };
+
     [StorableConstructor]
     protected CFGPythonSolution(bool deserializing) : base(deserializing) { }
     protected CFGPythonSolution(CFGPythonSolution original, Cloner cloner)
@@ -68,13 +74,24 @@ namespace HeuristicLab.Problems.CFG.Python {
       string code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
       Add(new Result(CodeResultName, "The code that was evolved", new TextValue(code)));
 
+      Evaluate(problemData, program, timeout, pythonProcess);
+    }
+
+    public void Reevaluate(ICFGPythonProblemData problemData, double timeout, PythonProcess pythonProcess) {
+      foreach (var key in ResultKeys) {
+        if (this.ContainsKey(key)) { this.Remove(key); }
+      }
+
+      Evaluate(problemData, (this[ProgramResultName] as TextValue).Value, timeout, pythonProcess);
+    }
+
+    public void Evaluate(ICFGPythonProblemData problemData, string program, double timeout, PythonProcess pythonProcess) {
       var trainingTimeout = timeout * 2;  // increase timeout to make sure it finishes
       var training = pythonProcess.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TrainingIndices, trainingTimeout);
 
       // test timeout should be proportionally bigger than training timeout
       var testTimeout = (double)problemData.TestIndices.Count() / (double)problemData.TrainingIndices.Count() * trainingTimeout;
       testTimeout = testTimeout > timeout ? testTimeout : timeout;
-
       var test = pythonProcess.EvaluateProgram(program, problemData.Input, problemData.Output, problemData.TestIndices, testTimeout);
 
       if (String.IsNullOrEmpty(training.Item4)) {

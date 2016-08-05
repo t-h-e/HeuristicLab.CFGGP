@@ -18,6 +18,13 @@ class Worker(mp.Process):
         self.stop = mp.Value('b', False)
 
     def run(self):
+        # START LINUX: used to receive Memory Error faster in Linux
+        try:
+            import resource
+            resource.setrlimit(resource.RLIMIT_AS, (2 ** 30, 2 ** 30))  # 2 ** 30 == 1GB in bytes
+        except ImportError:
+            pass
+        # END LINUX:
         while True:
             exception = None
             self.stop.value = False
@@ -36,6 +43,7 @@ class Worker(mp.Process):
                                       if not callable(value) and             # cannot be a function
                                       not isinstance(value, ModuleType) and  # cannot be a module
                                       key not in ['__builtins__', 'stop']})  # cannot be built ins or synchronized objects
+                del help_globals
             else:
                 break
 
@@ -63,12 +71,24 @@ if __name__ == '__main__':
         message_dict = json.loads(message)
         consume.put(message_dict['script'])
         try:
-            results = produce.get(block=True, timeout=1.0)
+            results = produce.get(block=True, timeout=message_dict['timeout'])
         except Empty:
             results = None
         if not results:
             p.stop_current()
-            produce.get()
+            try:
+                produce.get(block=True, timeout=message_dict['timeout'] * 10)
+            except Empty:
+                # START: Used to terminate worker process if it does not return
+                # Possible reasons: OS X does not throw a MemoryError and might kill the worker itself
+                #                   worker just takes too long in general
+                p.terminate()
+                consume = mp.Queue()
+                produce = mp.Queue()
+                p = Worker(consume, produce)
+                p.start()
+                logging.debug('terminated worker')
+                # END:
             print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
             logging.debug('Sent output timeout')
         elif 'exception' in results:
