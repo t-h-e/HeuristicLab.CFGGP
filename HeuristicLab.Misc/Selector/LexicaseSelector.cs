@@ -79,8 +79,10 @@ namespace HeuristicLab.Misc {
 
       IScope[] selected = new IScope[count];
 
+      var groupedCaseQualities = GroupEqualCaseQualities(caseQualities);
+
       for (int i = 0; i < count; i++) {
-        int index = LexicaseSelect(caseQualities, RandomParameter.ActualValue, maximization);
+        int index = LexicaseSelect(groupedCaseQualities, RandomParameter.ActualValue, maximization);
 
         if (copy)
           selected[i] = (IScope)scopes[index].Clone();
@@ -94,41 +96,74 @@ namespace HeuristicLab.Misc {
       return selected;
     }
 
-    private int LexicaseSelect(List<DoubleArray> caseQualities, IRandom random, bool maximization) {
-      IList<int> candidates = Enumerable.Range(0, caseQualities.Count()).ToList();
-      IEnumerable<int> order = Enumerable.Range(0, caseQualities[0].Count()).Shuffle(random);
+    private int LexicaseSelect(List<Tuple<DoubleArray, List<int>>> groupedCaseQualities, IRandom random, bool maximization) {
+      IList<int> candidates = Enumerable.Range(0, groupedCaseQualities.Count()).ToList();
+      IEnumerable<int> order = Enumerable.Range(0, groupedCaseQualities.First().Item1.Count()).Shuffle(random);
 
       foreach (int curCase in order) {
         List<int> nextCandidates = new List<int>();
         double best = maximization ? double.NegativeInfinity : double.PositiveInfinity;
         foreach (int candidate in candidates) {
-          if (caseQualities[candidate][curCase].IsAlmost(best)) {
+          if (groupedCaseQualities[candidate].Item1[curCase].IsAlmost(best)) {
             // if the individuals is as good as the best one, add it
             nextCandidates.Add(candidate);
-          } else if (((maximization) && (caseQualities[candidate][curCase] > best)) ||
-             ((!maximization) && (caseQualities[candidate][curCase] < best))) {
+          } else if (((maximization) && (groupedCaseQualities[candidate].Item1[curCase] > best)) ||
+             ((!maximization) && (groupedCaseQualities[candidate].Item1[curCase] < best))) {
             // if the individuals is better than the best one, remove all previous candidates and add the new one
             nextCandidates.Clear();
             nextCandidates.Add(candidate);
             // also set the nes best quality value
-            best = caseQualities[candidate][curCase];
+            best = groupedCaseQualities[candidate].Item1[curCase];
           }
           // else {do nothing}
         }
 
         if (nextCandidates.Count == 1) {
-          return nextCandidates.First();
+          return groupedCaseQualities[nextCandidates.First()].Item2.SampleRandom(random);
         } else if (nextCandidates.Count < 1) {
-          return candidates.SampleRandom(random);
+          return groupedCaseQualities[candidates.SampleRandom(random)].Item2.SampleRandom(random);
         }
         candidates = nextCandidates;
       }
 
-
       if (candidates.Count == 1) {
-        return candidates.First();
+        return groupedCaseQualities[candidates.First()].Item2.SampleRandom(random);
       }
-      return candidates.SampleRandom(random);
+      return groupedCaseQualities[candidates.SampleRandom(random)].Item2.SampleRandom(random);
+    }
+
+    private List<Tuple<DoubleArray, List<int>>> GroupEqualCaseQualities(List<DoubleArray> caseQualities) {
+      List<Tuple<DoubleArray, List<int>>> groupedCaseQualities = new List<Tuple<DoubleArray, List<int>>>();
+      List<int> indices = Enumerable.Range(0, caseQualities.Count()).ToList();
+      while (indices.Count > 0) {
+        var curI = indices.First();
+        indices.Remove(curI);
+        var cur = caseQualities[curI];
+        List<int> group = new List<int>();
+
+        foreach (var i in indices) {
+          if (CompareDoubleArray(cur, caseQualities[i])) {
+            group.Add(i);
+          }
+        }
+        foreach (var i in group) {
+          indices.Remove(i);
+        }
+
+        group.Add(curI);
+        groupedCaseQualities.Add(new Tuple<DoubleArray, List<int>>(cur, group));
+      }
+
+      return groupedCaseQualities;
+    }
+
+    private bool CompareDoubleArray(DoubleArray d1, DoubleArray d2) {
+      for (int i = 0; i < d1.Length; i++) {
+        if (d1[i] != d2[i]) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 }
