@@ -44,19 +44,5 @@ namespace HeuristicLab.Problems.CFG {
     public override IDeepCloneable Clone(Cloner cloner) {
       return new CFGExpressionGrammar(this, cloner);
     }
-
-    public new virtual void AddSymbol(ISymbol symbol) {
-      base.AddSymbol(symbol);
-    }
-    public new virtual void SetSubtreeCount(ISymbol symbol, int minimumSubtreeCount, int maximumSubtreeCount) {
-      base.SetSubtreeCount(symbol, minimumSubtreeCount, maximumSubtreeCount);
-    }
-    public new virtual void AddAllowedChildSymbol(ISymbol parent, ISymbol child) {
-      base.AddAllowedChildSymbol(parent, child);
-    }
-
-    public new virtual void AddAllowedChildSymbol(ISymbol parent, ISymbol child, int argumentIndex) {
-      base.AddAllowedChildSymbol(parent, child, argumentIndex);
-    }
   }
 }

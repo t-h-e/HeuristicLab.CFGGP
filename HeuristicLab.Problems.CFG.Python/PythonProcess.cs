@@ -200,9 +200,13 @@ namespace HeuristicLab.Problems.CFG.Python {
                                         ? caseQualities = json[CASEQUALITY].Select(x => (double)x)
                                         : caseQualities = new List<double>();
 
-      double quality = json[QUALITY] == null || Double.IsInfinity((double)json[QUALITY])
-                     ? Double.MaxValue
-                     : (double)json[QUALITY];
+      double quality = Double.MaxValue;
+      if (json[QUALITY] != null) {
+        quality = (double)json[QUALITY];
+        quality = Double.IsInfinity(quality) || Double.IsNaN(quality)
+                ? Double.MaxValue
+                : quality;
+      }
 
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
     }
