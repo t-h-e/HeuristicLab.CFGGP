@@ -36,6 +36,8 @@ namespace HeuristicLab.Problems.CFG.Python {
   [StorableClass]
   public class CFGPythonProblem : CFGProblem<ICFGPythonProblemData, ICFGPythonEvaluator<ICFGPythonProblemData>>, IParallelEvaluatorProblem, IDisposable {
 
+    private const string VariableRuleStart = "Rule: <";
+    private const string VariableRuleEnd = "_var>";
     private const string TimeoutParameterName = "Timeout";
 
     #region Parameter Properties
@@ -162,9 +164,9 @@ namespace HeuristicLab.Problems.CFG.Python {
     private void SetVariables() {
       ProblemData.Variables.Clear();
       if (Grammar != null && Grammar != CFGExpressionGrammar.Empty) {
-        var variableSymbols = Grammar.Symbols.Where(x => x.Enabled && x is GroupSymbol && x.Name.StartsWith("Rule: <") && x.Name.EndsWith("_var>")).Cast<GroupSymbol>();
+        var variableSymbols = Grammar.Symbols.Where(x => x.Enabled && x is GroupSymbol && x.Name.StartsWith(VariableRuleStart) && x.Name.EndsWith(VariableRuleEnd)).Cast<GroupSymbol>();
         foreach (var varSy in variableSymbols) {
-          VariableType type = (VariableType)Enum.Parse(typeof(VariableType), varSy.Name.Substring("Rule: <".Length, varSy.Name.Length - "Rule: <".Length - "_var>".Length), true);
+          VariableType type = (VariableType)Enum.Parse(typeof(VariableType), varSy.Name.Substring(VariableRuleStart.Length, varSy.Name.Length - VariableRuleStart.Length - VariableRuleEnd.Length), true);
           var variables = varSy.Symbols.Where(s => s.Enabled).ToDictionary(s => s.Name.Trim(new char[] { '\'', '"' }), x => type);
           ProblemData.Variables.Add(variables);
         }

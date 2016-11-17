@@ -52,6 +52,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     private const string QualityParameterName = "Quality";
 
+    public const int NoXoProbability = 3;
+    public const int NoXoNoSemantics = 4;
+    public const int NoXoNoAllowedBranch = 5;
+    public const int NoXoNoStatement = 6;
+    public const int NoXoNoSelectedBranch = 7;
+
     #region Parameter Properties
     public ILookupParameter<IntValue> IterationsParameter {
       get { return (ILookupParameter<IntValue>)Parameters["Iterations"]; }
@@ -123,6 +129,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       Parameters.Add(new LookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
 
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(QualityParameterName, "The qualities of the trees that should be analyzed."));
+
+      MaximumIterationsParameter.Hidden = true;
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -134,13 +142,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
           MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
 
-      AddStatistics();
+      AddStatisticsNoCrossover(NoXoProbability);
       return parent0;
     }
 
     private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability) {
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoSemantics);
         return parent0;
       }
 
@@ -166,7 +174,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       NumberOfAllowedBranches = allowedBranches.Count;
 
       if (allowedBranches.Count == 0) {
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoAllowedBranch);
         return parent0;
       }
 
@@ -199,7 +207,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       if (statement == null) {
         Swap(crossoverPoint0, compBranches.SampleRandom(random));
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoStatement);
         return parent0;
       }
 
@@ -217,14 +225,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       var startSymbol = new StartSymbol();
       var statementParent = statement.Parent;
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-        Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), variables, variableSettings),
+        Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
         Variables = variables,
         Timeout = Timeout
       };
       JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
       statement.Parent = statementParent; // restore parent
 
-      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.Variables.GetTypesOfVariables());
+      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
 
       // perform the actual swap
       if (selectedBranch != null) {
@@ -239,7 +247,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
           crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, selectedBranch); // this will affect node.Parent
 
           EvaluationScript evaluationScript1 = new EvaluationScript() {
-            Script = FormatScript(evaluationTree, variables, variableSettings),
+            Script = FormatScript(evaluationTree, problemData.LoopBreakConst, variables, variableSettings),
             Variables = variables,
             Timeout = Timeout
           };
@@ -260,15 +268,36 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         }
 
         Swap(crossoverPoint0, selectedBranch);
-        AddStatistics(semantic0, parent0); // parent one has been chaned is no considered the child
+        AddStatistics(semantic0, parent0); // parent one has been changed and is now considered the child
       } else {
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoSelectedBranch);
       }
 
       return parent0;
     }
 
-    protected void AddStatistics(ItemArray<PythonStatementSemantic> semantic0 = null, ISymbolicExpressionTree child = null) {
+    protected void AddStatisticsNoCrossover(int reason) {
+      if (NumberOfPossibleBranchesSelectedParameter.ActualValue == null) {
+        NumberOfPossibleBranchesSelected = 0;
+      }
+      if (NumberOfAllowedBranchesParameter.ActualValue == null) {
+        NumberOfAllowedBranches = 0;
+      }
+      if (NumberOfNoChangeDetectedParameter.ActualValue == null) {
+        NumberOfNoChangeDetected = 0;
+      }
+
+      var parentQualities = QualityParameter.ActualValue;
+      double parent0Quality = parentQualities[0].Value;
+      double parent1Quality = parentQualities[1].Value;
+
+      SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(reason);
+      SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
+      SemanticLocalityParameter.ActualValue = new DoubleValue(0.0);
+      ConstructiveEffectParameter.ActualValue = new IntValue(parent0Quality < parent1Quality ? 1 : 0);
+    }
+
+    protected void AddStatistics(ItemArray<PythonStatementSemantic> semantic0, ISymbolicExpressionTree child) {
       if (NumberOfPossibleBranchesSelectedParameter.ActualValue == null) {
         NumberOfPossibleBranchesSelected = 0;
       }
@@ -284,6 +313,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       double parent1Quality = parentQualities[1].Value;
 
       if (child == null || semantic0 == null) {// no crossover happend
+        //should not happen anymore
         SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0);
         SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
         SemanticLocalityParameter.ActualValue = new DoubleValue(0.0);
@@ -291,15 +321,20 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         return;
       }
 
-      if (SemanticallyEquivalentCrossoverParameter.ActualValue == null) { SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0); }
+      if (SemanticallyEquivalentCrossoverParameter.ActualValue == null) {
+        //should not happen
+        SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0);
+      }
 
-      var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000, PythonProcessParameter); //Attention fixed value for trace  // object created for every crossover
+      var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000); //Attention fixed value for trace  // object created for every crossover
 
-      var childResults = pythonSemanticHelper.EvaluateAndTraceProgram(PythonHelper.FormatToProgram(child, ProblemData.FullHeader, ProblemData.FullFooter),
+      var childResults = pythonSemanticHelper.EvaluateAndTraceProgram(PythonProcessParameter.ActualValue,
+                                             PythonHelper.FormatToProgram(child, ProblemData.LoopBreakConst, ProblemData.FullHeader, ProblemData.FullFooter),
                                              PythonHelper.ConvertToPythonValues(ProblemData.Input, ProblemData.TrainingIndices),
                                              PythonHelper.ConvertToPythonValues(ProblemData.Output, ProblemData.TrainingIndices),
                                              ProblemData.TrainingIndices,
                                              ProblemData.FullHeader,
+                                             ProblemData.FullFooter,
                                              child,
                                              Timeout);
 
@@ -355,7 +390,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       return strBuilder.ToString();
     }
 
-    protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, IDictionary<VariableType, List<string>> variablesPerType) { // JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
+    protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) { // JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       var statementNodetParent = statementNode.Parent; // save statement parent
@@ -370,7 +405,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = FormatScript(evaluationTree, variables, variableSettings),
+          Script = FormatScript(evaluationTree, loopBreakConst, variables, variableSettings),
           Variables = variables,
           Timeout = Timeout
         };

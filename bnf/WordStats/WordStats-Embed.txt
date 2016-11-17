@@ -1,4 +1,5 @@
 import math
+import Levenshtein
 
 # *****************************************************************************
 # Helper Code
@@ -80,19 +81,26 @@ def saveSplit(curString, separator):
     return []
   return curString.split(separator)
 
+
+def saveRange(start, end):
+  if end > start and abs(start - end) > 10000:
+    return range(start, start + 10000)
+  return range(start, end)
+
 # *****************************************************************************
 
 #  evolved function
-def evolve(in0, in1, in2):
+def evolve(in0):
   # stop.value is a boolean flag which should be used to check if the EA wants the program to stop.value
   <insertCodeHere>
-  return res
+  return res0, res1, res2
 
 
 def fitnessTrainingCase(i, o):
-  eval = evolve(i[0], i[1], i[2])
-
-  return [0 if eval == o[0] else 1]
+  eval0, eval1, eval2 = evolve(i[0])
+  eval0 = ''.join([str(i) for i in eval0])
+  help = ''.join([str(i) for i in o[0]])
+  return [Levenshtein.distance(eval0, help), abs(eval1 - o[1]), abs(eval2 - o[2])]
 
 
 #  function to evaluate fitness

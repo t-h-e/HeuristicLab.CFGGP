@@ -232,14 +232,14 @@ for v in variables:
         var startSymbol = new StartSymbol();
         var statementParent = statement.Parent;
         EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-          Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), variables, variableSettings),
+          Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
           Variables = variables,
           Timeout = Timeout
         };
         JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
         statement.Parent = statementParent; // restore parent
 
-        ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.Variables.GetTypesOfVariables());
+        ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
 
         // perform the actual swap
         if (selectedBranch != null)
@@ -258,7 +258,7 @@ for v in variables:
       return strBuilder.ToString();
     }
 
-    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, IDictionary<VariableType, List<string>> variablesPerType) {
+    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       var statementNodetParent = statementNode.Parent; // save statement parent
@@ -273,7 +273,7 @@ for v in variables:
         crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = FormatScript(evaluationTree, variables, variableSettings),
+          Script = FormatScript(evaluationTree, loopBreakConst, variables, variableSettings),
           Variables = variables,
           Timeout = Timeout
         };
@@ -322,7 +322,7 @@ for v in variables:
       return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
     }
 
-    protected string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
+    protected string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, int loopBreakConst, List<string> variables, string variableSettings) {
       Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
       string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
       return String.Format(EVAL_TRACE_SCRIPT, ProblemData.HelperCode.Value,
@@ -330,7 +330,7 @@ for v in variables:
                                               variableSettingsSubstitute,
                                               String.Join(",", variables),
                                               String.Join(",", variables.Select(x => x + "_setting")),
-                                              PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
+                                              PythonHelper.FormatToProgram(symbolicExpressionTree, loopBreakConst, "    "));
     }
 
     protected IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {

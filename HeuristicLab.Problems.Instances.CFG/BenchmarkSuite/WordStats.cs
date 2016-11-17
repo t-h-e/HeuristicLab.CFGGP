@@ -51,7 +51,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
-      var output = strings.Select(x => CalcWordStats(x).PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => CalcWordStats(x)).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
@@ -62,27 +62,31 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
       int sentences = x.Count(y => terminators.Contains(y));
 
-      var words = x.Split(terminators.Concat(new char[] { ' ', '\t', '\n' }).ToArray()).OrderBy(y => y.Length).ToArray();
+      var words = x.Split(null).Where(y => !String.IsNullOrWhiteSpace(y)).OrderBy(y => y.Length).ToArray();
       int lenght = 1;
       int count = 0;
       int index = 0;
+      List<int> lengths = new List<int>();
 
       while (index < words.Length) {
         if (words[index].Length <= lenght) {
           count++;
           index++;
         } else {
+          lengths.Add(count);
           strBuilder.Append(String.Format("words of length {0}: {1}\n", lenght, count));
           lenght++;
           count = 0;
         }
       }
 
+      lengths.Add(count);
       strBuilder.Append(String.Format("words of length {0}: {1}\n", lenght, count));
 
       strBuilder.Append(String.Format("number of sentences: {0}\n", sentences));
-      strBuilder.Append(String.Format("average sentence length: {0:0.#####}\n", sentences));
-      return strBuilder.ToString();
+      strBuilder.Append(String.Format("average sentence length: {0:0.#####}\n", (double)words.Length / (double)sentences));
+      //return strBuilder.ToString();
+      return String.Format("{0}, {1}, {2:0.#####}", String.Format("[{0}]", String.Join(", ", lengths)), sentences, (double)words.Length / (double)sentences);
     }
 
     private IEnumerable<string> GetRandomString(int n, FastRandom rand) {

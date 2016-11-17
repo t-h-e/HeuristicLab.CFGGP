@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using HeuristicLab.Core;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -69,14 +68,11 @@ for l in lines:
 
     private string traceCodeWithVariables;
 
-    private ILookupParameter<PythonProcess> pythonProcessParameter;
-
     public PythonProcessSemanticHelper() {
       traceCodeWithVariables = String.Empty;
     }
 
-    public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit, ILookupParameter<PythonProcess> pythonProcessParameter) {
-      this.pythonProcessParameter = pythonProcessParameter;
+    public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit) {
       if (variableNames == null || variableNames.Count() == 0 || limit <= 0) {
         traceCodeWithVariables = String.Empty;
       } else {
@@ -84,18 +80,18 @@ for l in lines:
       }
     }
 
-    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(string program, string input, string output, IEnumerable<int> indices, string header, ISymbolicExpressionTree tree, double timeout = 1) {
+    public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(PythonProcess pythonProcess, string program, string input, string output, IEnumerable<int> indices, string header, string footer, ISymbolicExpressionTree tree, double timeout = 1) {
       string traceProgram = traceCodeWithVariables
                           + program;
       traceProgram += traceCodeWithVariables == String.Empty
                     ? String.Empty
                     : traceTableReduceEntries;
 
-      EvaluationScript es = pythonProcessParameter.ActualValue.CreateEvaluationScript(traceProgram, input, output, timeout);
+      EvaluationScript es = pythonProcess.CreateEvaluationScript(traceProgram, input, output, timeout);
       es.Variables.Add("traceTable");
 
-      JObject json = pythonProcessParameter.ActualValue.SendAndEvaluateProgram(es);
-      var baseResult = pythonProcessParameter.ActualValue.GetVariablesFromJson(json, indices.Count());
+      JObject json = pythonProcess.SendAndEvaluateProgram(es);
+      var baseResult = pythonProcess.GetVariablesFromJson(json, indices.Count());
 
       if (json["traceTable"] == null) {
         return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, new List<PythonStatementSemantic>());
@@ -107,14 +103,15 @@ for l in lines:
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
 
-      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols;
+      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols);
       var statementProductionNames = statementProductions.Select(x => x.Name);
 
       IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
 
-      // add one, because the values are set after the statement is executed
-      // add two, for inval and outval
-      int curline = traceCode.Count(c => c == '\n') + header.Count(c => c == '\n') + 1 + 2;
+      // calculate the correct line the semantic evaluation starts from
+      var code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
+      int curline = es.Script.Count(c => c == '\n') - code.Count(c => c == '\n') - footer.Count(c => c == '\n') - traceTableReduceEntries.Count(c => c == '\n');
+
       var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
       var symbolLines = symbolToLineDict.Values.OrderBy(x => x).ToList();
 
@@ -122,7 +119,7 @@ for l in lines:
 
       foreach (var symbolLine in symbolToLineDict) {
         Dictionary<string, IList> before = new Dictionary<string, IList>();
-        var linesBefore = lineTraces.Where(x => x <= symbolLine.Value).OrderByDescending(x => x);
+        var linesBefore = lineTraces.Where(x => x <= symbolLine.Value[0]).OrderByDescending(x => x);
         foreach (var l in linesBefore) {
           foreach (var change in traceTable[l]) {
             if (!before.ContainsKey(change.Key)) {
@@ -136,7 +133,7 @@ for l in lines:
         if (pos + 1 < traceChanges.Count // has to be in the array
                                          // there cannot be another line which comes after the current one, but before the trace change
                                          // otherwise the current line did not change anything
-          && !symbolLines.Any(x => x > symbolLine.Value && x < traceChanges[pos + 1])) {
+            && !symbolLines.Any(x => x > symbolLine.Value[1] && x < traceChanges[pos + 1])) {
           after = traceChanges[pos + 1];
         }
 
@@ -158,8 +155,8 @@ for l in lines:
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, semantics);
     }
 
-    private Dictionary<ISymbolicExpressionTreeNode, int> FindStatementSymbolsInTree(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
-      Dictionary<ISymbolicExpressionTreeNode, int> symbolToLineDict = new Dictionary<ISymbolicExpressionTreeNode, int>();
+    private Dictionary<ISymbolicExpressionTreeNode, List<int>> FindStatementSymbolsInTree(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
+      Dictionary<ISymbolicExpressionTreeNode, List<int>> symbolToLineDict = new Dictionary<ISymbolicExpressionTreeNode, List<int>>();
       if (node.Subtrees.Count() > 0) {
         // node
         var symbol = node.Symbol as CFGSymbol;
@@ -167,11 +164,14 @@ for l in lines:
           var partsEnumerator = symbol.GetTerminalParts().GetEnumerator();
           var subtreeEnumerator = node.Subtrees.GetEnumerator();
           if (productions.Contains(symbol.Name)) {
-            symbolToLineDict.Add(node, curline);
+            symbolToLineDict.Add(node, new List<int>() { curline });  // add beginning
           }
           while (partsEnumerator.MoveNext() && subtreeEnumerator.MoveNext()) {
             curline += partsEnumerator.Current.Count(c => c == '\n');
             symbolToLineDict = symbolToLineDict.Union(FindStatementSymbolsInTree(subtreeEnumerator.Current, productions, ref curline)).ToDictionary(k => k.Key, v => v.Value);
+          }
+          if (productions.Contains(symbol.Name)) {
+            symbolToLineDict[node].Add(curline);   // add end
           }
           curline += partsEnumerator.Current.Count(c => c == '\n');
         } else {
@@ -184,7 +184,7 @@ for l in lines:
         // leaf
         var symbol = node.Symbol as CFGSymbol;
         if (productions.Contains(symbol.Name)) {
-          symbolToLineDict.Add(node, curline);
+          symbolToLineDict.Add(node, new List<int>() { curline, curline });
         }
         var parts = symbol.GetTerminalParts();
         curline += parts.First().Count(c => c == '\n');

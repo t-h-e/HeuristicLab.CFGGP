@@ -99,10 +99,6 @@ for i in range(0, 127):
 #  evolved function
 def evolve(in0):
   global scrabblescore
-  # constant defines allowed maximum number of all loops performed
-  loopBreakConst = 1500
-  # initialises variable which should be used to count the number of loop iterations
-  loopBreak = 0
   # stop.value is a boolean flag which should be used to check if the EA wants the program to stop.value
   <insertCodeHere>
   return res

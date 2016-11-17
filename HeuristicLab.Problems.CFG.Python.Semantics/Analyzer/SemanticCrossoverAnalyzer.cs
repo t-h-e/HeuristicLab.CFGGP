@@ -126,6 +126,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       Parameters.Add(new LookupParameter<ResultCollection>("Results", "The result collection where the exception frequencies should be stored."));
 
       IterationsParameter.ActualName = "Generations";
+      MaximumIterationsParameter.Hidden = true;
     }
     public override IDeepCloneable Clone(Cloner cloner) {
       return new SemanticCrossoverAnalyzer(this, cloner);
@@ -228,7 +229,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
 
         SemanticallyEquivalentCrossoverDataTable = table;
       }
-      List<int> semanticallyEquivalentCrossoverCount = new List<int>() { 0, 0, 0 };
+      List<int> semanticallyEquivalentCrossoverCount = Enumerable.Repeat(0, 3 + 5).ToList();
       for (int i = 0; i < semanticallyEquivalentCrossover.Length; i++) {
         semanticallyEquivalentCrossoverCount[semanticallyEquivalentCrossover[i].Value]++;
       }
@@ -237,6 +238,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       SemanticallyEquivalentCrossoverDataTable.Rows["Equivalent"].Values.Add(semanticallyEquivalentCrossoverCount[1] / total * 100.0);
       SemanticallyEquivalentCrossoverDataTable.Rows["Equivalent + No Crossover"].Values.Add((semanticallyEquivalentCrossoverCount[0] + semanticallyEquivalentCrossoverCount[1]) / total * 100.0);
       SemanticallyEquivalentCrossoverDataTable.Rows["Different"].Values.Add(semanticallyEquivalentCrossoverCount[2] / total * 100.0);
+      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoProbability"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoProbability] / total * 100.0);
+      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoStatement"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoStatement] / total * 100.0);
+      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoAllowedBranch"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoAllowedBranch] / total * 100.0);
+      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoSelectedBranch"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoSelectedBranch] / total * 100.0);
+      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoSemantics"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoSemantics] / total * 100.0);
     }
 
     private void AddSemanticallyDifferentFromRootedParentTableEntry(BoolValue[] semanticallyDifferentFromRootedParent) {

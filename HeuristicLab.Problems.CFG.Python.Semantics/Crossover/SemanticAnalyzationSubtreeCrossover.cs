@@ -50,13 +50,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
           MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
 
-      AddStatistics();
+      AddStatisticsNoCrossover(NoXoProbability);
       return parent0;
     }
 
     private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability) {
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoSemantics);
         return parent0;
       }
 
@@ -82,7 +82,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       NumberOfAllowedBranches = allowedBranches.Count;
 
       if (allowedBranches.Count == 0) {
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoAllowedBranch);
         return parent0;
       }
 
@@ -117,7 +117,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       if (statement == null) {
         Swap(crossoverPoint0, compBranches.SampleRandom(random));
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoStatement);
         return parent0;
       }
 
@@ -135,7 +135,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       var startSymbol = new StartSymbol();
       var statementParent = statement.Parent;
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-        Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), variables, variableSettings),
+        Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
         Variables = variables,
         Timeout = Timeout
       };
@@ -144,14 +144,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       // return value is not needed as this operator does normal subtree crossover
       // statement is only called for statistics
-      SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.Variables.GetTypesOfVariables());
+      SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
 
       // perform the actual swap
       if (selectedBranch != null) {
         Swap(crossoverPoint0, selectedBranch);
         AddStatistics(semantic0, parent0); // parent one has been chaned is no considered the child
       } else {
-        AddStatistics();
+        AddStatisticsNoCrossover(NoXoNoSelectedBranch);
       }
 
       return parent0;

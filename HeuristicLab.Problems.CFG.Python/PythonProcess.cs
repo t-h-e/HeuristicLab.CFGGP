@@ -177,7 +177,15 @@ namespace HeuristicLab.Problems.CFG.Python {
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> EvaluateProgram(string program, string input, string output, IEnumerable<int> indices, double timeout = 1) {
       EvaluationScript es = CreateEvaluationScript(program, input, output, timeout);
       JObject json = SendAndEvaluateProgram(es);
-      return GetVariablesFromJson(json, indices.Count());
+      var helper = GetVariablesFromJson(json, indices.Count());
+
+      if (!String.IsNullOrEmpty(helper.Item4) && helper.Item4.Contains("SyntaxError")) {
+        using (System.IO.StreamWriter file =
+            new System.IO.StreamWriter("SyntaxError-Script-" + Path.GetRandomFileName() + ".txt")) {
+          file.WriteLine(es.Script);
+        }
+      }
+      return helper;
     }
 
     public EvaluationScript CreateEvaluationScript(string program, string input, string output, double timeout) {
@@ -190,16 +198,13 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string> GetVariablesFromJson(JObject json, int numberOfCases) {
       string exception = !String.IsNullOrWhiteSpace((string)json["exception"]) ? (string)json["exception"] : String.Empty;
-
       // get return values
       IEnumerable<bool> cases = json[CASES] != null
                               ? cases = json[CASES].Select(x => (bool)x)
                               : cases = Enumerable.Repeat(false, numberOfCases);
-
       IEnumerable<double> caseQualities = json[CASEQUALITY] != null
                                         ? caseQualities = json[CASEQUALITY].Select(x => (double)x)
                                         : caseQualities = new List<double>();
-
       double quality = Double.MaxValue;
       if (json[QUALITY] != null) {
         quality = (double)json[QUALITY];
@@ -207,7 +212,6 @@ namespace HeuristicLab.Problems.CFG.Python {
                 ? Double.MaxValue
                 : quality;
       }
-
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string>(cases, caseQualities, quality, exception);
     }
 

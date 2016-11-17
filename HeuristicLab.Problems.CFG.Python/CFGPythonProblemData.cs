@@ -29,7 +29,9 @@ using HeuristicLab.Misc;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 namespace HeuristicLab.Problems.CFG.Python {
+  [StorableClass]
   public class CFGPythonProblemData : CFGProblemData, ICFGPythonProblemData {
+    protected const string LoopBreakConstParameterName = "LoopBreakConst";
     protected const string HelperCodeParameterName = "HelperCode";
     protected const string VariablesParameterName = "Variables";
     protected const string VariableSettingsParameterName = "VariableSettings";
@@ -49,16 +51,21 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.Parameters.Add(new FixedValueParameter<StringArray>(OutputParameterName, "", new StringArray().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TrainingPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<IntRange>(TestPartitionParameterName, "", (IntRange)new IntRange(0, 0).AsReadOnly()));
+      problemData.Parameters.Add(new FixedValueParameter<IntValue>(LoopBreakConstParameterName, "", (IntValue)new IntValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(EmbedCodeParameterName, "Text where code should be embedded to. (Optinal: Does not have to be set.)", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(HeaderParameterName, "", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(FooterParameterName, "", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue().AsReadOnly()));
-      problemData.Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "", new VariableTypeParameterCollection()));
-      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
+      // TODO: should be moved to HeuristicLab.Problems.CFG.Python.Semantics
+      problemData.Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "Collection of variables and their types", new VariableTypeParameterCollection()));
+      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "Define values set for variables when testing semantics. By default the variable settings from a trace are used.", new ItemList<TextValue>()));
       emptyProblemData = problemData;
     }
 
     #region parameter properites
+    public IFixedValueParameter<IntValue> LoopBreakConstParameter {
+      get { return (IFixedValueParameter<IntValue>)Parameters[LoopBreakConstParameterName]; }
+    }
     public IFixedValueParameter<TextValue> HelperCodeParameter {
       get { return (IFixedValueParameter<TextValue>)Parameters[HelperCodeParameterName]; }
     }
@@ -71,6 +78,9 @@ namespace HeuristicLab.Problems.CFG.Python {
     #endregion
 
     #region properties
+    public int LoopBreakConst {
+      get { return LoopBreakConstParameter.Value.Value; }
+    }
     public string FullHeader {
       get {
         string fullHeader = Header == null
@@ -102,6 +112,14 @@ namespace HeuristicLab.Problems.CFG.Python {
       : base(original, cloner) {
     }
 
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      // TODO: remove at some point (next release)
+      if (!Parameters.ContainsKey(LoopBreakConstParameterName)) {
+        Parameters.Add(new FixedValueParameter<IntValue>(LoopBreakConstParameterName, "", new IntValue(1500)));
+      }
+    }
+
     [StorableConstructor]
     protected CFGPythonProblemData(bool deserializing) : base(deserializing) { }
 
@@ -111,6 +129,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public CFGPythonProblemData(IEnumerable<string> input, IEnumerable<string> output)
       : base(input, output) {
+      Parameters.Add(new FixedValueParameter<IntValue>(LoopBreakConstParameterName, "", new IntValue(1500)));
       Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue()));
       Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "", new VariableTypeParameterCollection()));
       Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));

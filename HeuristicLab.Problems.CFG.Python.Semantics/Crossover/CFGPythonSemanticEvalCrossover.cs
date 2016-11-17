@@ -188,14 +188,14 @@ for v in variables:
       var startSymbol = new StartSymbol();
       //-------------------------------------TEMP START
       JObject jsonOriginal = PyProcess.SendAndEvaluateProgram(new EvaluationScript() {
-        Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), variables, variableSettings),
+        Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), problemData.LoopBreakConst, variables, variableSettings),
         Variables = variables,
         Timeout = Timeout
       });
       //-------------------------------------TEMP END
 
       EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-        Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), variables, variableSettings),
+        Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
         Variables = variables,
         Timeout = Timeout
       };
@@ -203,7 +203,7 @@ for v in variables:
       crossoverPoint0.Child.Parent = crossoverPoint0.Parent; // restore parent
 
       var compBranches = allowedBranches.SampleRandomWithoutRepetition(random, MaxComparesParameter.Value.Value);
-      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.Variables.GetTypesOfVariables());
+      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
 
       // perform the actual swap
       if (selectedBranch != null)
@@ -220,7 +220,7 @@ for v in variables:
       return strBuilder.ToString();
     }
 
-    private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
+    private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       List<JObject> evaluationPerNode = new List<JObject>();
@@ -229,7 +229,7 @@ for v in variables:
         var parent = node.Parent;
         var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = FormatScript(tree1, variables, variableSettings),
+          Script = FormatScript(tree1, loopBreakConst, variables, variableSettings),
           Variables = variables,
           Timeout = Timeout
         };
@@ -274,7 +274,7 @@ for v in variables:
       return pos >= 0 ? compBranches.ElementAt(pos) : null;
     }
 
-    private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, List<string> variables, string variableSettings) {
+    private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, int loopBreakConst, List<string> variables, string variableSettings) {
       Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
       string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
       return String.Format(EVAL_TRACE_SCRIPT, ProblemData.HelperCode.Value,
@@ -282,7 +282,7 @@ for v in variables:
                                               variableSettingsSubstitute,
                                               String.Join(",", variables),
                                               String.Join(",", variables.Select(x => x + "_setting")),
-                                              PythonHelper.FormatToProgram(symbolicExpressionTree, "    "));
+                                              PythonHelper.FormatToProgram(symbolicExpressionTree, loopBreakConst, "    "));
     }
 
     //private double DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<VariableType, List<string>> variablesPerType, IDictionary<string, VariableType> typeOfVariable, JObject jsonOriginal) {
