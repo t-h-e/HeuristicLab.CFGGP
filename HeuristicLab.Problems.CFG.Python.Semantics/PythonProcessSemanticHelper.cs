@@ -80,6 +80,8 @@ for l in lines:
       }
     }
 
+    // TODO: Simplify the semantic extraction. There should be an easier way to do this. It takes too long to understand the code.
+    // More comments and better variable naming would also help
     public Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> EvaluateAndTraceProgram(PythonProcess pythonProcess, string program, string input, string output, IEnumerable<int> indices, string header, string footer, ISymbolicExpressionTree tree, double timeout = 1) {
       string traceProgram = traceCodeWithVariables
                           + program;
@@ -106,20 +108,18 @@ for l in lines:
       var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols);
       var statementProductionNames = statementProductions.Select(x => x.Name);
 
-      IList<int> lineTraces = traceTable.Keys.OrderBy(x => x).ToList();
-
       // calculate the correct line the semantic evaluation starts from
       var code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
       int curline = es.Script.Count(c => c == '\n') - code.Count(c => c == '\n') - footer.Count(c => c == '\n') - traceTableReduceEntries.Count(c => c == '\n');
 
       var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
-      var symbolLines = symbolToLineDict.Values.OrderBy(x => x).ToList();
+      var symbolLinesBegin = symbolToLineDict.Select(x => x.Value[0]).Distinct().OrderBy(x => x).ToList();
 
       var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
       foreach (var symbolLine in symbolToLineDict) {
         Dictionary<string, IList> before = new Dictionary<string, IList>();
-        var linesBefore = lineTraces.Where(x => x <= symbolLine.Value[0]).OrderByDescending(x => x);
+        var linesBefore = traceChanges.Where(x => x <= symbolLine.Value[0]).OrderByDescending(x => x);
         foreach (var l in linesBefore) {
           foreach (var change in traceTable[l]) {
             if (!before.ContainsKey(change.Key)) {
@@ -128,28 +128,29 @@ for l in lines:
           }
         }
 
-        int after = -1;
-        int pos = traceChanges.IndexOf(linesBefore.Max());
-        if (pos + 1 < traceChanges.Count // has to be in the array
-                                         // there cannot be another line which comes after the current one, but before the trace change
-                                         // otherwise the current line did not change anything
-            && !symbolLines.Any(x => x > symbolLine.Value[1] && x < traceChanges[pos + 1])) {
-          after = traceChanges[pos + 1];
+        Dictionary<string, IList> after = new Dictionary<string, IList>();
+        var changesAfterSnippet = traceChanges.Where(x => x > symbolLine.Value[1]);
+        if (changesAfterSnippet.Count() > 0) {
+          int firstChangeLine = changesAfterSnippet.Min();
+          // there can not be another line which comes after the current one, but before the trace change
+          // otherwise the current line did not change anything
+          if (!symbolLinesBegin.Any(x => x > symbolLine.Value[1] && x < firstChangeLine)) {
+            var afterChanges = traceChanges.Where(x => x > symbolLine.Value[0] && x <= firstChangeLine).OrderByDescending(x => x);
+            foreach (var c in afterChanges) {
+              foreach (var change in traceTable[c]) {
+                if (!after.ContainsKey(change.Key)) {
+                  after.Add(change.Key, change.Value);
+                }
+              }
+            }
+          }
         }
 
-        if (after >= 0) {
-          semantics.Add(new PythonStatementSemantic() {
-            TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
-            Before = before,
-            After = traceTable[after],
-          });
-        } else {
-          semantics.Add(new PythonStatementSemantic() {
-            TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
-            Before = before,
-            After = new Dictionary<string, IList>(),
-          });
-        }
+        semantics.Add(new PythonStatementSemantic() {
+          TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
+          Before = before,
+          After = after,
+        });
       }
 
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, semantics);
