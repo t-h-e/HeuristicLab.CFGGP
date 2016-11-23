@@ -211,22 +211,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        DataRow noCrossoverRow = new DataRow("No Crossover");
-        noCrossoverRow.VisualProperties.StartIndexZero = true;
-        table.Rows.Add(noCrossoverRow);
-
-        DataRow equivalentRow = new DataRow("Equivalent");
-        equivalentRow.VisualProperties.StartIndexZero = true;
-        table.Rows.Add(equivalentRow);
-
-        DataRow equivalentOrNoCrossoverRow = new DataRow("Equivalent + No Crossover");
-        equivalentOrNoCrossoverRow.VisualProperties.StartIndexZero = true;
-        table.Rows.Add(equivalentOrNoCrossoverRow);
-
-        DataRow differentRow = new DataRow("Different");
-        differentRow.VisualProperties.StartIndexZero = true;
-        table.Rows.Add(differentRow);
-
+        List<string> rowNames = new List<string>() { "No Crossover", "Equivalent", "Equivalent + No Crossover", "Different", "NoXoProbability", "NoXoNoStatement", "NoXoNoAllowedBranch", "NoXoNoSelectedBranch", "NoXoNoSemantics" };
+        foreach (var name in rowNames) {
+          DataRow row = new DataRow(name);
+          row.VisualProperties.StartIndexZero = true;
+          table.Rows.Add(row);
+        }     
         SemanticallyEquivalentCrossoverDataTable = table;
       }
       List<int> semanticallyEquivalentCrossoverCount = Enumerable.Repeat(0, 3 + 5).ToList();
