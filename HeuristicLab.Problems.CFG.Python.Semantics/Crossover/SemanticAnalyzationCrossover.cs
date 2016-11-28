@@ -196,7 +196,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       NumberOfPossibleBranchesSelected = compBranches.Count;
 
       // get possible semantic positions
-      var statementProductions = ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <code>")).Symbols;
+      var statementProductions = ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(
+                                 ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <statement>")).Symbols).Union(
+                                 ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <predefined>")).Symbols);
       var statementProductionNames = statementProductions.Select(x => x.Name);
 
       // find first node that can be used for evaluation in parent0
@@ -206,6 +208,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       }
 
       if (statement == null) {
+        // ToDo: what to do here? NotFiniteNumberException do crossover
         Swap(crossoverPoint0, compBranches.SampleRandom(random));
         AddStatisticsNoCrossover(NoXoNoStatement);
         return parent0;
@@ -238,6 +241,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (selectedBranch != null) {
 
         if (SemanticallyEquivalentCrossoverParameter.ActualValue != null && SemanticallyEquivalentCrossoverParameter.ActualValue.Value == 1) {
+          // ToDo: why check again?
           // check semantic equlivalence again to make sure there is really no semantic difference
           var statementNodetParent = statement.Parent; // save statement parent
           var evaluationTree = CreateTreeFromNode(random, statement, rootSymbol, startSymbol); // this will affect statementNode.Parent
@@ -390,7 +394,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       return strBuilder.ToString();
     }
 
-    protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) { // JObject jsonOriginal, IDictionary<VariableType, List<string>> variablesPerType) {
+    protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
       var statementNodetParent = statementNode.Parent; // save statement parent

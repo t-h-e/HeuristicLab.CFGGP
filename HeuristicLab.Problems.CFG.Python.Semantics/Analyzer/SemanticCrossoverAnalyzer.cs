@@ -211,12 +211,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        List<string> rowNames = new List<string>() { "No Crossover", "Equivalent", "Equivalent + No Crossover", "Different", "NoXoProbability", "NoXoNoStatement", "NoXoNoAllowedBranch", "NoXoNoSelectedBranch", "NoXoNoSemantics" };
+        List<string> rowNames = new List<string>() { "No Crossover", "Equivalent", "Different", "NoXoProbability", "NoXoNoStatement", "NoXoNoAllowedBranch", "NoXoNoSelectedBranch", "NoXoNoSemantics" };
         foreach (var name in rowNames) {
           DataRow row = new DataRow(name);
           row.VisualProperties.StartIndexZero = true;
           table.Rows.Add(row);
-        }     
+        }
         SemanticallyEquivalentCrossoverDataTable = table;
       }
       List<int> semanticallyEquivalentCrossoverCount = Enumerable.Repeat(0, 3 + 5).ToList();
@@ -226,7 +226,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       double total = semanticallyEquivalentCrossover.Length;
       SemanticallyEquivalentCrossoverDataTable.Rows["No Crossover"].Values.Add(semanticallyEquivalentCrossoverCount[0] / total * 100.0);
       SemanticallyEquivalentCrossoverDataTable.Rows["Equivalent"].Values.Add(semanticallyEquivalentCrossoverCount[1] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["Equivalent + No Crossover"].Values.Add((semanticallyEquivalentCrossoverCount[0] + semanticallyEquivalentCrossoverCount[1]) / total * 100.0);
       SemanticallyEquivalentCrossoverDataTable.Rows["Different"].Values.Add(semanticallyEquivalentCrossoverCount[2] / total * 100.0);
       SemanticallyEquivalentCrossoverDataTable.Rows["NoXoProbability"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoProbability] / total * 100.0);
       SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoStatement"].Values.Add(semanticallyEquivalentCrossoverCount[SemanticCrossoverAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoStatement] / total * 100.0);

@@ -105,7 +105,9 @@ for l in lines:
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
 
-      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols);
+      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(
+                                 ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols).Union(
+                                 ((GroupSymbol)root.Grammar.GetSymbol("Rule: <predefined>")).Symbols);
       var statementProductionNames = statementProductions.Select(x => x.Name);
 
       // calculate the correct line the semantic evaluation starts from
@@ -114,6 +116,18 @@ for l in lines:
 
       var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
       var symbolLinesBegin = symbolToLineDict.Select(x => x.Value[0]).Distinct().OrderBy(x => x).ToList();
+
+      #region fix before line for <predefined> to have all variables initialised
+      int minBefore = symbolLinesBegin.Min();
+      symbolLinesBegin.Remove(minBefore);
+      int newMinBefore = symbolLinesBegin.Min();
+      foreach (var symbolToLine in symbolToLineDict) {
+        if (symbolToLine.Value[0] == minBefore) {
+          symbolToLine.Value[0] = newMinBefore;
+        }
+      }
+      #endregion
+
 
       var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
@@ -129,19 +143,18 @@ for l in lines:
         }
 
         Dictionary<string, IList> after = new Dictionary<string, IList>();
-        var changesAfterSnippet = traceChanges.Where(x => x > symbolLine.Value[1]);
-        if (changesAfterSnippet.Count() > 0) {
-          int firstChangeLine = changesAfterSnippet.Min();
-          // there can not be another line which comes after the current one, but before the trace change
-          // otherwise the current line did not change anything
-          if (!symbolLinesBegin.Any(x => x > symbolLine.Value[1] && x < firstChangeLine)) {
-            var afterChanges = traceChanges.Where(x => x > symbolLine.Value[0] && x <= firstChangeLine).OrderByDescending(x => x);
-            foreach (var c in afterChanges) {
-              foreach (var change in traceTable[c]) {
-                if (!after.ContainsKey(change.Key)) {
-                  after.Add(change.Key, change.Value);
-                }
-              }
+        IEnumerable<int> changesOfSnippet;
+        var linesAfterSnippet = traceChanges.Where(x => x > symbolLine.Value[1]);
+        // if there are changes after the snippet and there is no other snippet inbetween the last line of the snippet and the change then this change belongs to the current snippet
+        if (linesAfterSnippet.Count() > 0 && !symbolLinesBegin.Any(x => x > symbolLine.Value[1] && x < linesAfterSnippet.Min())) {
+          changesOfSnippet = traceChanges.Where(x => x > symbolLine.Value[0] && x <= linesAfterSnippet.Min()).OrderByDescending(x => x);
+        } else {
+          changesOfSnippet = traceChanges.Where(x => x > symbolLine.Value[0] && x <= symbolLine.Value[1]).OrderByDescending(x => x);
+        }
+        foreach (var c in changesOfSnippet) {
+          foreach (var change in traceTable[c]) {
+            if (!after.ContainsKey(change.Key)) {
+              after.Add(change.Key, change.Value);
             }
           }
         }
