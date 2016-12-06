@@ -19,6 +19,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Analysis;
@@ -147,7 +148,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
 
       var semanticallyEquivalentCrossover = SemanticallyEquivalentCrossoverParameter.ActualValue.ToArray();
       var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.ToArray();
-      var semanticLocality = SemanticLocalityParameter.ActualValue.Average(x => x.Value);
+      var semanticLocality = SemanticLocalityParameter.ActualValue.ToArray();
       var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
 
       AddSemanticallyEquivalentCrossoverTableEntry(semanticallyEquivalentCrossover);
@@ -257,18 +258,33 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       SemanticallyDifferentFromRootedParentDataTable.Rows["Same As Parent"].Values.Add((semanticallyDifferentFromRootedParent.Length - different) / semanticallyDifferentFromRootedParent.Length * 100.0);
     }
 
-    private void AddSemanticLocalityTableEntry(double average) {
+    private void AddSemanticLocalityTableEntry(DoubleValue[] semanticLocality) {
       if (SemanticLocalityDataTable == null) {
         var table = new DataTable(SemanticLocalityParameterName, "");
         table.VisualProperties.YAxisTitle = "Average Fitness Change";
 
-        DataRow row = new DataRow("Sematic Locality");
-        row.VisualProperties.StartIndexZero = true;
-        table.Rows.Add(row);
+        List<string> rowNames = new List<string>() { "Sematic Locality", "Sematic Locality Without NaN And Infinity", "Sematic Locality Without NaN, Infinity and Equivalent (0)" };
+        foreach (var name in rowNames) {
+          DataRow row = new DataRow(name);
+          row.VisualProperties.StartIndexZero = true;
+          table.Rows.Add(row);
+        }
 
         SemanticLocalityDataTable = table;
       }
-      SemanticLocalityDataTable.Rows["Sematic Locality"].Values.Add(average);
+      SemanticLocalityDataTable.Rows["Sematic Locality"].Values.Add(semanticLocality.Average(x => x.Value));
+      var semanticLocalityAvgWithout = semanticLocality.Where(x => !Double.IsInfinity(x.Value) && !Double.IsNaN(x.Value) && x.Value < Double.MaxValue);
+      if (semanticLocalityAvgWithout.Count() == 0) {
+        SemanticLocalityDataTable.Rows["Sematic Locality Without NaN And Infinity"].Values.Add(Double.NaN);
+      } else {
+        SemanticLocalityDataTable.Rows["Sematic Locality Without NaN And Infinity"].Values.Add(semanticLocalityAvgWithout.Average(x => x.Value));
+      }
+      var semanticLocalityAvgWithout0 = semanticLocality.Where(x => !Double.IsInfinity(x.Value) && !Double.IsNaN(x.Value) && x.Value < Double.MaxValue && x.Value > 0);
+      if (semanticLocalityAvgWithout0.Count() == 0) {
+        SemanticLocalityDataTable.Rows["Sematic Locality Without NaN, Infinity and Equivalent (0)"].Values.Add(Double.NaN);
+      } else {
+        SemanticLocalityDataTable.Rows["Sematic Locality Without NaN, Infinity and Equivalent (0)"].Values.Add(semanticLocalityAvgWithout0.Average(x => x.Value));
+      }
     }
 
     private void AddConstructiveEffectTableEntry(IntValue[] constructiveEffect) {

@@ -208,7 +208,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       }
 
       if (statement == null) {
-        // ToDo: what to do here? NotFiniteNumberException do crossover
         Swap(crossoverPoint0, compBranches.SampleRandom(random));
         AddStatisticsNoCrossover(NoXoNoStatement);
         return parent0;
@@ -239,40 +238,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       // perform the actual swap
       if (selectedBranch != null) {
-
-        if (SemanticallyEquivalentCrossoverParameter.ActualValue != null && SemanticallyEquivalentCrossoverParameter.ActualValue.Value == 1) {
-          // ToDo: why check again?
-          // check semantic equlivalence again to make sure there is really no semantic difference
-          var statementNodetParent = statement.Parent; // save statement parent
-          var evaluationTree = CreateTreeFromNode(random, statement, rootSymbol, startSymbol); // this will affect statementNode.Parent
-          var parent = selectedBranch.Parent; // save parent
-
-          crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
-          crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, selectedBranch); // this will affect node.Parent
-
-          EvaluationScript evaluationScript1 = new EvaluationScript() {
-            Script = FormatScript(evaluationTree, problemData.LoopBreakConst, variables, variableSettings),
-            Variables = variables,
-            Timeout = Timeout
-          };
-          JObject jsonBranch = PyProcess.SendAndEvaluateProgram(evaluationScript1);
-          selectedBranch.Parent = parent; // restore parent
-          statement.Parent = statementNodetParent; // restore statement parent
-          crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
-          crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
-
-          foreach (var entry in problemData.Variables.GetTypesOfVariables()) {
-            foreach (var variableName in entry.Value) {
-              if (!JToken.EqualityComparer.Equals(json0[variableName], jsonBranch[variableName])) {
-                SemanticallyEquivalentCrossoverParameter.ActualValue.Value = 2;
-                break;
-              }
-            }
-          }
-        }
-
         Swap(crossoverPoint0, selectedBranch);
-        AddStatistics(semantic0, parent0); // parent one has been changed and is now considered the child
+
+        AddStatistics(semantic0, parent0, statement, crossoverPoint0, json0, selectedBranch, random, variables, variableSettings, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables()); // parent zero has been changed is now considered the child
       } else {
         AddStatisticsNoCrossover(NoXoNoSelectedBranch);
       }
@@ -290,6 +258,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (NumberOfNoChangeDetectedParameter.ActualValue == null) {
         NumberOfNoChangeDetected = 0;
       }
+      if (TypeSelectedForSimilarityParameter.ActualValue == null) {
+        TypeSelectedForSimilarityParameter.ActualValue = new StringValue("No Crossover");
+      }
 
       var parentQualities = QualityParameter.ActualValue;
       double parent0Quality = parentQualities[0].Value;
@@ -299,6 +270,26 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
       SemanticLocalityParameter.ActualValue = new DoubleValue(0.0);
       ConstructiveEffectParameter.ActualValue = new IntValue(parent0Quality < parent1Quality ? 1 : 0);
+    }
+
+    protected void AddStatistics(ItemArray<PythonStatementSemantic> semantic0, ISymbolicExpressionTree child, ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, JObject jsonOriginal, ISymbolicExpressionTreeNode swapedBranch, IRandom random, List<string> variables, string variableSettings, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
+      if (SemanticallyEquivalentCrossoverParameter.ActualValue == null) {
+        var rootSymbol = new ProgramRootSymbol();
+        var startSymbol = new StartSymbol();
+        var statementNodetParent = statementNode.Parent; // save statement parent
+
+        var evaluationTree = CreateTreeFromNode(random, statementNode, rootSymbol, startSymbol);
+        EvaluationScript evaluationScript1 = new EvaluationScript() {
+          Script = FormatScript(evaluationTree, loopBreakConst, variables, variableSettings),
+          Variables = variables,
+          Timeout = Timeout
+        };
+        JObject jsonNow = PyProcess.SendAndEvaluateProgram(evaluationScript1);
+        statementNode.Parent = statementNodetParent; // restore statement parent
+
+        SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(JToken.EqualityComparer.Equals(jsonOriginal, jsonNow) ? 1 : 2);
+      }
+      AddStatistics(semantic0, child);
     }
 
     protected void AddStatistics(ItemArray<PythonStatementSemantic> semantic0, ISymbolicExpressionTree child) {
@@ -311,24 +302,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (NumberOfNoChangeDetectedParameter.ActualValue == null) {
         NumberOfNoChangeDetected = 0;
       }
+      if (TypeSelectedForSimilarityParameter.ActualValue == null) {
+        TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Random crossover");
+      }
 
       var parentQualities = QualityParameter.ActualValue;
       double parent0Quality = parentQualities[0].Value;
       double parent1Quality = parentQualities[1].Value;
-
-      if (child == null || semantic0 == null) {// no crossover happend
-        //should not happen anymore
-        SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0);
-        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
-        SemanticLocalityParameter.ActualValue = new DoubleValue(0.0);
-        ConstructiveEffectParameter.ActualValue = new IntValue(parent0Quality < parent1Quality ? 1 : 0);
-        return;
-      }
-
-      if (SemanticallyEquivalentCrossoverParameter.ActualValue == null) {
-        //should not happen
-        SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(0);
-      }
 
       var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000); //Attention fixed value for trace  // object created for every crossover
 
@@ -348,6 +328,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
                                                                 ? childQuality < parent1Quality ? 2 : 1
                                                                 : 0);
 
+      if (!String.IsNullOrEmpty(childResults.Item4)) {
+        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(true);
+        return; // no semantics is available, but the child is different because it failed, which is different from its parent
+      }
       var parent0Semantic = semantic0.Last();
       var childSemantic = childResults.Item5.Last();
 
@@ -360,7 +344,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
 
       var type = ProblemData.Variables.GetTypesOfVariables().First(x => x.Value.Contains("res")).Key;
-      if (type.IsListType()) {// not list 
+      if (type.IsListType()) {
         // always move forward both enumerators (do not use short-circuit evaluation!)
         while (enumParent.MoveNext() & enumChild.MoveNext()) {
           if (!JToken.EqualityComparer.Equals((JArray)enumParent.Current, (JArray)enumChild.Current)) {
@@ -402,10 +386,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       List<double> similarity = new List<double>();
 
       var evaluationTree = CreateTreeFromNode(random, statementNode, rootSymbol, startSymbol); // this will affect statementNode.Parent
+      crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes parent from child
       foreach (var node in compBranches) {
         var parent = node.Parent; // save parent
 
-        crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
         crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
@@ -414,13 +398,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
           Timeout = Timeout
         };
         JObject json = PyProcess.SendAndEvaluateProgram(evaluationScript1);
+        crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes intermediate parent from node
         node.Parent = parent; // restore parent
 
         evaluationPerNode.Add(json);
         similarity.Add(0);
       }
-      statementNode.Parent = statementNodetParent; // restore statement parent
-      crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
+      statementNode.Parent = statementNodetParent; // restore statement parent  
       crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
 
       Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
