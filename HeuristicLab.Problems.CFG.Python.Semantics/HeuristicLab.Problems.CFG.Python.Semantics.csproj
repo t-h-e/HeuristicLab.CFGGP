@@ -159,9 +159,8 @@
     <Compile Include="Analyzer\SemanticCrossoverAnalyzer.cs" />
     <Compile Include="Crossover\SemanticAnalyzationSubtreeCrossover.cs" />
     <Compile Include="Crossover\SemanticAnalyzationCrossover.cs" />
-    <Compile Include="Crossover\CFGPythonSemanticEvalCrossover2.cs" />
-    <Compile Include="Evaluator\CFGPythonTraceTableEvaluator.cs" />
     <Compile Include="Crossover\CFGPythonSemanticEvalCrossover.cs" />
+    <Compile Include="Evaluator\CFGPythonTraceTableEvaluator.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

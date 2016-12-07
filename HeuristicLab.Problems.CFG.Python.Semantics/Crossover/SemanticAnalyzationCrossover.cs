@@ -38,7 +38,7 @@ using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [Item("SemanticAnalyzationCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
   [StorableClass]
-  public class SemanticCrossoverAnalyzationCrossover<T> : CFGPythonSemanticEvalCrossover2<T>, IIterationBasedOperator
+  public class SemanticCrossoverAnalyzationCrossover<T> : CFGPythonSemanticEvalCrossover<T>, IIterationBasedOperator
   where T : class, ICFGPythonProblemData {
     private const string NumberOfAllowedBranchesParameterName = "NumberOfAllowedBranches";
     private const string NumberOfPossibleBranchesSelectedParameterName = "NumberOfPossibleBranchesSelected";
@@ -310,7 +310,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       double parent0Quality = parentQualities[0].Value;
       double parent1Quality = parentQualities[1].Value;
 
-      var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000); //Attention fixed value for trace  // object created for every crossover
+      var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000); // hardcoded value!!! // TODO: object created for every crossover
 
       var childResults = pythonSemanticHelper.EvaluateAndTraceProgram(PythonProcessParameter.ActualValue,
                                              PythonHelper.FormatToProgram(child, ProblemData.LoopBreakConst, ProblemData.FullHeader, ProblemData.FullFooter),

@@ -34,7 +34,10 @@ namespace HeuristicLab.Problems.CFG.Python {
     protected const string LoopBreakConstParameterName = "LoopBreakConst";
     protected const string HelperCodeParameterName = "HelperCode";
     protected const string VariablesParameterName = "Variables";
-    protected const string VariableSettingsParameterName = "VariableSettings";
+    protected const string VariableSettingsParameterName = "VariableSettings";  
+
+    protected const string VariablesParameterDescription = "Collection of variables and their types";
+    protected const string VariableSettingsParameterDescription = "Define values set for variables when testing semantics. By default the variable settings from a trace are used.";  
 
     private static readonly CFGPythonProblemData emptyProblemData;
     public static new CFGPythonProblemData EmptyProblemData {
@@ -57,8 +60,8 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(FooterParameterName, "", new TextValue().AsReadOnly()));
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue().AsReadOnly()));
       // TODO: should be moved to HeuristicLab.Problems.CFG.Python.Semantics
-      problemData.Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "Collection of variables and their types", new VariableTypeParameterCollection()));
-      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "Define values set for variables when testing semantics. By default the variable settings from a trace are used.", new ItemList<TextValue>()));
+      problemData.Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, VariablesParameterDescription, new VariableTypeParameterCollection()));
+      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, VariableSettingsParameterDescription, new ItemList<TextValue>()));    
       emptyProblemData = problemData;
     }
 
@@ -131,8 +134,9 @@ namespace HeuristicLab.Problems.CFG.Python {
       : base(input, output) {
       Parameters.Add(new FixedValueParameter<IntValue>(LoopBreakConstParameterName, "", new IntValue(1500)));
       Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue()));
-      Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, "", new VariableTypeParameterCollection()));
-      Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, "", new ItemList<TextValue>()));
+      // TODO: should be moved to HeuristicLab.Problems.CFG.Python.Semantics
+      Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, VariablesParameterDescription, new VariableTypeParameterCollection()));
+      Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, VariableSettingsParameterDescription, new ItemList<TextValue>()));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {

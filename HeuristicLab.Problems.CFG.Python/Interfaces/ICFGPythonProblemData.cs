@@ -29,6 +29,7 @@ namespace HeuristicLab.Problems.CFG.Python {
     string FullHeader { get; } // get HelperCode combined with Header
     string FullFooter { get; } // get Footer string
     TextValue HelperCode { get; }
+    // TODO: should be moved to HeuristicLab.Problems.CFG.Python.Semantics
     VariableTypeParameterCollection Variables { get; }
     ItemList<TextValue> VariableSettings { get; }
   }

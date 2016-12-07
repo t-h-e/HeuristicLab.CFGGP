@@ -41,6 +41,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class CFGPythonSemanticEvalCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
                                                 ICFGPythonSemanticsCrossover<T>
   where T : class, ICFGPythonProblemData {
+    private const string InternalCrossoverPointProbabilityParameterName = "InternalCrossoverPointProbability";
     private const string MaximumSymbolicExpressionTreeLengthParameterName = "MaximumSymbolicExpressionTreeLength";
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
     private const string CrossoverProbabilityParameterName = "CrossoverProbability";
@@ -75,6 +76,9 @@ for v in variables:
     locals()[v] = trace[v]";
 
     #region Parameter Properties
+    public IValueLookupParameter<PercentValue> InternalCrossoverPointProbabilityParameter {
+      get { return (IValueLookupParameter<PercentValue>)Parameters[InternalCrossoverPointProbabilityParameterName]; }
+    }
     public IValueLookupParameter<IntValue> MaximumSymbolicExpressionTreeLengthParameter {
       get { return (IValueLookupParameter<IntValue>)Parameters[MaximumSymbolicExpressionTreeLengthParameterName]; }
     }
@@ -105,6 +109,9 @@ for v in variables:
     #endregion
 
     #region Properties
+    public PercentValue InternalCrossoverPointProbability {
+      get { return InternalCrossoverPointProbabilityParameter.ActualValue; }
+    }
     public IntValue MaximumSymbolicExpressionTreeLength {
       get { return MaximumSymbolicExpressionTreeLengthParameter.ActualValue; }
     }
@@ -117,7 +124,7 @@ for v in variables:
     public ICFGPythonProblemData ProblemData {
       get { return ProblemDataParameter.ActualValue; }
     }
-    private ItemArray<ItemArray<PythonStatementSemantic>> Semantics {
+    public ItemArray<ItemArray<PythonStatementSemantic>> Semantics {
       get { return SemanticsParameter.ActualValue; }
     }
     public double Timeout { get { return TimeoutParameter.ActualValue.Value / 1000.0; } }
@@ -130,6 +137,7 @@ for v in variables:
       : base() {
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeDepthParameterName, "The maximal depth of the symbolic expression tree (a tree with one node has depth = 0)."));
+      Parameters.Add(new ValueLookupParameter<PercentValue>(InternalCrossoverPointProbabilityParameterName, "The probability to select an internal crossover point (instead of a leaf node).", new PercentValue(0.9)));
 
       Parameters.Add(new ValueLookupParameter<PercentValue>(CrossoverProbabilityParameterName, "Probability of applying crossover", new PercentValue(1.0)));
 
@@ -150,64 +158,94 @@ for v in variables:
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
       if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value)
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
-          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value);
+          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
 
       return parent0;
     }
 
-    private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth) {
-      if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) return parent0;
+    private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability) {
+      if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
+        return parent0;
+      }
 
-      var semanticPoint0 = semantic0.SampleRandom(random);
-      var crossoverNode0 = parent0.IterateNodesPrefix().ElementAt(semanticPoint0.TreeNodePrefixPos);
-      var crossoverPoint0 = new CutPoint(crossoverNode0.Parent, crossoverNode0);
-      int level = parent0.Root.GetBranchLevel(crossoverPoint0.Child);
-      int length = parent0.Root.GetLength() - crossoverPoint0.Child.GetLength();
+      // select a random crossover point in the first parent 
+      CutPoint crossoverPoint0;
+      SelectCrossoverPoint(random, parent0, internalCrossoverPointProbability, maxTreeLength, maxTreeDepth, out crossoverPoint0);
 
-      var p1NodeIndices = semantic1.Select(x => x.TreeNodePrefixPos).ToList();
-      var p1StatementNodes = parent1.IterateNodesPrefix().Where((value, index) => p1NodeIndices.Contains(index)).ToList();
-      var allowedBranches = new List<ISymbolicExpressionTreeNode>();
-      p1StatementNodes.ForEach((n) => {
-        if (n.GetDepth() + level <= maxTreeDepth && n.GetLength() + length <= maxTreeLength && crossoverPoint0.IsMatchingPointType(n))
+      int childLength = crossoverPoint0.Child != null ? crossoverPoint0.Child.GetLength() : 0;
+      // calculate the max length and depth that the inserted branch can have 
+      int maxInsertedBranchLength = maxTreeLength - (parent0.Length - childLength);
+      int maxInsertedBranchDepth = maxTreeDepth - parent0.Root.GetBranchLevel(crossoverPoint0.Child);
+
+      List<ISymbolicExpressionTreeNode> allowedBranches = new List<ISymbolicExpressionTreeNode>();
+      parent1.Root.ForEachNodePostfix((n) => {
+        if (n.GetLength() <= maxInsertedBranchLength &&
+            n.GetDepth() <= maxInsertedBranchDepth && crossoverPoint0.IsMatchingPointType(n))
           allowedBranches.Add(n);
       });
+      // empty branch
+      if (crossoverPoint0.IsMatchingPointType(null)) allowedBranches.Add(null);
 
-      if (allowedBranches.Count == 0)
+      if (allowedBranches.Count == 0) {
         return parent0;
-
-      string variableSettings;
-      if (problemData.VariableSettings.Count == 0) {
-        variableSettings = SemanticToPythonVariableSettings(semanticPoint0.Before);
       } else {
-        variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
+        // select MaxCompares random crossover points
+        // Use set to avoid having the same node multiple times
+        HashSet<ISymbolicExpressionTreeNode> compBranches;
+        if (allowedBranches.Count < MaxComparesParameter.Value.Value) {
+          compBranches = new HashSet<ISymbolicExpressionTreeNode>(allowedBranches);
+        } else {
+          compBranches = new HashSet<ISymbolicExpressionTreeNode>();
+          for (int i = 0; i < MaxComparesParameter.Value.Value; i++) {
+            var possibleBranch = SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability);
+            allowedBranches.Remove(possibleBranch);
+            compBranches.Add(possibleBranch);
+          }
+        }
+
+        // get possible semantic positions
+        var statementProductions = ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <code>")).Symbols;
+        var statementProductionNames = statementProductions.Select(x => x.Name);
+
+        // find first node that can be used for evaluation in parent0
+        ISymbolicExpressionTreeNode statement = statementProductionNames.Contains(crossoverPoint0.Child.Symbol.Name) ? crossoverPoint0.Child : crossoverPoint0.Parent;
+        while (statement != null && !statementProductionNames.Contains(statement.Symbol.Name)) {
+          statement = statement.Parent;
+        }
+
+        if (statement == null) {
+          Swap(crossoverPoint0, compBranches.SampleRandom(random));
+          return parent0;
+        }
+
+        var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
+        string variableSettings;
+        if (problemData.VariableSettings.Count == 0) {
+          variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before);
+        } else {
+          variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
+        }
+        var variables = problemData.Variables.GetVariableNames().ToList();
+
+        // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
+        var rootSymbol = new ProgramRootSymbol();
+        var startSymbol = new StartSymbol();
+        var statementParent = statement.Parent;
+        EvaluationScript crossoverPointScript0 = new EvaluationScript() {
+          Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
+          Variables = variables,
+          Timeout = Timeout
+        };
+        JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
+        statement.Parent = statementParent; // restore parent
+
+        ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
+
+        // perform the actual swap
+        if (selectedBranch != null)
+          Swap(crossoverPoint0, selectedBranch);
       }
-      var variables = problemData.Variables.GetVariableNames().ToList();
 
-      // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
-      var rootSymbol = new ProgramRootSymbol();
-      var startSymbol = new StartSymbol();
-      //-------------------------------------TEMP START
-      JObject jsonOriginal = PyProcess.SendAndEvaluateProgram(new EvaluationScript() {
-        Script = FormatScript(new SymbolicExpressionTree(new SymbolicExpressionTreeTopLevelNode(rootSymbol)), problemData.LoopBreakConst, variables, variableSettings),
-        Variables = variables,
-        Timeout = Timeout
-      });
-      //-------------------------------------TEMP END
-
-      EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-        Script = FormatScript(CreateTreeFromNode(random, crossoverPoint0.Child, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
-        Variables = variables,
-        Timeout = Timeout
-      };
-      JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
-      crossoverPoint0.Child.Parent = crossoverPoint0.Parent; // restore parent
-
-      var compBranches = allowedBranches.SampleRandomWithoutRepetition(random, MaxComparesParameter.Value.Value);
-      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(compBranches, random, variables, variableSettings, json0, jsonOriginal, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
-
-      // perform the actual swap
-      if (selectedBranch != null)
-        Swap(crossoverPoint0, selectedBranch);
       return parent0;
     }
 
@@ -220,32 +258,41 @@ for v in variables:
       return strBuilder.ToString();
     }
 
-    private ISymbolicExpressionTreeNode SelectBranch(IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, JObject jsonOriginal, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
+    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
       var rootSymbol = new ProgramRootSymbol();
       var startSymbol = new StartSymbol();
+      var statementNodetParent = statementNode.Parent; // save statement parent
       List<JObject> evaluationPerNode = new List<JObject>();
       List<double> similarity = new List<double>();
+
+      var evaluationTree = CreateTreeFromNode(random, statementNode, rootSymbol, startSymbol); // this will affect statementNode.Parent
       foreach (var node in compBranches) {
-        var parent = node.Parent;
-        var tree1 = CreateTreeFromNode(random, node, rootSymbol, startSymbol); // this will affect node.Parent 
+        var parent = node.Parent; // save parent
+
+        crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
+        crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
+
         EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = FormatScript(tree1, loopBreakConst, variables, variableSettings),
+          Script = FormatScript(evaluationTree, loopBreakConst, variables, variableSettings),
           Variables = variables,
           Timeout = Timeout
         };
         JObject json = PyProcess.SendAndEvaluateProgram(evaluationScript1);
         node.Parent = parent; // restore parent
+
         evaluationPerNode.Add(json);
         similarity.Add(0);
       }
+      statementNode.Parent = statementNodetParent; // restore statement parent
+      crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
+      crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
 
       Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
       List<string> differences;
       foreach (var entry in variablesPerType) {
         differences = new List<string>();
         foreach (var variableName in entry.Value) {
-          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonOriginal[variableName], x[variableName]))
-          || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], jsonParent0[variableName])) {
+          if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonParent0[variableName], x[variableName]))) {
             differences.Add(variableName);
           }
         }
@@ -262,19 +309,20 @@ for v in variables:
         var variableSimilarity = CalculateDifference(jsonParent0[variableName], evaluationPerNode.Select(x => x[variableName]), typeDifference.Key, true);
         similarity = similarity.Zip(variableSimilarity, (x, y) => x + y).ToList();
       }
+      similarity = similarity.Select(x => x / typeDifference.Value.Count).ToList(); // normalize between 0 and 1 again (actually not necessary)
 
       double best = Double.MaxValue;
       int pos = -1;
       for (int i = 0; i < similarity.Count; i++) {
-        if (similarity[i] < best) {
+        if (similarity[i] > 0 && similarity[i] < best) {
           best = similarity[i];
           pos = i;
         }
       }
-      return pos >= 0 ? compBranches.ElementAt(pos) : null;
+      return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
     }
 
-    private string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, int loopBreakConst, List<string> variables, string variableSettings) {
+    protected string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, int loopBreakConst, List<string> variables, string variableSettings) {
       Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
       string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
       return String.Format(EVAL_TRACE_SCRIPT, ProblemData.HelperCode.Value,
@@ -285,63 +333,7 @@ for v in variables:
                                               PythonHelper.FormatToProgram(symbolicExpressionTree, loopBreakConst, "    "));
     }
 
-    //private double DoSimilarityCalculations(JObject json0, JObject json1, IEnumerable<string> variableNames, IDictionary<VariableType, List<string>> variablesPerType, IDictionary<string, VariableType> typeOfVariable, JObject jsonOriginal) {
-    //  List<string> differences = new List<string>();
-
-    //  double distance = 0;
-    //  foreach (var entry in variablesPerType) {
-    //    foreach (var variableName in entry.Value) {
-    //      if (!JToken.EqualityComparer.Equals(jsonOriginal[variableName], json0[variableName])
-    //       || !JToken.EqualityComparer.Equals(jsonOriginal[variableName], json1[variableName])) {
-    //        differences.Add(variableName);
-    //      }
-    //    }
-
-    //    if (differences.Count == 0) continue;
-
-    //    double[,] cost = new double[differences.Count, differences.Count];
-    //    for (int i = 0; i < differences.Count; i++) {
-    //      var curDiff0 = json0[differences[i]];
-    //      for (int j = 0; j < differences.Count; j++) {
-    //        var curDiff1 = json1[differences[j]];
-    //        cost[i, j] = CalculateDifference(curDiff0, curDiff1, entry.Key);
-    //        if (Double.IsNaN(cost[i, j]) || Double.IsInfinity(cost[i, j])) {
-    //          cost[i, j] = Double.MaxValue;
-    //        }
-    //      }
-    //    }
-    //    HungarianAlgorithm ha = new HungarianAlgorithm(cost);
-    //    var assignment = ha.Run();
-    //    for (int i = 0; i < assignment.Length; i++) {
-    //      distance += cost[i, assignment[i]];
-    //    }
-    //    differences.Clear();
-    //  }
-    //  return distance;
-    //}
-
-    private double CalculateDifference(JToken curDiff0, JToken curDiff1, VariableType variableType, bool normalize) {
-      switch (variableType) {
-        case VariableType.Bool:
-          return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiff1.Values<bool>(), normalize);
-        case VariableType.Int:
-        case VariableType.Float:
-          return PythonSemanticComparer.Compare(ConvertIntJsonToDouble(curDiff0), ConvertIntJsonToDouble(curDiff1), normalize);
-        case VariableType.String:
-          return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiff1.Values<string>(), normalize);
-        case VariableType.List_Bool:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiff1.Values<List<bool>>(), normalize);
-        case VariableType.List_Int:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiff1.Values<List<int>>(), normalize);
-        case VariableType.List_Float:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiff1.Values<List<double>>(), normalize);
-        case VariableType.List_String:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiff1.Values<List<string>>(), normalize);
-      }
-      throw new ArgumentException("Variable Type cannot be compared.");
-    }
-
-    private IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {
+    protected IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {
       switch (variableType) {
         case VariableType.Bool:
           return PythonSemanticComparer.Compare(curDiff0.Values<bool>(), curDiffOthers.Select(x => x.Values<bool>()), normalize);
@@ -351,13 +343,13 @@ for v in variables:
         case VariableType.String:
           return PythonSemanticComparer.Compare(curDiff0.Values<string>(), curDiffOthers.Select(x => x.Values<string>()), normalize);
         case VariableType.List_Bool:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<bool>>(), curDiffOthers.Select(x => x.Values<List<bool>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<bool>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<bool>().ToList())), normalize);
         case VariableType.List_Int:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<int>>(), curDiffOthers.Select(x => x.Values<List<int>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<int>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<int>().ToList())), normalize);
         case VariableType.List_Float:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<double>>(), curDiffOthers.Select(x => x.Values<List<double>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<double>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<double>().ToList())), normalize);
         case VariableType.List_String:
-          return PythonSemanticComparer.Compare(curDiff0.Values<List<string>>(), curDiffOthers.Select(x => x.Values<List<string>>()), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<string>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<string>().ToList())), normalize);
       }
       throw new ArgumentException("Variable Type cannot be compared.");
     }
@@ -373,6 +365,88 @@ for v in variables:
         converted.Add((double)child);
       }
       return converted;
+    }
+
+    // copied from SubtreeCrossover
+    protected static void SelectCrossoverPoint(IRandom random, ISymbolicExpressionTree parent0, double internalNodeProbability, int maxBranchLength, int maxBranchDepth, out CutPoint crossoverPoint) {
+      if (internalNodeProbability < 0.0 || internalNodeProbability > 1.0) throw new ArgumentException("internalNodeProbability");
+      List<CutPoint> internalCrossoverPoints = new List<CutPoint>();
+      List<CutPoint> leafCrossoverPoints = new List<CutPoint>();
+      parent0.Root.ForEachNodePostfix((n) => {
+        if (n.SubtreeCount > 0 && n != parent0.Root) {
+          //avoid linq to reduce memory pressure
+          for (int i = 0; i < n.SubtreeCount; i++) {
+            var child = n.GetSubtree(i);
+            if (child.GetLength() <= maxBranchLength &&
+                child.GetDepth() <= maxBranchDepth) {
+              if (child.SubtreeCount > 0)
+                internalCrossoverPoints.Add(new CutPoint(n, child));
+              else
+                leafCrossoverPoints.Add(new CutPoint(n, child));
+            }
+          }
+
+          // add one additional extension point if the number of sub trees for the symbol is not full
+          if (n.SubtreeCount < n.Grammar.GetMaximumSubtreeCount(n.Symbol)) {
+            // empty extension point
+            internalCrossoverPoints.Add(new CutPoint(n, n.SubtreeCount));
+          }
+        }
+      });
+
+      if (random.NextDouble() < internalNodeProbability) {
+        // select from internal node if possible
+        if (internalCrossoverPoints.Count > 0) {
+          // select internal crossover point or leaf
+          crossoverPoint = internalCrossoverPoints[random.Next(internalCrossoverPoints.Count)];
+        } else {
+          // otherwise select external node
+          crossoverPoint = leafCrossoverPoints[random.Next(leafCrossoverPoints.Count)];
+        }
+      } else if (leafCrossoverPoints.Count > 0) {
+        // select from leaf crossover point if possible
+        crossoverPoint = leafCrossoverPoints[random.Next(leafCrossoverPoints.Count)];
+      } else {
+        // otherwise select internal crossover point
+        crossoverPoint = internalCrossoverPoints[random.Next(internalCrossoverPoints.Count)];
+      }
+    }
+
+    //copied from SubtreeCrossover
+    protected static ISymbolicExpressionTreeNode SelectRandomBranch(IRandom random, IEnumerable<ISymbolicExpressionTreeNode> branches, double internalNodeProbability) {
+      if (internalNodeProbability < 0.0 || internalNodeProbability > 1.0) throw new ArgumentException("internalNodeProbability");
+      List<ISymbolicExpressionTreeNode> allowedInternalBranches;
+      List<ISymbolicExpressionTreeNode> allowedLeafBranches;
+      if (random.NextDouble() < internalNodeProbability) {
+        // select internal node if possible
+        allowedInternalBranches = (from branch in branches
+                                   where branch != null && branch.SubtreeCount > 0
+                                   select branch).ToList();
+        if (allowedInternalBranches.Count > 0) {
+          return allowedInternalBranches.SampleRandom(random);
+
+        } else {
+          // no internal nodes allowed => select leaf nodes
+          allowedLeafBranches = (from branch in branches
+                                 where branch == null || branch.SubtreeCount == 0
+                                 select branch).ToList();
+          return allowedLeafBranches.SampleRandom(random);
+        }
+      } else {
+        // select leaf node if possible
+        allowedLeafBranches = (from branch in branches
+                               where branch == null || branch.SubtreeCount == 0
+                               select branch).ToList();
+        if (allowedLeafBranches.Count > 0) {
+          return allowedLeafBranches.SampleRandom(random);
+        } else {
+          allowedInternalBranches = (from branch in branches
+                                     where branch != null && branch.SubtreeCount > 0
+                                     select branch).ToList();
+          return allowedInternalBranches.SampleRandom(random);
+
+        }
+      }
     }
 
     //copied from SymbolicDataAnalysisExpressionCrossover<T>
