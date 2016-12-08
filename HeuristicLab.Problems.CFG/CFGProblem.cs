@@ -271,7 +271,7 @@ namespace HeuristicLab.Problems.CFG {
       return problemData as T;
     }
 
-    public void Load(CFGData data) {
+    public virtual void Load(CFGData data) {
       Name = data.Name;
       Description = data.Description;
       ProblemDataParameter.Value = LoadProblemData(data);

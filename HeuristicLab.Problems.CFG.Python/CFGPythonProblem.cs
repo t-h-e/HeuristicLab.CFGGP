@@ -171,7 +171,6 @@ namespace HeuristicLab.Problems.CFG.Python {
           ProblemData.Variables.Add(variables);
         }
       }
-
       SetVariablesToOperators();
     }
 
@@ -191,6 +190,11 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.TestPartitionParameter.Value.End = data.TestPartitionEnd;
       problemData.EmbedCode.Value = data.Embed;
       return problemData as ICFGPythonProblemData;
+    }
+
+    public override void Load(CFGData data) {
+      base.Load(data);
+      SetVariables();
     }
 
     public void Dispose() {
