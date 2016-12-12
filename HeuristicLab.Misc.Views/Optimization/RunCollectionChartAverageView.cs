@@ -40,7 +40,6 @@ namespace HeuristicLab.Misc.Views {
       set { base.Content = value; }
     }
 
-    //private int rowNumber;
     private bool suppressUpdates;
     private readonly DataTable combinedDataTable;
     public DataTable CombinedDataTable {
@@ -162,10 +161,10 @@ namespace HeuristicLab.Misc.Views {
 
       var dataTables = visibleRuns.Where(r => r.Results.ContainsKey(resultName)).Select(r => (DataTable)r.Results[resultName]);
       if (dataTables.Count() != visibleRuns.Count()) {
-        using (InfoBox dialog = new InfoBox(String.Format("One or more runs do not contain a data table {0}", resultName), this.Name, this)) {
-          dialog.ShowDialog(this);
-          return;
-        }
+        errorTextBox.Text = String.Format("One or more runs do not contain a data table {0}", resultName);
+        viewHost.Visible = false;
+        errorTextBox.Visible = true;
+        return;
       }
 
       var dataRows = dataTables.SelectMany(dt => dt.Rows).GroupBy(r => r.Name, r => r);
@@ -175,10 +174,10 @@ namespace HeuristicLab.Misc.Views {
         var aggreateRows = row.Select(r => (IEnumerable<double>)r.Values).ToList();
         // check if all rows have the same length
         if (row.Any(r => r.Values.Count != row.First().Values.Count)) {
-          using (InfoBox dialog = new InfoBox(String.Format("One or more runs do not contain the same number of entries per row {0}", resultName), this.Name, this)) {
-            dialog.ShowDialog(this);
-            return;
-          }
+          errorTextBox.Text = String.Format("One or more runs do not contain the same number of entries per row {0}", resultName);
+          viewHost.Visible = false;
+          errorTextBox.Visible = true;
+          return;
         }
 
         // add zero rows for missing rows, otherwise the aggragation is off
@@ -188,9 +187,14 @@ namespace HeuristicLab.Misc.Views {
         }
 
         var averageValues = DataRowsAggregate(Enumerable.Average, aggreateRows);
+        // Windows Forms calculates internally with Decimal instead of Double, which can lead to Overflow exceptions
+        // To avoid this exception, values get replaced with +/-7.92E+27 as max and min value
+        averageValues = averageValues.Select(x => Math.Max(Math.Min(x, 7.92E+27), -7.92E+27));
         DataRow averageRow = new DataRow(row.Key, "Average of Values", averageValues);
         combinedDataTable.Rows.Add(averageRow);
       }
+      viewHost.Visible = true;
+      errorTextBox.Visible = false;
     }
 
     private IEnumerable<double> DataRowsAggregate(Func<IEnumerable<double>, double> aggregate, IEnumerable<IEnumerable<double>> arrays) {
