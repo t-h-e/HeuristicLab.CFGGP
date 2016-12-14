@@ -144,6 +144,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Optimization\RunCollectionChartCombinationView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Optimization\RunCollectionChartCombinationView.Designer.cs">
+      <DependentUpon>RunCollectionChartCombinationView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Optimization\RunCollectionChartMedianView.cs">
       <SubType>UserControl</SubType>
     </Compile>

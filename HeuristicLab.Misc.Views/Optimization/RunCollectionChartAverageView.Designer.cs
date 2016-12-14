@@ -43,80 +43,16 @@ namespace HeuristicLab.Misc.Views {
     /// the contents of this method with the code editor.
     /// </summary>
     private void InitializeComponent() {
-      this.dataTableComboBox = new System.Windows.Forms.ComboBox();
-      this.label1 = new System.Windows.Forms.Label();
-      this.viewHost = new HeuristicLab.MainForm.WindowsForms.ViewHost();
-      this.errorTextBox = new System.Windows.Forms.TextBox();
       this.SuspendLayout();
-      // 
-      // dataTableComboBox
-      // 
-      this.dataTableComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.dataTableComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-      this.dataTableComboBox.FormattingEnabled = true;
-      this.dataTableComboBox.Location = new System.Drawing.Point(69, 3);
-      this.dataTableComboBox.Name = "dataTableComboBox";
-      this.dataTableComboBox.Size = new System.Drawing.Size(455, 21);
-      this.dataTableComboBox.TabIndex = 0;
-      this.dataTableComboBox.SelectedIndexChanged += new System.EventHandler(this.dataTableComboBox_SelectedIndexChanged);
-      // 
-      // label1
-      // 
-      this.label1.AutoSize = true;
-      this.label1.Location = new System.Drawing.Point(3, 6);
-      this.label1.Name = "label1";
-      this.label1.Size = new System.Drawing.Size(60, 13);
-      this.label1.TabIndex = 1;
-      this.label1.Text = "DataTable:";
-      // 
-      // viewHost
-      // 
-      this.viewHost.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.viewHost.Caption = "View";
-      this.viewHost.Content = null;
-      this.viewHost.Enabled = false;
-      this.viewHost.Location = new System.Drawing.Point(4, 30);
-      this.viewHost.Name = "viewHost";
-      this.viewHost.ReadOnly = false;
-      this.viewHost.Size = new System.Drawing.Size(520, 341);
-      this.viewHost.TabIndex = 3;
-      this.viewHost.ViewsLabelVisible = true;
-      this.viewHost.ViewType = null;
-      // 
-      // errorTextBox
-      // 
-      this.errorTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-      this.errorTextBox.Location = new System.Drawing.Point(4, 30);
-      this.errorTextBox.Multiline = true;
-      this.errorTextBox.Name = "errorTextBox";
-      this.errorTextBox.ReadOnly = true;
-      this.errorTextBox.Size = new System.Drawing.Size(520, 341);
-      this.errorTextBox.TabIndex = 2;
       // 
       // RunCollectionChartAverageView
       // 
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
-      this.Controls.Add(this.errorTextBox);
-      this.Controls.Add(this.viewHost);
-      this.Controls.Add(this.label1);
-      this.Controls.Add(this.dataTableComboBox);
       this.Name = "RunCollectionChartAverageView";
       this.Size = new System.Drawing.Size(527, 374);
       this.ResumeLayout(false);
       this.PerformLayout();
-
     }
-
     #endregion
-
-    private System.Windows.Forms.ComboBox dataTableComboBox;
-    private System.Windows.Forms.Label label1;
-    private MainForm.WindowsForms.ViewHost viewHost;
-    private System.Windows.Forms.TextBox errorTextBox;
   }
 }
