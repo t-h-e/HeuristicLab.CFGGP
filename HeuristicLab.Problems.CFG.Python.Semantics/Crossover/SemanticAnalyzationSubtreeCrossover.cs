@@ -126,7 +126,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
       string variableSettings;
       if (problemData.VariableSettings.Count == 0) {
-        variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before);
+        variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
       } else {
         variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
       }

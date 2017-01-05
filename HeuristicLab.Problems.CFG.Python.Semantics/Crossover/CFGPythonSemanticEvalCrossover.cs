@@ -221,7 +221,7 @@ for v in variables:
         var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
         string variableSettings;
         if (problemData.VariableSettings.Count == 0) {
-          variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before);
+          variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
         } else {
           variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
         }
@@ -249,11 +249,14 @@ for v in variables:
       return parent0;
     }
 
-    private string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic) {
+    protected string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic, IDictionary<string, VariableType> variableTypes) {
       StringBuilder strBuilder = new StringBuilder();
       foreach (var setting in semantic) {
-        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key,
-                                                         JsonConvert.SerializeObject(setting.Value)));
+        string values = JsonConvert.SerializeObject(setting.Value); ;
+        if (variableTypes[setting.Key] == VariableType.Bool || variableTypes[setting.Key] == VariableType.List_Bool) {
+          values = values.Replace("f", "F").Replace("t", "T"); // changes 'false' to 'False' and 'true' to 'True'
+        }
+        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key, values));
       }
       return strBuilder.ToString();
     }

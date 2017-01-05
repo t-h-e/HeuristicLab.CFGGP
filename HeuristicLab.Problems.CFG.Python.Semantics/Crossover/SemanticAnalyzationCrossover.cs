@@ -20,10 +20,8 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -32,7 +30,6 @@ using HeuristicLab.Optimization;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
@@ -216,7 +213,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
       string variableSettings;
       if (problemData.VariableSettings.Count == 0) {
-        variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before);
+        variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
       } else {
         variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
       }
@@ -367,15 +364,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
           SemanticallyDifferentFromRootedParentParameter.ActualValue.Value = true;
         }
       }
-    }
-
-    protected string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic) {
-      StringBuilder strBuilder = new StringBuilder();
-      foreach (var setting in semantic) {
-        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key,
-                                                         JsonConvert.SerializeObject(setting.Value)));
-      }
-      return strBuilder.ToString();
     }
 
     protected ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
