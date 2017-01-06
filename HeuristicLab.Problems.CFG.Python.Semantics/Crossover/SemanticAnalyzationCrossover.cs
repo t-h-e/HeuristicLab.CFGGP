@@ -47,6 +47,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private const string SemanticLocalityParameterName = "SemanticLocality";
     private const string ConstructiveEffectParameterName = "ConstructiveEffect";
 
+    private const string CrossoverExceptionsParameterName = "CrossoverExceptions";
+
     private const string QualityParameterName = "Quality";
 
     public const int NoXoProbability = 3;
@@ -86,6 +88,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public ILookupParameter<IntValue> ConstructiveEffectParameter {
       get { return (ILookupParameter<IntValue>)Parameters[ConstructiveEffectParameterName]; }
     }
+    public ILookupParameter<ItemCollection<StringValue>> CrossoverExceptionsParameter {
+      get { return (ILookupParameter<ItemCollection<StringValue>>)Parameters[CrossoverExceptionsParameterName]; }
+    }
     // Quality values of the parents
     public IScopeTreeLookupParameter<DoubleValue> QualityParameter {
       get { return (IScopeTreeLookupParameter<DoubleValue>)Parameters[QualityParameterName]; }
@@ -106,6 +111,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       set { NumberOfNoChangeDetectedParameter.ActualValue = new IntValue(value); }
     }
 
+    // ToDo: Remove! This is just a quickfix
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      if (!Parameters.ContainsKey(CrossoverExceptionsParameterName)) {
+        Parameters.Add(new LookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
+      }
+    }
+
     #endregion
     [StorableConstructor]
     protected SemanticCrossoverAnalyzationCrossover(bool deserializing) : base(deserializing) { }
@@ -124,6 +137,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       Parameters.Add(new LookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
       Parameters.Add(new LookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
+      Parameters.Add(new LookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
 
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(QualityParameterName, "The qualities of the trees that should be analyzed."));
 
@@ -135,6 +149,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
+      CrossoverExceptionsParameter.ActualValue = new ItemCollection<StringValue>();
       if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value)
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
           MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
@@ -395,6 +410,22 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       statementNode.Parent = statementNodetParent; // restore statement parent  
       crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
 
+      #region remove branches that threw an exception
+      List<int> branchesCausedExceptions = new List<int>();
+      for (int i = evaluationPerNode.Count - 1; i >= 0; i--) {
+        if (evaluationPerNode[i]["exception"] != null) {
+          branchesCausedExceptions.Add(i);
+          CrossoverExceptionsParameter.ActualValue.Add(new StringValue(evaluationPerNode[i]["exception"].ToString()));
+        }
+      }
+      var branchesWithoutException = compBranches.ToList();
+      foreach (int index in branchesCausedExceptions) {
+        branchesWithoutException.RemoveAt(index);
+        evaluationPerNode.RemoveAt(index);
+        similarity.RemoveAt(index);
+      }
+      #endregion
+
       Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
       List<string> differences;
       foreach (var entry in variablesPerType) {
@@ -438,7 +469,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // set SemanticallyEquivalentCrossover
       SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(pos >= 0 ? 2 : 1);
 
-      return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
+      return pos >= 0 ? branchesWithoutException.ElementAt(pos) : compBranches.SampleRandom(random);
     }
   }
 }

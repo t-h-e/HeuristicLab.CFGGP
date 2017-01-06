@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
+using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
@@ -46,6 +47,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
+      CrossoverExceptionsParameter.ActualValue = new ItemCollection<StringValue>();
       if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value)
         return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
           MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);

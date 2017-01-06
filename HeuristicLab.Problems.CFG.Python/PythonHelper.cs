@@ -21,9 +21,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Text;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using Newtonsoft.Json;
 
 namespace HeuristicLab.Problems.CFG.Python {
   public class PythonHelper {
@@ -178,6 +181,45 @@ namespace HeuristicLab.Problems.CFG.Python {
       }
       strBuilder.Append("]");
       return strBuilder.ToString();
+    }
+
+    private static JsonSerializerSettings settings = new JsonSerializerSettings { Converters = new List<JsonConverter>() { new BoolConverter() } };
+    private static JsonSerializer serializer = JsonSerializer.CreateDefault(settings);
+    public static string SerializeCSToPythonJson(object value) {
+      StringBuilder sb = new StringBuilder(256);
+      StringWriter sw = new StringWriter(sb, CultureInfo.InvariantCulture);
+      using (var nWriter = new NullWriter(sw)) {
+        serializer.Serialize(nWriter, value);
+      }
+      return sw.ToString();
+    }
+
+    private class BoolConverter : JsonConverter {
+      public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+        if (value is bool) {
+          writer.WriteRawValue(((bool)value) ? "True" : "False");
+        } else {
+          throw new ArgumentException(String.Format("Expecting bool value got {0}", value == null ? "null" : value.GetType().ToString()));
+        }
+      }
+
+      public override bool CanConvert(Type objectType) {
+        return objectType == typeof(bool);
+      }
+
+      public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+        throw new NotImplementedException();
+      }
+
+      public override bool CanRead { get { return false; } }
+      public override bool CanWrite { get { return true; } }
+    }
+
+    private class NullWriter : JsonTextWriter {
+      public NullWriter(TextWriter textWriter) : base(textWriter) { }
+      public override void WriteNull() {
+        WriteRawValue("None");
+      }
     }
   }
 }

@@ -48,6 +48,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     private const string SemanticLocalityParameterName = "SemanticLocality";
     private const string ConstructiveEffectParameterName = "ConstructiveEffect";
 
+    private const string CrossoverExceptionsParameterName = "CrossoverExceptions";
+
     #region parameter properties
     public ILookupParameter<IntValue> IterationsParameter {
       get { return (ILookupParameter<IntValue>)Parameters["Iterations"]; }
@@ -79,6 +81,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public IScopeTreeLookupParameter<IntValue> ConstructiveEffectParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[ConstructiveEffectParameterName]; }
     }
+    public IScopeTreeLookupParameter<ItemCollection<StringValue>> CrossoverExceptionsParameter {
+      get { return (IScopeTreeLookupParameter<ItemCollection<StringValue>>)Parameters[CrossoverExceptionsParameterName]; }
+    }
     public ILookupParameter<ResultCollection> ResultsParameter {
       get { return (ILookupParameter<ResultCollection>)Parameters["Results"]; }
     }
@@ -106,6 +111,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       set { ResultCollection.Add(new Result(ConstructiveEffectParameterName, value)); }
     }
     #endregion
+
+    // ToDo: Remove! This is just a quickfix
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      if (!Parameters.ContainsKey(CrossoverExceptionsParameterName)) {
+        Parameters.Add(new ScopeTreeLookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
+      }
+    }
+
     [StorableConstructor]
     protected SemanticCrossoverAnalyzer(bool deserializing) : base(deserializing) { }
     protected SemanticCrossoverAnalyzer(SemanticCrossoverAnalyzer original, Cloner cloner) : base(original, cloner) {
@@ -123,6 +137,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       Parameters.Add(new ScopeTreeLookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
 
       Parameters.Add(new LookupParameter<ResultCollection>("Results", "The result collection where the exception frequencies should be stored."));
 
@@ -156,7 +171,39 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       AddSemanticLocalityTableEntry(semanticLocality);
       AddConstructiveEffectTableEntry(constructiveEffect);
 
+      var crossoverExceptions = CrossoverExceptionsParameter.ActualValue.SelectMany(x => x).ToArray();
+      AddCrossoverExceptionsTableEntry(crossoverExceptions);
+
       return base.Apply();
+    }
+
+    private void AddCrossoverExceptionsTableEntry(StringValue[] crossoverExceptions) {
+      if (!ResultCollection.ContainsKey(CrossoverExceptionsParameterName)) {
+        var newTable = new DataTable(CrossoverExceptionsParameterName, "");
+        newTable.VisualProperties.YAxisTitle = "Absolute Exception Frequency";
+        newTable.VisualProperties.YAxisMaximumAuto = false;
+
+        ResultCollection.Add(new Result(CrossoverExceptionsParameterName, newTable));
+      }
+      var exceptionFrequencies = ((DataTable)ResultCollection[CrossoverExceptionsParameterName].Value);
+
+      // all rows must have the same number of values so we can just take the first
+      int numberOfValues = exceptionFrequencies.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
+
+      foreach (var pair in crossoverExceptions.GroupBy(x => x.Value).ToDictionary(g => g.Key, g => g.Count())) {
+        string key = String.IsNullOrEmpty(pair.Key) ? "No Exception" : pair.Key;
+        if (!exceptionFrequencies.Rows.ContainsKey(key)) {
+          // initialize a new row for the symbol and pad with zeros
+          DataRow row = new DataRow(key, "", Enumerable.Repeat(0.0, numberOfValues));
+          row.VisualProperties.StartIndexZero = true;
+          exceptionFrequencies.Rows.Add(row);
+        }
+        exceptionFrequencies.Rows[key].Values.Add(pair.Value);
+      }
+
+      // add a zero for each data row that was not modified in the previous loop 
+      foreach (var row in exceptionFrequencies.Rows.Where(r => r.Values.Count != numberOfValues + 1))
+        row.Values.Add(0.0);
     }
 
     private void AddTypeSelectedForSimilarityTableEntry(StringValue[] typeSelectedForSimilarity) {

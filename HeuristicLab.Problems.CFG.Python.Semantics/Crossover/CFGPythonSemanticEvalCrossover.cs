@@ -32,7 +32,6 @@ using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
@@ -252,11 +251,7 @@ for v in variables:
     protected string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic, IDictionary<string, VariableType> variableTypes) {
       StringBuilder strBuilder = new StringBuilder();
       foreach (var setting in semantic) {
-        string values = JsonConvert.SerializeObject(setting.Value); ;
-        if (variableTypes[setting.Key] == VariableType.Bool || variableTypes[setting.Key] == VariableType.List_Bool) {
-          values = values.Replace("f", "F").Replace("t", "T"); // changes 'false' to 'False' and 'true' to 'True'
-        }
-        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key, values));
+        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key, PythonHelper.SerializeCSToPythonJson(setting.Value)));
       }
       return strBuilder.ToString();
     }
@@ -269,10 +264,10 @@ for v in variables:
       List<double> similarity = new List<double>();
 
       var evaluationTree = CreateTreeFromNode(random, statementNode, rootSymbol, startSymbol); // this will affect statementNode.Parent
+      crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes parent from child
       foreach (var node in compBranches) {
         var parent = node.Parent; // save parent
 
-        crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
         crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
 
         EvaluationScript evaluationScript1 = new EvaluationScript() {
@@ -281,14 +276,29 @@ for v in variables:
           Timeout = Timeout
         };
         JObject json = PyProcess.SendAndEvaluateProgram(evaluationScript1);
+        crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes intermediate parent from node
         node.Parent = parent; // restore parent
 
         evaluationPerNode.Add(json);
         similarity.Add(0);
       }
-      statementNode.Parent = statementNodetParent; // restore statement parent
-      crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex);
+      statementNode.Parent = statementNodetParent; // restore statement parent  
       crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
+
+      #region remove branches that threw an exception
+      List<int> branchesCausedExceptions = new List<int>();
+      for (int i = evaluationPerNode.Count - 1; i >= 0; i--) {
+        if (evaluationPerNode[i]["exception"] != null) {
+          branchesCausedExceptions.Add(i);
+        }
+      }
+      var branchesWithoutException = compBranches.ToList();
+      foreach (int index in branchesCausedExceptions) {
+        branchesWithoutException.RemoveAt(index);
+        evaluationPerNode.RemoveAt(index);
+        similarity.RemoveAt(index);
+      }
+      #endregion
 
       Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
       List<string> differences;
