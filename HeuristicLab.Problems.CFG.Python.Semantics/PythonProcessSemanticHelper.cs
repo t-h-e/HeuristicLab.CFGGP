@@ -14,6 +14,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 past_locals = {{}}
 variable_list = ['{0}']
 traceTable = {{}}
+executedLines = set()
 
 def trace(frame, event, arg_unused):
     global past_locals, traceTable, variable_list
@@ -24,6 +25,7 @@ def trace(frame, event, arg_unused):
     relevant_locals = {{}}
     all_locals = frame.f_locals.copy()
 
+    executedLines.add(frame.f_lineno)
     for k, v in all_locals.items():
         if k in variable_list:
             relevant_locals[k] = v
@@ -91,6 +93,7 @@ for l in lines:
 
       EvaluationScript es = pythonProcess.CreateEvaluationScript(traceProgram, input, output, timeout);
       es.Variables.Add("traceTable");
+      es.Variables.Add("executedLines");
 
       JObject json = pythonProcess.SendAndEvaluateProgram(es);
       var baseResult = pythonProcess.GetVariablesFromJson(json, indices.Count());
@@ -100,6 +103,9 @@ for l in lines:
       }
 
       var traceTable = JsonConvert.DeserializeObject<IDictionary<int, IDictionary<string, IList>>>(json["traceTable"].ToString());
+      var executedLines = JsonConvert.DeserializeObject<List<int>>(json["executedLines"].ToString());
+      executedLines.Sort();
+
       IList<int> traceChanges = traceTable.Keys.OrderBy(x => x).ToList();
 
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
@@ -117,7 +123,7 @@ for l in lines:
       var symbolToLineDict = FindStatementSymbolsInTree(root, statementProductionNames, ref curline);
       var symbolLinesBegin = symbolToLineDict.Select(x => x.Value[0]).Distinct().OrderBy(x => x).ToList();
 
-      #region fix before line for <predefined> to have all variables initialised
+      #region fix Before line for <predefined> to have all variables initialised
       int minBefore = symbolLinesBegin.Min();
       symbolLinesBegin.Remove(minBefore);
       int newMinBefore = symbolLinesBegin.Min();
@@ -127,7 +133,15 @@ for l in lines:
         }
       }
       #endregion
-
+      #region set Before line to an actual line that has been executed, so that the effect of the code is shown
+      foreach (var symbolToLine in symbolToLineDict) {
+        if (!executedLines.Contains(symbolToLine.Value[0])) {
+          var actualBefore = executedLines.First(x => x > symbolToLine.Value[0]);
+          symbolToLine.Value.RemoveAt(0);
+          symbolToLine.Value.Insert(0, actualBefore);
+        }
+      }
+      #endregion
 
       var prefixTreeNodes = tree.IterateNodesPrefix().ToList();
 
@@ -169,6 +183,9 @@ for l in lines:
       return new Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>>(baseResult.Item1, baseResult.Item2, baseResult.Item3, baseResult.Item4, semantics);
     }
 
+    /// <summary>
+    /// </summary>
+    /// <returns>Is a Dictionary which contains a List of values for every node, where index 0 is the line number where the code of the node starts and index 1 is the line number where the code ends</returns>
     private Dictionary<ISymbolicExpressionTreeNode, List<int>> FindStatementSymbolsInTree(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
       Dictionary<ISymbolicExpressionTreeNode, List<int>> symbolToLineDict = new Dictionary<ISymbolicExpressionTreeNode, List<int>>();
       if (node.Subtrees.Count() > 0) {
