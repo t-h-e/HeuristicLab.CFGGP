@@ -246,7 +246,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
       statement.Parent = statementParent; // restore parent
 
-      ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
+      ISymbolicExpressionTreeNode selectedBranch;
+      if (!String.IsNullOrWhiteSpace((string)json0["exception"])) {
+        CrossoverExceptionsParameter.ActualValue.Add(new StringValue(json0["exception"].ToString()));
+        selectedBranch = compBranches.SampleRandom(random);
+      } else {
+        selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
+      }
 
       // perform the actual swap
       if (selectedBranch != null) {
