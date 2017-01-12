@@ -93,13 +93,13 @@ def saveRange(start, end):
 def evolve(in0):
   # stop.value is a boolean flag which should be used to check if the EA wants the program to stop.value
   <insertCodeHere>
-  return res
+  return res0, res1
 
 
 def fitnessTrainingCase(i, o):
-  eval = evolve(i[0])
+  eval0, eval1 = evolve(i[0])
 
-  return [Levenshtein.distance(eval, o[0])]
+  return [Levenshtein.distance(eval0, o[0]), abs(o[1] - eval1)]
 
 
 #  function to evaluate fitness

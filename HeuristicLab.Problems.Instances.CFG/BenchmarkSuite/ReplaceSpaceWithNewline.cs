@@ -50,7 +50,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
       var input = strings.Select(x => x.PrepareStringForPython()).ToArray();
-      var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray()).PrepareStringForPython()).ToArray();
+      //var output = strings.Select(x => new String(x.Select(y => y == ' ' ? '\n' : y).ToArray()).PrepareStringForPython()).ToArray();
+      var output = strings.Select(x => String.Format("{0}, {1}", new String(x.Select(y => y == ' ' ? '\n' : y).ToArray()).PrepareStringForPython(), x.Length - x.Count(Char.IsWhiteSpace))).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
 
