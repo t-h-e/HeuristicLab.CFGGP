@@ -16,11 +16,20 @@ Also includes all problem instances from ["General Program Synthesis Benchmark S
  3. Clone HeuristicLab.CFGGP next to HeursticLab
  4. Open and build "HeuristicLab.CFGGP.sln" solution
  5. Binaries will automatically be copied to "HeuristicLab/bin"
-
 2. If you an existing version of HeuristicLab
  1. Clone HeuristicLab.CFGGP
  2. Open and build "HeuristicLab.CFGGP.sln" solution
  3. A folder "HeuristicLab/bin" will be created outside of the repository, which contains the binaries
- 4. Copy the binaries in you HeursiticLab version 
+ 4. Copy the binaries in you HeursiticLab version
 
 A new Problem "Context Free Grammar Problem" will be available in the "New Item" Dialog under Problems -> Genetic Programming.
+
+### Publications:
+
+_Stefan Forstenlechner and David Fagan and Miguel Nicolau and Michael O'Neill_
+**A Grammar Design Pattern for Arbitrary Program Synthesis Problems in Genetic Programming**
+To be published at EuroGP 2017
+
+_Stefan Forstenlechner and Miguel Nicolau and David Fagan and Michael O'Neill_
+**Grammar Design for Derivation Tree Based Genetic Programming Systems**
+EuroGP 2016: Proceedings of the 19th European Conference on Genetic Programming, LNCS, Vol. 9594, pp. 199-214, Springer Verlag, 30 March-1 April 2016.
