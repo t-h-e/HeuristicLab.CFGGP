@@ -26,10 +26,10 @@ A new Problem "Context Free Grammar Problem" will be available in the "New Item"
 
 ### Publications:
 
-_Stefan Forstenlechner and David Fagan and Miguel Nicolau and Michael O'Neill_
+_Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
 **A Grammar Design Pattern for Arbitrary Program Synthesis Problems in Genetic Programming**
 To be published at EuroGP 2017
 
-_Stefan Forstenlechner and Miguel Nicolau and David Fagan and Michael O'Neill_
+_Stefan Forstenlechner, Miguel Nicolau, David Fagan and Michael O'Neill_
 **Grammar Design for Derivation Tree Based Genetic Programming Systems**
 EuroGP 2016: Proceedings of the 19th European Conference on Genetic Programming, LNCS, Vol. 9594, pp. 199-214, Springer Verlag, 30 March-1 April 2016.
