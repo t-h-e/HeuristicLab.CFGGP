@@ -68,7 +68,16 @@ if __name__ == '__main__':
                 p.terminate()
             break
 
-        message_dict = json.loads(message)
+        # do not trust user input
+        try:
+            message_dict = json.loads(message)
+        except json.decoder.JSONDecodeError as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            exception = '{} {} {}'.format(exc_type, exc_obj, e.args)
+            logging.debug(exception)
+            logging.debug(message)
+            print(json.dumps({'exception': exception}), flush=True)
+            continue
         consume.put(message_dict['script'])
         try:
             results = produce.get(block=True, timeout=message_dict['timeout'])

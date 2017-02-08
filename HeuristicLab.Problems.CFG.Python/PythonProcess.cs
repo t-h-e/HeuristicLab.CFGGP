@@ -355,8 +355,10 @@ namespace HeuristicLab.Problems.CFG.Python {
 #endif
 
           JObject res = null;
+          string exception = null;
           try {
             res = JObject.Parse(readJSON);
+            exception = (string)res["exception"];
           } catch (JsonReaderException e) {
             res = new JObject();
             if (e.Message.StartsWith("JSON integer")) {
@@ -365,6 +367,15 @@ namespace HeuristicLab.Problems.CFG.Python {
               Console.WriteLine(readJSON);
               res["exception"] = e.Message;
             }
+          }
+
+          // If a JSONDecodeError error happened, then the JSON was already faulty
+          // Python process cannot be recovered. Start a new one
+          if (!String.IsNullOrWhiteSpace(exception) && exception.Contains("JSONDecodeError")) {
+            python.StandardInput.Close();  // python process terminates by itself if standard input closes
+            python = CreatePythonProcess("personalpython", "");
+            python.Start();
+            python.StandardInput.AutoFlush = true;
           }
 
           item.Result = res;

@@ -160,6 +160,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyzer\CFGPythonIndividualExceptionAnalyzer.cs" />
     <Compile Include="Analyzer\CFGPythonExceptionAnalyzer.cs" />
     <Compile Include="Analyzer\CFGPythonTrainingBestSolutionAnalyzer.cs" />
     <Compile Include="CFGPythonProblem.cs" />

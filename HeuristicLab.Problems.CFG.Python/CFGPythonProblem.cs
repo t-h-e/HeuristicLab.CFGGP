@@ -134,6 +134,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       Operators.RemoveAll(x => x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() == typeof(CFGTrainingBestSolutionAnalyzer<>));
       Operators.Add(new CFGPythonTrainingBestSolutionAnalyzer());
       Operators.Add(new CFGPythonExceptionAnalyzer());
+      Operators.Add(new CFGPythonIndividualExceptionAnalyzer());
       ParameterizeOperators();
     }
 

@@ -105,8 +105,6 @@ namespace HeuristicLab.Problems.CFG {
       RegisterEventHandlers();
     }
 
-
-
     #region Helpers
     private void Initialize(T problemData) {
       Parameters.Add(new ValueParameter<T>(ProblemDataParameterName, ProblemDataParameterDescription, problemData));
