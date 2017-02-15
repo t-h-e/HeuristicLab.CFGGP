@@ -21,6 +21,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public class BenchmarkSuiteInstanceProvider : CFGArtificialInstanceProvider {
@@ -38,6 +41,23 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     protected override string FileName { get { return "BenchmarkSuite"; } }
+
+    public override CFGData LoadData(IDataDescriptor id) {
+      BenchmarkSuiteDataDescritpor descriptor = (BenchmarkSuiteDataDescritpor)id;
+      CFGData cfgData = descriptor.GenerateData();
+      var instanceArchiveName = GetResourceName(FileName + @"\.zip");
+      using (var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName), ZipArchiveMode.Read)) {
+        IEnumerable<ZipArchiveEntry> entries = instancesZipFile.Entries.Where(e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
+
+        var embedEntry = entries.FirstOrDefault(x => x.Name.EndsWith("Embed.txt"));
+        if (embedEntry != null) {
+          using (var stream = new StreamReader(embedEntry.Open())) {
+            cfgData.Embed = stream.ReadToEnd();
+          }
+        }
+      }
+      return cfgData;
+    }
 
     public override IEnumerable<IDataDescriptor> GetDataDescriptors() {
       List<IDataDescriptor> descriptorList = new List<IDataDescriptor>();

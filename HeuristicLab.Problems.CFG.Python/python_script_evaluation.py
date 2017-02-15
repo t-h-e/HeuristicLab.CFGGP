@@ -42,7 +42,7 @@ class Worker(mp.Process):
                     self.produce.put({key: value for key, value in help_globals.items()
                                       if not callable(value) and             # cannot be a function
                                       not isinstance(value, ModuleType) and  # cannot be a module
-                                      key not in ['__builtins__', 'stop']})  # cannot be built ins or synchronized objects
+                                      key not in ['__builtins__', 'stop']})  # cannot be builtins or synchronized objects
                 del help_globals
             else:
                 break

@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class SumOfSquares : CFGArtificialDataDescriptor {
+  public class SumOfSquares : BenchmarkSuiteDataDescritpor {
     public override string Name { get { return "Sum of Squares"; } }
     public override string Description {
       get {
@@ -37,6 +37,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TrainingPartitionEnd { get { return 50; } }
     protected override int TestPartitionStart { get { return 50; } }
     protected override int TestPartitionEnd { get { return 100; } }
+
+    protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.Integer }; } }
+    protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.Integer }; } }
+    protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Boolean }; } }
 
     private IEnumerable<int> numbers = Enumerable.Range(6, 94);
 

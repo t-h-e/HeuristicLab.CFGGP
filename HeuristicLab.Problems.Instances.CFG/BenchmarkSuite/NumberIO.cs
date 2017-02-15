@@ -38,6 +38,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TestPartitionStart { get { return 25; } }
     protected override int TestPartitionEnd { get { return 1025; } }
 
+    protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.Integer, DataType.Float }; } }
+    protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.Float }; } }
+    protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Float }; } }
+
     protected override IEnumerable<Tuple<int, double>> GenerateTraining() {
       var x0 = ValueGenerator.GenerateUniformDistributedValues(25, -100, 100, rand);
       var x1 = ValueGenerator.GenerateUniformDistributedValues(25, -100.0, 100.0, rand);

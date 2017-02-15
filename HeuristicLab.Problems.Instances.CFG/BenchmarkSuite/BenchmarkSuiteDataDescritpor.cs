@@ -24,9 +24,7 @@ using System.Collections.Generic;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public abstract class BenchmarkSuiteDataDescritpor<T> : CFGArtificialDataDescriptor {
-    protected static FastRandom rand = new FastRandom();
-
+  public abstract class BenchmarkSuiteDataDescritpor<T> : BenchmarkSuiteDataDescritpor {
     protected abstract IEnumerable<T> GenerateTraining();
     protected abstract IEnumerable<T> GenerateTest();
 
@@ -44,6 +42,36 @@ namespace HeuristicLab.Problems.Instances.CFG {
       all.AddRange(test);
 
       return GenerateInputOutput(all);
+    }
+  }
+
+  public abstract class BenchmarkSuiteDataDescritpor : CFGArtificialDataDescriptor {
+    protected static FastRandom rand = new FastRandom();
+
+    protected abstract IEnumerable<DataType> InputDataTypes { get; }
+    protected abstract IEnumerable<DataType> OutputDataTypes { get; }
+    protected abstract HashSet<DataType> AdditionalDataTypes { get; }
+
+    public override CFGData GenerateData() {
+      var cfgData = base.GenerateData();
+      cfgData.Grammar = GenerateGrammar();
+      return cfgData;
+    }
+
+    public string GenerateGrammar() {
+      var grammarConstructor = new PythonGrammarConstructor();
+      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, false, 3);
+      var g = grammarConstructor.CombineDataTypes(options);
+      g = ModifyGrammar(g, grammarConstructor);
+      g.TrimGrammar(false);
+      return g.PrintGrammar();
+    }
+
+    /// <summary>
+    /// Make additional adaptations to the generated grammar
+    /// </summary>
+    protected virtual Grammar ModifyGrammar(Grammar g, PythonGrammarConstructor grammarConstructor) {
+      return g;
     }
   }
 }

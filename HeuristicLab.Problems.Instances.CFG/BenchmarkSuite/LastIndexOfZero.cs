@@ -25,7 +25,7 @@ using System.Linq;
 using HeuristicLab.Random;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class LastIndexOfZero : CFGArtificialDataDescriptor {
+  public class LastIndexOfZero : BenchmarkSuiteDataDescritpor {
     public override string Name { get { return "Last Index of Zero"; } }
     public override string Description {
       get {
@@ -37,6 +37,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override int TrainingPartitionEnd { get { return 150; } }
     protected override int TestPartitionStart { get { return 150; } }
     protected override int TestPartitionEnd { get { return 1150; } }
+
+    protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.ListInteger }; } }
+    protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.Integer }; } }
+    protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Boolean, DataType.ListInteger }; } }
 
     protected override Tuple<string[], string[]> GenerateInputOutput() {
       FastRandom rand = new FastRandom();

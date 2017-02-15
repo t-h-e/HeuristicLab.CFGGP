@@ -31,7 +31,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected abstract int TestPartitionStart { get; }
     protected abstract int TestPartitionEnd { get; }
 
-    public CFGData GenerateData() {
+    public virtual CFGData GenerateData() {
       CFGData cfgData = new CFGData();
       cfgData.Name = Name;
       cfgData.Description = Description;
