@@ -120,5 +120,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
         "G5G5G5G5G5G5G5G5G5G5"
       };
     }
+
+    protected override void ModifyGrammar(Grammar g) {
+      var partialGrammar = GrammarParser.ReadGrammarBNF("<list_int_var> ::= 'scrabblescore'");
+      g.Combine(partialGrammar);
+    }
   }
 }

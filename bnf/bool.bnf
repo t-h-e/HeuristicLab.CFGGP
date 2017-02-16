@@ -1,12 +1,10 @@
 // *****************************************************************************
 // bool grammar
 // *****************************************************************************
-//
-// depends on: nothing
-// *****************************************************************************
 
-<bool_var> ::= 'b'
+<bool_var> ::= // placholder for variable names
 
+<assign> ::= <bool_assign>
 <bool_assign> ::= <bool_var>' = '<bool>
 
 <bool> ::= <bool_var> | <bool_const>
@@ -17,3 +15,14 @@
 <bool_pre> ::= 'not'
 
 <bool_const> ::= 'True' | 'False'
+
+// structure only need if bool is used
+
+<compound_stmt> ::= <if> | <while>
+
+<if> ::= <if-then> | <if-then><else>
+<if-then> ::= 'if '<bool><block>
+<else> ::= 'else'<block>
+<block> ::= ':{:\n'<code>':}'
+
+<while> ::= <loop-header>'while '<bool><loop-block>

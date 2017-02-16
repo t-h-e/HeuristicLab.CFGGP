@@ -67,7 +67,7 @@ def getCharFromString(curString, index):
 
 
 def saveChr(number):
-    return chr(number % 1114111)
+    return chr(number % 128)
 
 
 def saveOrd(literal):

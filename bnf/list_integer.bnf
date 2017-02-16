@@ -1,14 +1,10 @@
 // *****************************************************************************
 // list grammar for int list
 // *****************************************************************************
-//
-// depends on: int (int, int_var)
-// return: int
-//         bool
-// *****************************************************************************
 
-<list_int_var> ::= 'li'
+<list_int_var> ::= // placholder for variable names
 
+<assign> ::= <list_int_assign>
 <list_int_assign> ::= <list_int_var>' = '<list_int>
 
 <list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
@@ -29,29 +25,11 @@
 <for> ::= <loop-header>'for forCounter% in '<list_int><loop-block>
         | <loop-header>'for '<int_var>' in '<list_int><loop-block>
 
-// Generic for all
-
-<in_list_comp_op> ::= 'in'|'not in'
-
 // Return int
 
-<ret_int> ::= <getListIndexCall_int>
+<int> ::= <getListIndexCall_int>
             | 'len('<list_int>')'
 
 // Return bool
 
-<ret_bool> ::= <int> <in_list_comp_op> <list_int>
-
-// *****************************************************************************
-// Helper Code
-// *****************************************************************************
-
-def getIndexIntList(curList, index):
-  if not curList:
-    return int()
-  return curList[index % len(curList)]
-
-def saveRange(start, end):
-  if end > start and abs(start - end) > 10000:
-    return range(start, start + 10000)
-  return range(start, end)
+<bool> ::= <int> <in_list_comp_op> <list_int> | <list_int> <list_comp_op> <list_int>

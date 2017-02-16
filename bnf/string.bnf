@@ -1,58 +1,34 @@
 // *****************************************************************************
 // string grammar
 // *****************************************************************************
-//
-// depends on: int
-// return: bool (optional)
-//         int (optional)
-// *****************************************************************************
 
-<string_var> ::= 's'
+<string_var> ::= // placholder for variable names
 
+<assign> ::= <string_assign>
 <string_assign> ::= <string_var>' = '<string>
 
-<string> ::= <string_var> | <string_const>
+<string> ::= <string_var> | <string_const> | <string_slice>
+           | <getStringIndexCall> | <saveChr>
            | '('<string>' + '<string>')'
-           | <string_slice>
-           | <getStringIndexCall>
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
            | <string>'.capitalize()'
-           | <saveChr>
 
 <string_slice> ::= <string>'['<int>':'<int>']' | <string>'[:'<int>']' | <string>'['<int>':]'
-
 <getStringIndexCall> ::= 'getCharFromString('<string>', '<int>')'
+<saveChr> ::= 'saveChr('<int>')'
 
 <string_const> ::= "'"<string_const_part>"'"
-<string_const_part> ::= <string_const_part><string_literal> | <string_literal>
+// <string_const_part> in structure(_tree).bnf
 <string_literal> ::= '' | '\\\n' | '\\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
 
-<saveChr> ::= 'saveChr('<int>')'
 <saveOrd> ::= 'saveOrd('<string>')'
 
 // Returns int
 
-<ret_int>  ::= 'len('<string>')' | <saveOrd>
+<int>  ::= 'len('<string>')' | <saveOrd>
 
 // Return bool
 
-<ret_bool> ::= <string>' in '<string> | <string>' not in '<string>
+<bool> ::= <string>' in '<string> | <string>' not in '<string>
              | <string>' == '<string> | <string>' != '<string>
              | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
-
-// *****************************************************************************
-// Helper Code
-// *****************************************************************************
-
-def getCharFromString(curString, index):
-  if not curString:
-    return ''
-  return curString[index % len(curString)]
-
-def saveChr(number):
-    return chr(number % 1114111)
-
-def saveOrd(literal):
-    if len(literal) <= 0:
-        return 32
-    return ord(literal[0])

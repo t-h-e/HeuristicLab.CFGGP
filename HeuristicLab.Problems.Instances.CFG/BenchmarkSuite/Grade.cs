@@ -128,5 +128,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
             new List<int>() {48, 46, 44, 42, 49}
       };
     }
+
+    protected override void ModifyGrammar(Grammar g) {
+      g.Rules.Remove("<string_literal>");
+      g.Rules.Remove("<string_const_part>");
+      g.Rules.Remove("<string_const>");
+      var partialGrammar = GrammarParser.ReadGrammarBNF("<string_const> ::= \"'\"<string_literal>\"'\"" + Environment.NewLine +
+                                                        "<string_literal> ::= 'A' | 'B' | 'C' | 'D' | 'F'");
+      g.Combine(partialGrammar);
+    }
   }
 }

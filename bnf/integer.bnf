@@ -1,12 +1,10 @@
 // *****************************************************************************
 // int grammar
 // *****************************************************************************
-//
-// return: bool (optional)
-// *****************************************************************************
 
-<int_var> ::= 'i'
+<int_var> ::= // placholder for variable names
 
+<assign> ::= <int_assign>
 <int_assign> ::= <int_var> '=' <int> | <int_var> <arith_assign> <int>
 
 <int> ::= <int_var> | <int_const>
@@ -19,8 +17,6 @@
 
 // to avoid problems with leading zeros in python int
 <int_const> ::= 'int('<number>'.0)'
-<number> ::= <number><num> | <num>
-<num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 <arith_assign> ::= <arith_ops>'='
 <arith_ops> ::= '+'|'-'|'*'
@@ -31,32 +27,10 @@
 <arith_prefix> ::= '+'|'-'
 //|'~'
 
-<comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
-
 // Return bool
 
-<ret_bool> ::= <int> <comp_op> <int>
+<bool> ::= <int> <comp_op> <int>
 
-// *****************************************************************************
-// Helper Code
-// *****************************************************************************
+// Return float
 
-def div(nom, denom):
-  if denom <= 0.00001:
-    return nom
-  else:
-    return nom / denom
-
-
-def divInt(nom, denom):
-  if denom <= 0.00001:
-    return nom
-  else:
-    return nom // denom
-
-
-def mod(nom, denom):
-  if denom <= 0.00001:
-    return nom
-  else:
-    return nom % denom
+<float> ::= <int>

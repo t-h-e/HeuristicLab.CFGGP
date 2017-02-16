@@ -4,7 +4,8 @@
 
 <predefined> ::= <code>
 
-<code> ::= <code><statement>'\n' | <statement>'\n'
+<code> ::= <code><statement>'\n' | <statement>'\n'<code>
+         | <code><statement>'\n'<code> | <statement>'\n'
 
 <statement> ::= <simple_stmt> | <compound_stmt>
 <simple_stmt> ::= <call> | <assign>
@@ -21,14 +22,15 @@
 
 // for integer and float
 
-<number> ::= <number><num> | <num>
+<number> ::= <number><num> | <num><number> | <number><num><number> | <num>
 <num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 
 <comp_op> ::= '<'|'>'|'=='|'>='|'<='|'!='|'is'|'is not'
 
 // for string
 
-<string_const_part> ::= <string_const_part><string_literal> | <string_literal>
+<string_const_part> ::= <string_const_part><string_literal> | <string_literal><string_const_part> 
+                    | <string_const_part><string_literal><string_const_part> | <string_literal>
 
 // for list
 

@@ -62,16 +62,18 @@ namespace HeuristicLab.Problems.Instances.CFG {
       var grammarConstructor = new PythonGrammarConstructor();
       Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, false, 3);
       var g = grammarConstructor.CombineDataTypes(options);
-      g = ModifyGrammar(g, grammarConstructor);
+      ModifyGrammar(g);
       g.TrimGrammar(false);
       return g.PrintGrammar();
     }
 
     /// <summary>
     /// Make additional adaptations to the generated grammar
+    /// 
+    /// Mainly used to add teminal symbols used in the original benchmark suite
     /// </summary>
-    protected virtual Grammar ModifyGrammar(Grammar g, PythonGrammarConstructor grammarConstructor) {
-      return g;
+    protected virtual void ModifyGrammar(Grammar g) {
+      /* do nothing*/
     }
   }
 }

@@ -65,7 +65,7 @@ def getCharFromString(curString, index):
 
 
 def saveChr(number):
-    return chr(number % 1114111)
+    return chr(number % 128)
 
 
 def saveOrd(literal):
@@ -90,7 +90,7 @@ def saveRange(start, end):
 def evolve(in0):
   # stop.value is a boolean flag which should be used to check if the EA wants the program to stop.value
   <insertCodeHere>
-  return res
+  return res0
 
 
 def fitnessTrainingCase(i, o):

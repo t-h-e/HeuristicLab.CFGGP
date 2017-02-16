@@ -61,5 +61,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
       var output = x0.Select(x => x < 1000 ? "\"small\"" : x >= 2000 ? "\"large\"" : "\"\"").ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
+
+    protected override void ModifyGrammar(Grammar g) {
+      var partialGrammar = GrammarParser.ReadGrammarBNF("<string_const> ::= \"'small'\" | \"'large'\"");
+      g.Combine(partialGrammar);
+    }
   }
 }

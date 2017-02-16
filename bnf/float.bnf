@@ -1,19 +1,13 @@
 // *****************************************************************************
 // float grammar
 // *****************************************************************************
-//
-// import math
-//
-// depends on: int
-// return: bool (optional)
-//         int (optional)
-// *****************************************************************************
 
-<float_var> ::= 'f'
+<float_var> ::= // placholder for variable names
 
+<assign> ::= <float_assign>
 <float_assign> ::= <float_var> '=' <float> | <float_var> <arith_assign> <float>
 
-<float> ::= <float_var> | <float_const> | <int>
+<float> ::= <float_var> | <float_const>
         | <arith_prefix><float>
         | '(' <float> <arith_ops> <float> ')' | '(' <int> <arith_ops> <float> ')' | '(' <float> <arith_ops> <int> ')'
         | <float_arith_ops_protected>'('<float>','<float>')' | <float_arith_ops_protected>'('<int>','<float>')' | <float_arith_ops_protected>'('<float>','<int>')'
@@ -26,15 +20,11 @@
 
 <float_arith_ops_protected> ::= 'div' | 'divInt' | 'mod'
 
-// already contained in int
-<number> ::= <number><num> | <num>
-<num> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
-
 // Return int
 
-// have to call int() for python 2.7.5 (which is run by IronPython)
-<ret_int> ::= 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))' | 'int('<float>')'
+// have to call int() for python 2.7.5
+<int> ::= 'int(math.ceil('<float>'))' | 'int(math.floor('<float>'))' | 'int(round('<float>'))' | 'int('<float>')'
 
 // Return bool
 
-<ret_bool> ::= <float> <comp_op> <float> | <int> <comp_op> <float> | <float> <comp_op> <int>
+<bool> ::= <float> <comp_op> <float> | <int> <comp_op> <float> | <float> <comp_op> <int>
