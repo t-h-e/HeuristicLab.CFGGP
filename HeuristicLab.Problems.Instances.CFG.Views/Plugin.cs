@@ -21,12 +21,13 @@
 
 using HeuristicLab.PluginInfrastructure;
 
-namespace HeuristicLab.Problems.CFG {
-  [Plugin("HeuristicLab.Problems.Instances.CFG", "Provides problem instances for grammar based problems", "3.3.13.0")]
-  [PluginFile("HeuristicLab.Problems.Instances.CFG.dll", PluginFileType.Assembly)]
+namespace HeuristicLab.Problems.CFG.Views {
+  [Plugin("HeuristicLab.Problems.Instances.CFG.Views", "Provides problem instances for grammar based problems", "3.3.13.0")]
+  [PluginFile("HeuristicLab.Problems.Instances.CFG.Views.dll", PluginFileType.Assembly)]
   [PluginDependency("HeuristicLab.Common", "3.3")]
   [PluginDependency("HeuristicLab.Core", "3.3")]
   [PluginDependency("HeuristicLab.Problems.Instances", "3.3")]
+  [PluginDependency("HeuristicLab.Problems.Instances.Views", "3.3")]
   [PluginDependency("HeuristicLab.Random", "3.3")]
   public class Plugin : PluginBase {
   }

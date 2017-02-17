@@ -109,6 +109,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private Tuple<string, Dictionary<DataType, List<string>>> GetTempVariables(IEnumerable<DataType> dataTypes, int initialeVariableCount) {
+      if (initialeVariableCount <= 0) {
+        return new Tuple<string, Dictionary<DataType, List<string>>>(String.Empty, new Dictionary<DataType, List<string>>());
+      }
       var distinctDTs = dataTypes.Distinct();
       var variableNames = new Dictionary<DataType, List<string>>();
       StringBuilder strBuilder = new StringBuilder();

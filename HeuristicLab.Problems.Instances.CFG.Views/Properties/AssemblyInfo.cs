@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HeuristicLab.Problems.Instances.CFG")]
+[assembly: AssemblyTitle("HeuristicLab.Problems.Instances.CFG.Views")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
@@ -40,7 +40,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fa3bf73a-6e38-4d49-bded-ce2fe1d33782")]
+[assembly: Guid("6e7967dc-305e-460f-8030-d294971775bf")]
 
 // Version information for an assembly consists of the following four values:
 //

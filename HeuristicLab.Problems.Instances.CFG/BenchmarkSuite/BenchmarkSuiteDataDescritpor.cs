@@ -53,17 +53,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected abstract HashSet<DataType> AdditionalDataTypes { get; }
 
     public override CFGData GenerateData() {
+      return GenerateData(false, 3);
+    }
+
+    public CFGData GenerateData(bool treeStructure, int numberOfVariables) {
       var cfgData = base.GenerateData();
-      cfgData.Grammar = GenerateGrammar();
+      cfgData.Grammar = GenerateGrammar(treeStructure, numberOfVariables);
       return cfgData;
     }
 
-    public string GenerateGrammar() {
+    public string GenerateGrammar(bool treeStructure, int numberOfVariables) {
       var grammarConstructor = new PythonGrammarConstructor();
-      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, false, 3);
+      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, treeStructure, numberOfVariables);
       var g = grammarConstructor.CombineDataTypes(options);
       ModifyGrammar(g);
-      g.TrimGrammar(false);
+      g.TrimGrammar(true);
       return g.PrintGrammar();
     }
 

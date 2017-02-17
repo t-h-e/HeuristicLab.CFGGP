@@ -30,6 +30,12 @@ using System.Text.RegularExpressions;
 namespace HeuristicLab.Problems.Instances.CFG {
   public abstract class CFGArtificialInstanceProvider : CFGInstanceProvider {
 
+    public override bool CanExportData {
+      get { return true; }
+    }
+
+    public override void ExportData(CFGData instance, string path) { throw new NotImplementedException(); }
+
     protected abstract string FileName { get; }
 
     public override CFGData LoadData(IDataDescriptor id) {

@@ -25,6 +25,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
   /// Todo: belongs in the HeuristicLab.Problems.Instances project
   /// </summary>
   public class CFGData {
+    public CFGData() {
+      Input = new string[0];
+      Output = new string[0];
+    }
+
     /// <summary>
     /// The name of the instance
     /// </summary>
@@ -33,7 +38,6 @@ namespace HeuristicLab.Problems.Instances.CFG {
     /// Optional! The description of the instance
     /// </summary>
     public string Description { get; set; }
-
     /// <summary>
     /// String containing the grammar
     /// </summary>

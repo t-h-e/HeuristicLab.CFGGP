@@ -26,28 +26,45 @@ using System.IO.Compression;
 using System.Linq;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class BenchmarkSuiteInstanceProvider : CFGArtificialInstanceProvider {
+  public abstract class BenchmarkSuiteInstanceProvider : CFGArtificialInstanceProvider {
+
+    public override bool CanImportData {
+      get { return true; }
+    }
+
     public override string Name {
       get { return "General Program Synthesis Benchmark Suite"; }
     }
+
     public override string Description {
       get { return ""; }
     }
+
     public override Uri WebLink {
       get { return new Uri("https://web.cs.umass.edu/publication/docs/2015/UM-CS-2015-006.pdf"); }
     }
+
     public override string ReferencePublication {
-      get { return "T. Helmuth and L. Spector, \"Detailed Problem Descriptions for General Program Synthesis Benchmark Suite\", Technical Report UM-CS-2015-006, School of Computer Science, University of Massachusetts Amherst, 2015."; }
+      get {
+        return
+          "T. Helmuth and L. Spector, \"Detailed Problem Descriptions for General Program Synthesis Benchmark Suite\", Technical Report UM-CS-2015-006, School of Computer Science, University of Massachusetts Amherst, 2015.";
+      }
     }
 
-    protected override string FileName { get { return "BenchmarkSuite"; } }
+    protected override string FileName {
+      get { return "BenchmarkSuite"; }
+    }
 
-    public override CFGData LoadData(IDataDescriptor id) {
+    public CFGData LoadDataLocal(IDataDescriptor id, bool treeStructure, int numberOfVariables = 3) {
       BenchmarkSuiteDataDescritpor descriptor = (BenchmarkSuiteDataDescritpor)id;
-      CFGData cfgData = descriptor.GenerateData();
+      CFGData cfgData = descriptor.GenerateData(treeStructure, numberOfVariables);
       var instanceArchiveName = GetResourceName(FileName + @"\.zip");
-      using (var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName), ZipArchiveMode.Read)) {
-        IEnumerable<ZipArchiveEntry> entries = instancesZipFile.Entries.Where(e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
+      using (
+        var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName),
+          ZipArchiveMode.Read)) {
+        IEnumerable<ZipArchiveEntry> entries =
+          instancesZipFile.Entries.Where(
+            e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
 
         var embedEntry = entries.FirstOrDefault(x => x.Name.EndsWith("Embed.txt"));
         if (embedEntry != null) {
@@ -57,6 +74,23 @@ namespace HeuristicLab.Problems.Instances.CFG {
         }
       }
       return cfgData;
+    }
+
+    public CFGData GenerateGrammar(Options options) {
+      var python = new PythonGrammarConstructor();
+      var grammar = python.CombineDataTypes(options);
+      grammar.TrimGrammar(true);
+
+      var data = new CFGData { Grammar = grammar.PrintGrammar() };
+      return data;
+    }
+
+    public override CFGData ImportData(string path) {
+      var data = new CFGData();
+      using (var reader = new StreamReader(path)) {
+        data.Grammar = reader.ReadToEnd();
+      }
+      return data;
     }
 
     public override IEnumerable<IDataDescriptor> GetDataDescriptors() {
@@ -92,6 +126,24 @@ namespace HeuristicLab.Problems.Instances.CFG {
       descriptorList.Add(new Syllables());
 
       return descriptorList;
+    }
+  }
+  public class BenchmarkSuiteListInstanceProvider : BenchmarkSuiteInstanceProvider {
+    public override CFGData LoadData(IDataDescriptor id) {
+      return LoadDataLocal(id, false);
+    }
+  }
+
+  /// <summary>
+  /// Has been added to be able to use the CreateExperiment dialog to generate experiments with tree grammars as well
+  /// </summary>
+  public class BenchmarkSuiteTreeInstanceProvider : BenchmarkSuiteInstanceProvider {
+    public override string Name {
+      get { return "Tree Grammars General Program Synthesis Benchmark Suite"; }
+    }
+
+    public override CFGData LoadData(IDataDescriptor id) {
+      return LoadDataLocal(id, true);
     }
   }
 }
