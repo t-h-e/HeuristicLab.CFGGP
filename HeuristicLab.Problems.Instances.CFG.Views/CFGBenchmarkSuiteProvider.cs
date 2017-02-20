@@ -25,7 +25,11 @@ namespace HeuristicLab.Problems.Instances.CFG.Views {
       if (importTypeDialog.ShowDialog() == DialogResult.OK) {
         CFGData instance = null;
         try {
-          instance = Content.GenerateGrammar(importTypeDialog.GenerateOptions);
+          if (importTypeDialog.ImportButtonClick) {
+            instance = Content.ImportData(importTypeDialog.Path);
+          } else {
+            instance = Content.GenerateGrammar(importTypeDialog.GenerateOptions);
+          }
         } catch (IOException ex) {
           ErrorWhileParsing(ex);
           return;

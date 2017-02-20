@@ -32,6 +32,7 @@
       this.label1 = new System.Windows.Forms.Label();
       this.groupBox2 = new System.Windows.Forms.GroupBox();
       this.groupBox5 = new System.Windows.Forms.GroupBox();
+      this.TreeStructureCheckbox = new System.Windows.Forms.CheckBox();
       this.NumberOfTempVariablesUpDown = new System.Windows.Forms.NumericUpDown();
       this.label2 = new System.Windows.Forms.Label();
       this.BoolCheckbox = new System.Windows.Forms.CheckBox();
@@ -79,7 +80,6 @@
       this.CancelButton2 = new System.Windows.Forms.Button();
       this.GenerateButton = new System.Windows.Forms.Button();
       this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-      this.TreeStructureCheckbox = new System.Windows.Forms.CheckBox();
       this.groupBox1.SuspendLayout();
       this.groupBox2.SuspendLayout();
       this.groupBox5.SuspendLayout();
@@ -131,12 +131,14 @@
       // ImportButton
       // 
       this.ImportButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+      this.ImportButton.Enabled = false;
       this.ImportButton.Location = new System.Drawing.Point(321, 46);
       this.ImportButton.Name = "ImportButton";
       this.ImportButton.Size = new System.Drawing.Size(75, 23);
       this.ImportButton.TabIndex = 3;
       this.ImportButton.Text = "Import";
       this.ImportButton.UseVisualStyleBackColor = true;
+      this.ImportButton.Click += new System.EventHandler(this.ImportButton_Click);
       // 
       // OpenButton
       // 
@@ -201,6 +203,17 @@
       this.groupBox5.TabIndex = 43;
       this.groupBox5.TabStop = false;
       this.groupBox5.Text = "Data Types";
+      // 
+      // TreeStructureCheckbox
+      // 
+      this.TreeStructureCheckbox.AutoSize = true;
+      this.TreeStructureCheckbox.Location = new System.Drawing.Point(217, 21);
+      this.TreeStructureCheckbox.Name = "TreeStructureCheckbox";
+      this.TreeStructureCheckbox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+      this.TreeStructureCheckbox.Size = new System.Drawing.Size(100, 17);
+      this.TreeStructureCheckbox.TabIndex = 12;
+      this.TreeStructureCheckbox.Text = "?Tree Structure";
+      this.TreeStructureCheckbox.UseVisualStyleBackColor = true;
       // 
       // NumberOfTempVariablesUpDown
       // 
@@ -628,21 +641,11 @@
       this.GenerateButton.TabIndex = 0;
       this.GenerateButton.Text = "Generate";
       this.GenerateButton.UseVisualStyleBackColor = true;
+      this.GenerateButton.Click += new System.EventHandler(this.GenerateButton_Click);
       // 
       // openFileDialog
       // 
       this.openFileDialog.Filter = "BNF files (*.bnf)|*.bnf|All files (*.*)|*.*";
-      // 
-      // TreeStructureCheckbox
-      // 
-      this.TreeStructureCheckbox.AutoSize = true;
-      this.TreeStructureCheckbox.Location = new System.Drawing.Point(217, 21);
-      this.TreeStructureCheckbox.Name = "TreeStructureCheckbox";
-      this.TreeStructureCheckbox.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-      this.TreeStructureCheckbox.Size = new System.Drawing.Size(100, 17);
-      this.TreeStructureCheckbox.TabIndex = 12;
-      this.TreeStructureCheckbox.Text = "?Tree Structure";
-      this.TreeStructureCheckbox.UseVisualStyleBackColor = true;
       // 
       // CFGImportGenerateDialog
       // 
@@ -651,6 +654,9 @@
       this.ClientSize = new System.Drawing.Size(509, 413);
       this.Controls.Add(this.groupBox2);
       this.Controls.Add(this.groupBox1);
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+      this.MaximizeBox = false;
+      this.MinimizeBox = false;
       this.Name = "CFGImportGenerateDialog";
       this.Text = "BNF Import and Generate Dialog";
       this.groupBox1.ResumeLayout(false);

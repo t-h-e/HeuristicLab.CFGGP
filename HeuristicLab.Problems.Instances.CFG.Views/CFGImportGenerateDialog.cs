@@ -4,7 +4,10 @@ using System.Windows.Forms;
 
 namespace HeuristicLab.Problems.Instances.CFG.Views {
   public partial class CFGImportGenerateDialog : Form {
-
+    private bool importButtonClick = false;
+    public bool ImportButtonClick {
+      get { return importButtonClick; }
+    }
 
     public string Path {
       get { return BNFFileTextBox.Text; }
@@ -20,8 +23,8 @@ namespace HeuristicLab.Problems.Instances.CFG.Views {
 
     protected virtual void OpenButtonClick(object sender, System.EventArgs e) {
       if (openFileDialog.ShowDialog(this) != DialogResult.OK) return;
-
-      // do some checks
+      BNFFileTextBox.Text = openFileDialog.FileName;
+      ImportButton.Enabled = true;
     }
 
     protected Options GenerateOptionsHelper() {
@@ -67,6 +70,14 @@ namespace HeuristicLab.Problems.Instances.CFG.Views {
 
     private void AddTypeIfChecked(HashSet<DataType> set, CheckBox checkBox, DataType dataType) {
       if (checkBox.Checked) set.Add(dataType);
+    }
+
+    private void ImportButton_Click(object sender, System.EventArgs e) {
+      importButtonClick = true;
+    }
+
+    private void GenerateButton_Click(object sender, System.EventArgs e) {
+      importButtonClick = false;
     }
   }
 }

@@ -81,12 +81,16 @@ namespace HeuristicLab.Problems.Instances.CFG {
       var grammar = python.CombineDataTypes(options);
       grammar.TrimGrammar(true);
 
-      var data = new CFGData { Grammar = grammar.PrintGrammar() };
+      var data = new CFGData {
+        Name = String.Format("Generated Grammar (Types: {0})", String.Join(", ", options.Datatypes)),
+        Grammar = grammar.PrintGrammar()
+      };
       return data;
     }
 
     public override CFGData ImportData(string path) {
       var data = new CFGData();
+      data.Name = Path.GetFileNameWithoutExtension(path);
       using (var reader = new StreamReader(path)) {
         data.Grammar = reader.ReadToEnd();
       }

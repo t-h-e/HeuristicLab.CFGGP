@@ -88,6 +88,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     public string PrintGrammar() {
+      if (!Rules.Any()) { return String.Empty; }
       StringBuilder strBuilder = new StringBuilder();
       strBuilder.AppendLine(Rules[Root].ToString());
       foreach (var rule in Rules.Values.Where(r => r.Name != Root)) {
