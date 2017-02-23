@@ -20,11 +20,8 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
 using HeuristicLab.Data;
@@ -37,7 +34,7 @@ using Newtonsoft.Json.Linq;
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [Item("PythonSemanticEvaluationCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
   [StorableClass]
-  public class CFGPythonSemanticEvalCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator, ISymbolicExpressionTreeGrammarBasedOperator,
+  public class CFGPythonSemanticEvalCrossover<T> : SymbolicExpressionTreeCrossover, ISymbolicExpressionTreeSizeConstraintOperator,
                                                 ICFGPythonSemanticsCrossover<T>
   where T : class, ICFGPythonProblemData {
     private const string InternalCrossoverPointProbabilityParameterName = "InternalCrossoverPointProbability";
@@ -45,34 +42,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private const string MaximumSymbolicExpressionTreeDepthParameterName = "MaximumSymbolicExpressionTreeDepth";
     private const string CrossoverProbabilityParameterName = "CrossoverProbability";
     private const string ProblemDataParameterName = "ProblemData";
-
-    private const string SymbolicExpressionTreeGrammarParameterName = "SymbolicExpressionTreeGrammar";
     private const string SemanticsParameterName = "Semantic";
-
     private const string MaxComparesParameterName = "MaxCompares";
     private const string TimeoutParameterName = "Timeout";
-
-    /// <summary>
-    /// 0 = variable names
-    /// 1 = variable settings
-    /// 2 = variable settings names
-    /// 3 = code
-    /// </summary>
-    private const string EVAL_TRACE_SCRIPT = @"{0}
-variables = [{1}]
-{2}
-
-trace = {{}}
-for v in variables:
-    trace[v] = []
-
-for {3} in zip({4}):
-{5}
-    for v in variables:
-        trace[v].append(locals()[v])
-
-for v in variables:
-    locals()[v] = trace[v]";
+    private const string PythonProcessParameterName = "PythonProcess";
+    private const string NewSemanticParameterName = "NewSemantic";
 
     #region Parameter Properties
     public IValueLookupParameter<PercentValue> InternalCrossoverPointProbabilityParameter {
@@ -87,9 +61,6 @@ for v in variables:
     public IValueLookupParameter<PercentValue> CrossoverProbabilityParameter {
       get { return (IValueLookupParameter<PercentValue>)Parameters[CrossoverProbabilityParameterName]; }
     }
-    public IValueLookupParameter<ISymbolicExpressionGrammar> SymbolicExpressionTreeGrammarParameter {
-      get { return (IValueLookupParameter<ISymbolicExpressionGrammar>)Parameters[SymbolicExpressionTreeGrammarParameterName]; }
-    }
     public ILookupParameter<ItemArray<ItemArray<PythonStatementSemantic>>> SemanticsParameter {
       get { return (ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>)Parameters[SemanticsParameterName]; }
     }
@@ -103,7 +74,10 @@ for v in variables:
       get { return (ILookupParameter<IntValue>)Parameters[TimeoutParameterName]; }
     }
     public ILookupParameter<PythonProcess> PythonProcessParameter {
-      get { return (ILookupParameter<PythonProcess>)Parameters["PythonProcess"]; }
+      get { return (ILookupParameter<PythonProcess>)Parameters[PythonProcessParameterName]; }
+    }
+    public ILookupParameter<ItemArray<PythonStatementSemantic>> NewSemanticParameter {
+      get { return (ILookupParameter<ItemArray<PythonStatementSemantic>>)Parameters[NewSemanticParameterName]; }
     }
     #endregion
 
@@ -120,7 +94,7 @@ for v in variables:
     public PercentValue CrossoverProbability {
       get { return CrossoverProbabilityParameter.ActualValue; }
     }
-    public ICFGPythonProblemData ProblemData {
+    public T ProblemData {
       get { return ProblemDataParameter.ActualValue; }
     }
     public ItemArray<ItemArray<PythonStatementSemantic>> Semantics {
@@ -137,17 +111,13 @@ for v in variables:
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeLengthParameterName, "The maximal length (number of nodes) of the symbolic expression tree."));
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumSymbolicExpressionTreeDepthParameterName, "The maximal depth of the symbolic expression tree (a tree with one node has depth = 0)."));
       Parameters.Add(new ValueLookupParameter<PercentValue>(InternalCrossoverPointProbabilityParameterName, "The probability to select an internal crossover point (instead of a leaf node).", new PercentValue(0.9)));
-
       Parameters.Add(new ValueLookupParameter<PercentValue>(CrossoverProbabilityParameterName, "Probability of applying crossover", new PercentValue(1.0)));
-
-      Parameters.Add(new ValueLookupParameter<ISymbolicExpressionGrammar>(SymbolicExpressionTreeGrammarParameterName, "Tree grammar"));
       Parameters.Add(new ScopeTreeLookupParameter<ItemArray<PythonStatementSemantic>>(SemanticsParameterName, ""));
       Parameters.Add(new LookupParameter<T>(ProblemDataParameterName, "Problem data"));
-
       Parameters.Add(new ValueParameter<IntValue>(MaxComparesParameterName, "Maximum number of branches that ae going to be compared for crossover.", new IntValue(10)));
       Parameters.Add(new LookupParameter<IntValue>(TimeoutParameterName, "The amount of time an execution is allowed to take, before it is stopped. (In milliseconds)"));
-
-      Parameters.Add(new LookupParameter<PythonProcess>("PythonProcess", "Python process"));
+      Parameters.Add(new LookupParameter<PythonProcess>(PythonProcessParameterName, "Python process"));
+      Parameters.Add(new LookupParameter<ItemArray<PythonStatementSemantic>>(NewSemanticParameterName, ""));
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {
@@ -155,14 +125,20 @@ for v in variables:
     }
 
     public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
-      if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value)
-        return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
-          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
+      if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value) {
+        ItemArray<PythonStatementSemantic> newSemantics;
+        var child = Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
+          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value, out newSemantics);
+        NewSemanticParameter.ActualValue = newSemantics;
+        return child;
+      }
 
+      NewSemanticParameter.ActualValue = Semantics[0];
       return parent0;
     }
 
-    private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability) {
+    protected virtual ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability, out ItemArray<PythonStatementSemantic> newSemantics) {
+      newSemantics = semantic0;
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
         return parent0;
       }
@@ -187,102 +163,75 @@ for v in variables:
 
       if (allowedBranches.Count == 0) {
         return parent0;
-      } else {
-        // select MaxCompares random crossover points
-        // Use set to avoid having the same node multiple times
-        HashSet<ISymbolicExpressionTreeNode> compBranches;
-        if (allowedBranches.Count < MaxComparesParameter.Value.Value) {
-          compBranches = new HashSet<ISymbolicExpressionTreeNode>(allowedBranches);
-        } else {
-          compBranches = new HashSet<ISymbolicExpressionTreeNode>();
-          for (int i = 0; i < MaxComparesParameter.Value.Value; i++) {
-            var possibleBranch = SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability);
-            allowedBranches.Remove(possibleBranch);
-            compBranches.Add(possibleBranch);
-          }
-        }
-
-        // get possible semantic positions
-        var statementProductions = ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <code>")).Symbols;
-        var statementProductionNames = statementProductions.Select(x => x.Name);
-
-        // find first node that can be used for evaluation in parent0
-        ISymbolicExpressionTreeNode statement = statementProductionNames.Contains(crossoverPoint0.Child.Symbol.Name) ? crossoverPoint0.Child : crossoverPoint0.Parent;
-        while (statement != null && !statementProductionNames.Contains(statement.Symbol.Name)) {
-          statement = statement.Parent;
-        }
-
-        if (statement == null) {
-          Swap(crossoverPoint0, compBranches.SampleRandom(random));
-          return parent0;
-        }
-
-        var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
-        string variableSettings;
-        if (problemData.VariableSettings.Count == 0) {
-          variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
-        } else {
-          variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
-        }
-        var variables = problemData.Variables.GetVariableNames().ToList();
-
-        // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
-        var rootSymbol = new ProgramRootSymbol();
-        var startSymbol = new StartSymbol();
-        var statementParent = statement.Parent;
-        EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-          Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
-          Variables = variables,
-          Timeout = Timeout
-        };
-        JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
-        statement.Parent = statementParent; // restore parent
-
-        ISymbolicExpressionTreeNode selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables());
-
-        // perform the actual swap
-        if (selectedBranch != null)
-          Swap(crossoverPoint0, selectedBranch);
       }
+
+      // select MaxCompares random crossover points
+      // Use set to avoid having the same node multiple times
+      HashSet<ISymbolicExpressionTreeNode> compBranches;
+      if (allowedBranches.Count < MaxComparesParameter.Value.Value) {
+        compBranches = new HashSet<ISymbolicExpressionTreeNode>(allowedBranches);
+      } else {
+        compBranches = new HashSet<ISymbolicExpressionTreeNode>();
+        for (int i = 0; i < MaxComparesParameter.Value.Value; i++) {
+          var possibleBranch = SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability);
+          allowedBranches.Remove(possibleBranch);
+          compBranches.Add(possibleBranch);
+        }
+      }
+
+      var statementProductionNames = SemanticOperatorHelper.GetSemanticProductionNames(crossoverPoint0.Parent.Grammar);
+
+      // find first node that can be used for evaluation in parent0
+      ISymbolicExpressionTreeNode statement = SemanticOperatorHelper.GetStatementNode(crossoverPoint0.Child, statementProductionNames);
+
+      if (statement == null) {
+        newSemantics = SemanticSwap(crossoverPoint0, compBranches.SampleRandom(random), parent0, parent1, semantic0, semantic1);
+        return parent0;
+      }
+
+      var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
+      string variableSettings;
+      if (problemData.VariableSettings.Count == 0) {
+        variableSettings = SemanticOperatorHelper.SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
+      } else {
+        variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
+      }
+      var variables = problemData.Variables.GetVariableNames().ToList();
+
+      var json0 = SemanticOperatorHelper.EvaluateStatementNode(statement, PyProcess, random, problemData, variables, variableSettings, Timeout);
+
+      ISymbolicExpressionTreeNode selectedBranch;
+      if (!String.IsNullOrWhiteSpace((string)json0["exception"])) {
+        selectedBranch = compBranches.SampleRandom(random);
+      } else {
+        selectedBranch = SelectBranch(statement, crossoverPoint0, compBranches, random, variables, variableSettings, json0, problemData);
+      }
+
+      // perform the actual swap
+      newSemantics = SemanticSwap(crossoverPoint0, selectedBranch, parent0, parent1, semantic0, semantic1);
 
       return parent0;
     }
 
-    protected string SemanticToPythonVariableSettings(IDictionary<string, IList> semantic, IDictionary<string, VariableType> variableTypes) {
-      StringBuilder strBuilder = new StringBuilder();
-      foreach (var setting in semantic) {
-        strBuilder.AppendLine(String.Format("{0} = {1}", setting.Key, PythonHelper.SerializeCSToPythonJson(setting.Value)));
-      }
-      return strBuilder.ToString();
-    }
-
-    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, int loopBreakConst, IDictionary<VariableType, List<string>> variablesPerType) {
-      var rootSymbol = new ProgramRootSymbol();
-      var startSymbol = new StartSymbol();
-      var statementNodetParent = statementNode.Parent; // save statement parent
+    private ISymbolicExpressionTreeNode SelectBranch(ISymbolicExpressionTreeNode statementNode, CutPoint crossoverPoint0, IEnumerable<ISymbolicExpressionTreeNode> compBranches, IRandom random, List<string> variables, string variableSettings, JObject jsonParent0, ICFGPythonProblemData problemData) {
       List<JObject> evaluationPerNode = new List<JObject>();
       List<double> similarity = new List<double>();
 
-      var evaluationTree = CreateTreeFromNode(random, statementNode, rootSymbol, startSymbol); // this will affect statementNode.Parent
       crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes parent from child
       foreach (var node in compBranches) {
-        var parent = node.Parent; // save parent
-
-        crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
-
-        EvaluationScript evaluationScript1 = new EvaluationScript() {
-          Script = FormatScript(evaluationTree, loopBreakConst, variables, variableSettings),
-          Variables = variables,
-          Timeout = Timeout
-        };
-        JObject json = PyProcess.SendAndEvaluateProgram(evaluationScript1);
-        crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes intermediate parent from node
-        node.Parent = parent; // restore parent
-
+        JObject json;
+        if (statementNode == crossoverPoint0.Child) {
+          json = SemanticOperatorHelper.EvaluateStatementNode(node, PyProcess, random, problemData, variables, variableSettings, Timeout);
+        } else {
+          var parent = node.Parent; // save parent
+          crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, node); // this will affect node.Parent
+          json = SemanticOperatorHelper.EvaluateStatementNode(statementNode, PyProcess, random, problemData, variables, variableSettings, Timeout);
+          crossoverPoint0.Parent.RemoveSubtree(crossoverPoint0.ChildIndex); // removes intermediate parent from node
+          node.Parent = parent; // restore parent
+        }
         evaluationPerNode.Add(json);
         similarity.Add(0);
       }
-      statementNode.Parent = statementNodetParent; // restore statement parent  
       crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore crossoverPoint0
 
       #region remove branches that threw an exception
@@ -301,9 +250,8 @@ for v in variables:
       #endregion
 
       Dictionary<VariableType, List<string>> differencesPerType = new Dictionary<VariableType, List<string>>();
-      List<string> differences;
-      foreach (var entry in variablesPerType) {
-        differences = new List<string>();
+      foreach (var entry in problemData.Variables.GetTypesOfVariables()) {
+        List<string> differences = new List<string>();
         foreach (var variableName in entry.Value) {
           if (evaluationPerNode.Any(x => !JToken.EqualityComparer.Equals(jsonParent0[variableName], x[variableName]))) {
             differences.Add(variableName);
@@ -332,18 +280,7 @@ for v in variables:
           pos = i;
         }
       }
-      return pos >= 0 ? compBranches.ElementAt(pos) : compBranches.SampleRandom(random);
-    }
-
-    protected string FormatScript(ISymbolicExpressionTree symbolicExpressionTree, int loopBreakConst, List<string> variables, string variableSettings) {
-      Regex r = new Regex(@"^(.*?)\s*=", RegexOptions.Multiline);
-      string variableSettingsSubstitute = r.Replace(variableSettings, "${1}_setting =");
-      return String.Format(EVAL_TRACE_SCRIPT, ProblemData.HelperCode.Value,
-                                              String.Format("'{0}'", String.Join("','", variables)),
-                                              variableSettingsSubstitute,
-                                              String.Join(",", variables),
-                                              String.Join(",", variables.Select(x => x + "_setting")),
-                                              PythonHelper.FormatToProgram(symbolicExpressionTree, loopBreakConst, "    "));
+      return pos >= 0 ? branchesWithoutException.ElementAt(pos) : compBranches.SampleRandom(random);
     }
 
     protected IEnumerable<double> CalculateDifference(JToken curDiff0, IEnumerable<JToken> curDiffOthers, VariableType variableType, bool normalize) {
@@ -462,8 +399,34 @@ for v in variables:
       }
     }
 
-    //copied from SymbolicDataAnalysisExpressionCrossover<T>
-    protected static void Swap(CutPoint crossoverPoint, ISymbolicExpressionTreeNode selectedBranch) {
+    /// <summary>
+    /// Swaps the child node of the cutpoint with the selected branch. Semantics of the child branch will be removed from semantics0. Semantics from semantics1 which belonged to the selected branch will be added to semantics0.
+    /// </summary>
+    /// <param name="crossoverPoint">Defines parent and child node from the parent0</param>
+    /// <param name="selectedBranch">Branch to crossover from parent1</param>
+    /// <param name="parent0">Parent0</param>
+    /// <param name="parent1">Parent1</param>
+    /// <param name="semantics0">Semantics of parent0</param>
+    /// <param name="semantics1">Semantics of parent1</param>
+    protected static ItemArray<PythonStatementSemantic> SemanticSwap(CutPoint crossoverPoint, ISymbolicExpressionTreeNode selectedBranch, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantics0, ItemArray<PythonStatementSemantic> semantics1) {
+      var allNodes0Prefix = parent0.IterateNodesPrefix().ToList();
+      Dictionary<ISymbolicExpressionTreeNode, PythonStatementSemantic> sem0ByNode = new Dictionary<ISymbolicExpressionTreeNode, PythonStatementSemantic>();
+      var sem0ByNodeIndex = semantics0.ToDictionary(x => x.TreeNodePrefixPos, y => y);
+      for (int i = 0; i < allNodes0Prefix.Count; i++) {
+        if (sem0ByNodeIndex.ContainsKey(i)) {
+          sem0ByNode.Add(allNodes0Prefix[i], sem0ByNodeIndex[i]);
+        }
+      }
+
+      var allNodes1Prefix = parent1.IterateNodesPrefix().ToList();
+      Dictionary<ISymbolicExpressionTreeNode, PythonStatementSemantic> sem1ByNode = new Dictionary<ISymbolicExpressionTreeNode, PythonStatementSemantic>();
+      var sem1ByNodeIndex = semantics1.ToDictionary(x => x.TreeNodePrefixPos, y => y);
+      for (int i = 0; i < allNodes1Prefix.Count; i++) {
+        if (sem1ByNodeIndex.ContainsKey(i)) {
+          sem1ByNode.Add(allNodes1Prefix[i], sem1ByNodeIndex[i]);
+        }
+      }
+
       if (crossoverPoint.Child != null) {
         // manipulate the tree of parent0 in place
         // replace the branch in tree0 with the selected branch from tree1
@@ -477,19 +440,23 @@ for v in variables:
           crossoverPoint.Parent.AddSubtree(selectedBranch);
         }
       }
-    }
-    //copied from SymbolicDataAnalysisExpressionCrossover<T>
-    protected static ISymbolicExpressionTree CreateTreeFromNode(IRandom random, ISymbolicExpressionTreeNode node, ISymbol rootSymbol, ISymbol startSymbol) {
-      var rootNode = new SymbolicExpressionTreeTopLevelNode(rootSymbol);
-      if (rootNode.HasLocalParameters) rootNode.ResetLocalParameters(random);
 
-      var startNode = new SymbolicExpressionTreeTopLevelNode(startSymbol);
-      if (startNode.HasLocalParameters) startNode.ResetLocalParameters(random);
-
-      startNode.AddSubtree(node);
-      rootNode.AddSubtree(startNode);
-
-      return new SymbolicExpressionTree(rootNode);
+      List<PythonStatementSemantic> newSemantics = new List<PythonStatementSemantic>();
+      var newNodes0Prefix = parent0.IterateNodesPrefix().ToList();
+      for (int i = 0; i < newNodes0Prefix.Count; i++) {
+        PythonStatementSemantic sem = null;
+        if (sem0ByNode.ContainsKey(newNodes0Prefix[i])) {
+          sem = sem0ByNode[newNodes0Prefix[i]];
+          sem.TreeNodePrefixPos = i;
+        } else if (sem1ByNode.ContainsKey(newNodes0Prefix[i])) {
+          sem = sem1ByNode[newNodes0Prefix[i]];
+          sem.TreeNodePrefixPos = i;
+        }
+        if (sem != null) {
+          newSemantics.Add(sem);
+        }
+      }
+      return new ItemArray<PythonStatementSemantic>(newSemantics);
     }
   }
 }

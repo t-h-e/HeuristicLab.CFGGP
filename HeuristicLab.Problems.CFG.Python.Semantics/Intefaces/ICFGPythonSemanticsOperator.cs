@@ -20,11 +20,10 @@
 #endregion
 
 using HeuristicLab.Core;
-using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  public interface ICFGPythonSemanticsCrossover<T> : ISymbolicExpressionTreeCrossover, ICFGPythonSemanticsOperator<T>
+  public interface ICFGPythonSemanticsOperator<T> : ICFGProblemDataOperator<T>, ITimeoutBasedOperator
   where T : class, ICFGPythonProblemData {
-    ILookupParameter<ItemArray<ItemArray<PythonStatementSemantic>>> SemanticsParameter { get; }
+    ILookupParameter<PythonProcess> PythonProcessParameter { get; }
   }
 }

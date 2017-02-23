@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2017 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2016 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -32,20 +32,20 @@ using HeuristicLab.Parameters;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
-  [Item("SemanticCrossoverAnalyzer", "")]
+  [Item("SemanticManipulatorAnalyzer", "")]
   [StorableClass]
-  public class SemanticCrossoverAnalyzer : SingleSuccessorOperator, IAnalyzer, IIterationBasedOperator {
-    private const string NumberOfAllowedBranchesParameterName = "NumberOfAllowedBranches";
-    private const string NumberOfPossibleBranchesSelectedParameterName = "NumberOfPossibleBranchesSelected";
-    private const string NumberOfNoChangeDetectedParameterName = "NumberOfNoChangeDetected";
-    private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarity";
+  public class SemanticManipulatorAnalyzer : SingleSuccessorOperator, IAnalyzer, IIterationBasedOperator {
+    private const string NumberOfTriesParameterName = "NumberOfTriesMutation";
 
-    private const string SemanticallyEquivalentCrossoverParameterName = "SemanticallyEquivalentCrossover";
-    private const string SemanticallyDifferentFromRootedParentParameterName = "SemanticallyDifferentFromRootedParent";
-    private const string SemanticLocalityParameterName = "SemanticLocality";
-    private const string ConstructiveEffectParameterName = "ConstructiveEffect";
+    // options: semantic mutation, random mutation, no mutation
+    private const string SemanticMutationParameterName = "SemanticMutation";
 
-    private const string CrossoverExceptionsParameterName = "CrossoverExceptions";
+    private const string SemanticallyEquivalentMutationParameterName = "SemanticallyEquivalentMutation";
+    private const string SemanticallyDifferentFromRootedParentParameterName = "SemanticallyDifferentFromRootedParentMutation";
+    private const string SemanticLocalityParameterName = "SemanticLocalityMutation";
+    private const string ConstructiveEffectParameterName = "ConstructiveEffectMutation";
+
+    private const string MutationExceptionsParameterName = "MutationExceptions";
 
     #region parameter properties
     public ILookupParameter<IntValue> IterationsParameter {
@@ -54,20 +54,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public IValueLookupParameter<IntValue> MaximumIterationsParameter {
       get { return (IValueLookupParameter<IntValue>)Parameters["MaximumIterations"]; }
     }
-    public IScopeTreeLookupParameter<IntValue> NumberOfAllowedBranchesParameter {
-      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfAllowedBranchesParameterName]; }
+    public IScopeTreeLookupParameter<IntValue> NumberOfTriesParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfTriesParameterName]; }
     }
-    public IScopeTreeLookupParameter<IntValue> NumberOfPossibleBranchesSelectedParameter {
-      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfPossibleBranchesSelectedParameterName]; }
+    public IScopeTreeLookupParameter<IntValue> SemanticMutationParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[SemanticMutationParameterName]; }
     }
-    public IScopeTreeLookupParameter<IntValue> NumberOfNoChangeDetectedParameter {
-      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfNoChangeDetectedParameterName]; }
-    }
-    public IScopeTreeLookupParameter<StringValue> TypeSelectedForSimilarityParameter {
-      get { return (IScopeTreeLookupParameter<StringValue>)Parameters[TypeSelectedForSimilarityParameterName]; }
-    }
-    public IScopeTreeLookupParameter<IntValue> SemanticallyEquivalentCrossoverParameter {
-      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[SemanticallyEquivalentCrossoverParameterName]; }
+    public IScopeTreeLookupParameter<IntValue> SemanticallyEquivalentMutationParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[SemanticallyEquivalentMutationParameterName]; }
     }
     public IScopeTreeLookupParameter<BoolValue> SemanticallyDifferentFromRootedParentParameter {
       get { return (IScopeTreeLookupParameter<BoolValue>)Parameters[SemanticallyDifferentFromRootedParentParameterName]; }
@@ -78,8 +72,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public IScopeTreeLookupParameter<IntValue> ConstructiveEffectParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[ConstructiveEffectParameterName]; }
     }
-    public IScopeTreeLookupParameter<ItemCollection<StringValue>> CrossoverExceptionsParameter {
-      get { return (IScopeTreeLookupParameter<ItemCollection<StringValue>>)Parameters[CrossoverExceptionsParameterName]; }
+    public IScopeTreeLookupParameter<ItemCollection<StringValue>> MutationExceptionsParameter {
+      get { return (IScopeTreeLookupParameter<ItemCollection<StringValue>>)Parameters[MutationExceptionsParameterName]; }
     }
     public ILookupParameter<ResultCollection> ResultsParameter {
       get { return (ILookupParameter<ResultCollection>)Parameters["Results"]; }
@@ -91,9 +85,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public ResultCollection ResultCollection {
       get { return ResultsParameter.ActualValue; }
     }
-    public DataTable SemanticallyEquivalentCrossoverDataTable {
-      get { return ResultCollection.ContainsKey(SemanticallyEquivalentCrossoverParameterName) ? ((DataTable)ResultCollection[SemanticallyEquivalentCrossoverParameterName].Value) : null; }
-      set { ResultCollection.Add(new Result(SemanticallyEquivalentCrossoverParameterName, value)); }
+    public DataTable SemanticallyEquivalentMutationDataTable {
+      get { return ResultCollection.ContainsKey(SemanticallyEquivalentMutationParameterName) ? ((DataTable)ResultCollection[SemanticallyEquivalentMutationParameterName].Value) : null; }
+      set { ResultCollection.Add(new Result(SemanticallyEquivalentMutationParameterName, value)); }
     }
     public DataTable SemanticallyDifferentFromRootedParentDataTable {
       get { return ResultCollection.ContainsKey(SemanticallyDifferentFromRootedParentParameterName) ? ((DataTable)ResultCollection[SemanticallyDifferentFromRootedParentParameterName].Value) : null; }
@@ -109,32 +103,22 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     }
     #endregion
 
-    // ToDo: Remove! This is just a quickfix
-    [StorableHook(HookType.AfterDeserialization)]
-    private void AfterDeserialization() {
-      if (!Parameters.ContainsKey(CrossoverExceptionsParameterName)) {
-        Parameters.Add(new ScopeTreeLookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
-      }
-    }
-
     [StorableConstructor]
-    protected SemanticCrossoverAnalyzer(bool deserializing) : base(deserializing) { }
-    protected SemanticCrossoverAnalyzer(SemanticCrossoverAnalyzer original, Cloner cloner) : base(original, cloner) {
+    protected SemanticManipulatorAnalyzer(bool deserializing) : base(deserializing) { }
+    protected SemanticManipulatorAnalyzer(SemanticManipulatorAnalyzer original, Cloner cloner) : base(original, cloner) {
     }
-    public SemanticCrossoverAnalyzer() : base() {
+    public SemanticManipulatorAnalyzer() : base() {
       Parameters.Add(new LookupParameter<IntValue>("Iterations", "Optional: A value indicating the current iteration."));
       Parameters.Add(new ValueLookupParameter<IntValue>("MaximumIterations", "Unused", new IntValue(-1)));
 
-      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfAllowedBranchesParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfPossibleBranchesSelectedParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfNoChangeDetectedParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfTriesParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticMutationParameterName, ""));
 
-      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticallyEquivalentCrossoverParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticallyEquivalentMutationParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<ItemCollection<StringValue>>(MutationExceptionsParameterName, ""));
 
       Parameters.Add(new LookupParameter<ResultCollection>("Results", "The result collection where the exception frequencies should be stored."));
 
@@ -142,52 +126,46 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       MaximumIterationsParameter.Hidden = true;
     }
     public override IDeepCloneable Clone(Cloner cloner) {
-      return new SemanticCrossoverAnalyzer(this, cloner);
+      return new SemanticManipulatorAnalyzer(this, cloner);
     }
 
     public override IOperation Apply() {
       if (IterationsParameter.ActualValue.Value <= 0) { return base.Apply(); }
 
-      var numberOfAllowedBranches = NumberOfAllowedBranchesParameter.ActualValue.ToArray();
-      var numberOfPossibleBranchesSelected = NumberOfPossibleBranchesSelectedParameter.ActualValue.ToArray();
-      var numberOfNoChangeDetected = NumberOfNoChangeDetectedParameter.ActualValue.ToArray();
-      var typeSelectedForSimilarity = TypeSelectedForSimilarityParameter.ActualValue.ToArray();
+      var numberOfTries = NumberOfTriesParameter.ActualValue.ToArray();
 
-      AddAverageTableEntry(numberOfAllowedBranches, NumberOfAllowedBranchesParameterName);
-      AddAverageTableEntry(numberOfPossibleBranchesSelected, NumberOfPossibleBranchesSelectedParameterName);
-      AddAverageTableEntry(numberOfNoChangeDetected, NumberOfNoChangeDetectedParameterName);
-      AddTypeSelectedForSimilarityTableEntry(typeSelectedForSimilarity);
+      AddAverageTableEntry(numberOfTries, NumberOfTriesParameterName);
 
-      var semanticallyEquivalentCrossover = SemanticallyEquivalentCrossoverParameter.ActualValue.ToArray();
+      var semanticallyEquivalentMutation = SemanticallyEquivalentMutationParameter.ActualValue.ToArray();
       var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.ToArray();
       var semanticLocality = SemanticLocalityParameter.ActualValue.ToArray();
       var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
 
-      AddSemanticallyEquivalentCrossoverTableEntry(semanticallyEquivalentCrossover);
+      AddSemanticallyEquivalentMutationTableEntry(semanticallyEquivalentMutation);
       AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent);
       AddSemanticLocalityTableEntry(semanticLocality);
       AddConstructiveEffectTableEntry(constructiveEffect);
 
-      var crossoverExceptions = CrossoverExceptionsParameter.ActualValue.SelectMany(x => x).ToArray();
-      AddCrossoverExceptionsTableEntry(crossoverExceptions);
+      var mutationExceptions = MutationExceptionsParameter.ActualValue.SelectMany(x => x).ToArray();
+      AddMutationExceptionsTableEntry(mutationExceptions);
 
       return base.Apply();
     }
 
-    private void AddCrossoverExceptionsTableEntry(StringValue[] crossoverExceptions) {
-      if (!ResultCollection.ContainsKey(CrossoverExceptionsParameterName)) {
-        var newTable = new DataTable(CrossoverExceptionsParameterName, "");
+    private void AddMutationExceptionsTableEntry(StringValue[] mutationExceptions) {
+      if (!ResultCollection.ContainsKey(MutationExceptionsParameterName)) {
+        var newTable = new DataTable(MutationExceptionsParameterName, "");
         newTable.VisualProperties.YAxisTitle = "Absolute Exception Frequency";
         newTable.VisualProperties.YAxisMaximumAuto = false;
 
-        ResultCollection.Add(new Result(CrossoverExceptionsParameterName, newTable));
+        ResultCollection.Add(new Result(MutationExceptionsParameterName, newTable));
       }
-      var exceptionFrequencies = ((DataTable)ResultCollection[CrossoverExceptionsParameterName].Value);
+      var exceptionFrequencies = ((DataTable)ResultCollection[MutationExceptionsParameterName].Value);
 
       // all rows must have the same number of values
       int numberOfValues = IterationsParameter.ActualValue.Value - 1;
 
-      foreach (var pair in crossoverExceptions.GroupBy(x => x.Value).ToDictionary(g => g.Key, g => g.Count())) {
+      foreach (var pair in mutationExceptions.GroupBy(x => x.Value).ToDictionary(g => g.Key, g => g.Count())) {
         string key = String.IsNullOrEmpty(pair.Key) ? "No Exception" : pair.Key;
         if (!exceptionFrequencies.Rows.ContainsKey(key)) {
           // initialize a new row for the symbol and pad with zeros
@@ -200,36 +178,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
 
       // add a zero for each data row that was not modified in the previous loop 
       foreach (var row in exceptionFrequencies.Rows.Where(r => r.Values.Count != numberOfValues + 1))
-        row.Values.Add(0.0);
-    }
-
-    private void AddTypeSelectedForSimilarityTableEntry(StringValue[] typeSelectedForSimilarity) {
-      if (!ResultCollection.ContainsKey(TypeSelectedForSimilarityParameterName)) {
-        var newTable = new DataTable(TypeSelectedForSimilarityParameterName, "");
-        newTable.VisualProperties.YAxisTitle = "Percentage";
-        newTable.VisualProperties.YAxisMaximumAuto = false;
-
-        ResultCollection.Add(new Result(TypeSelectedForSimilarityParameterName, newTable));
-      }
-      var table = ((DataTable)ResultCollection[TypeSelectedForSimilarityParameterName].Value);
-
-      // all rows must have the same number of values so we can just take the first
-      int numberOfValues = table.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
-
-      double count = typeSelectedForSimilarity.Count();
-      var groupedValues = typeSelectedForSimilarity.Select(x => x.Value).GroupBy(x => x);
-      foreach (var type in groupedValues) {
-        if (!table.Rows.ContainsKey(type.Key)) {
-          // initialize a new row for the symbol and pad with zeros
-          DataRow row = new DataRow(type.Key, "", Enumerable.Repeat(0.0, numberOfValues));
-          row.VisualProperties.StartIndexZero = true;
-          table.Rows.Add(row);
-        }
-        table.Rows[type.Key].Values.Add(type.Count() / count * 100);
-      }
-
-      // add a zero for each data row that was not modified in the previous loop 
-      foreach (var row in table.Rows.Where(r => r.Values.Count != numberOfValues + 1))
         row.Values.Add(0.0);
     }
 
@@ -249,34 +197,29 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       table.Rows["Average"].Values.Add(values.Select(x => x.Value).Average());
     }
 
-    private void AddSemanticallyEquivalentCrossoverTableEntry(IntValue[] semanticallyEquivalentCrossover) {
-      if (SemanticallyEquivalentCrossoverDataTable == null) {
-        var table = new DataTable(SemanticallyEquivalentCrossoverParameterName, "");
+    private void AddSemanticallyEquivalentMutationTableEntry(IntValue[] semanticallyEquivalentMutation) {
+      if (SemanticallyEquivalentMutationDataTable == null) {
+        var table = new DataTable(SemanticallyEquivalentMutationParameterName, "");
         table.VisualProperties.YAxisTitle = "Percentage";
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        List<string> rowNames = new List<string>() { "No Crossover", "Equivalent", "Different", "NoXoProbability", "NoXoNoStatement", "NoXoNoAllowedBranch", "NoXoNoSelectedBranch", "NoXoNoSemantics" };
+        List<string> rowNames = new List<string>() { "No Mutation", "Equivalent", "Different", "NoXoProbability", "NoXoNoStatement", "NoXoNoAllowedBranch", "NoXoNoSelectedBranch", "NoXoNoSemantics" };
         foreach (var name in rowNames) {
           DataRow row = new DataRow(name);
           row.VisualProperties.StartIndexZero = true;
           table.Rows.Add(row);
         }
-        SemanticallyEquivalentCrossoverDataTable = table;
+        SemanticallyEquivalentMutationDataTable = table;
       }
-      List<int> semanticallyEquivalentCrossoverCount = Enumerable.Repeat(0, 3 + 5).ToList();
-      for (int i = 0; i < semanticallyEquivalentCrossover.Length; i++) {
-        semanticallyEquivalentCrossoverCount[semanticallyEquivalentCrossover[i].Value]++;
+      List<int> semanticallyEquivalentMutationCount = Enumerable.Repeat(0, 3 + 5).ToList();
+      for (int i = 0; i < semanticallyEquivalentMutation.Length; i++) {
+        semanticallyEquivalentMutationCount[semanticallyEquivalentMutation[i].Value]++;
       }
-      double total = semanticallyEquivalentCrossover.Length;
-      SemanticallyEquivalentCrossoverDataTable.Rows["No Crossover"].Values.Add(semanticallyEquivalentCrossoverCount[0] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["Equivalent"].Values.Add(semanticallyEquivalentCrossoverCount[1] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["Different"].Values.Add(semanticallyEquivalentCrossoverCount[2] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoProbability"].Values.Add(semanticallyEquivalentCrossoverCount[AbstractSemanticAnalyzationCrossover<ICFGPythonProblemData>.NoXoProbability] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoStatement"].Values.Add(semanticallyEquivalentCrossoverCount[AbstractSemanticAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoStatement] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoAllowedBranch"].Values.Add(semanticallyEquivalentCrossoverCount[AbstractSemanticAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoAllowedBranch] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoSelectedBranch"].Values.Add(semanticallyEquivalentCrossoverCount[AbstractSemanticAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoSelectedBranch] / total * 100.0);
-      SemanticallyEquivalentCrossoverDataTable.Rows["NoXoNoSemantics"].Values.Add(semanticallyEquivalentCrossoverCount[AbstractSemanticAnalyzationCrossover<ICFGPythonProblemData>.NoXoNoSemantics] / total * 100.0);
+      double total = semanticallyEquivalentMutation.Length;
+      SemanticallyEquivalentMutationDataTable.Rows["No Mutation"].Values.Add(semanticallyEquivalentMutationCount[0] / total * 100.0);
+      SemanticallyEquivalentMutationDataTable.Rows["Equivalent"].Values.Add(semanticallyEquivalentMutationCount[1] / total * 100.0);
+      SemanticallyEquivalentMutationDataTable.Rows["Different"].Values.Add(semanticallyEquivalentMutationCount[2] / total * 100.0);
     }
 
     private void AddSemanticallyDifferentFromRootedParentTableEntry(BoolValue[] semanticallyDifferentFromRootedParent) {

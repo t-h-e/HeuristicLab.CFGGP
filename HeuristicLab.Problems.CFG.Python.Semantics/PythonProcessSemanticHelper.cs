@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class PythonProcessSemanticHelper {
-
     private const string traceCode = @"import sys
 
 past_locals = {{}}
@@ -111,10 +110,7 @@ for l in lines:
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
 
-      var statementProductions = ((GroupSymbol)root.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(
-                                 ((GroupSymbol)root.Grammar.GetSymbol("Rule: <statement>")).Symbols).Union(
-                                 ((GroupSymbol)root.Grammar.GetSymbol("Rule: <predefined>")).Symbols);
-      var statementProductionNames = statementProductions.Select(x => x.Name);
+      var statementProductionNames = SemanticOperatorHelper.GetSemanticProductionNames(root.Grammar);
 
       // calculate the correct line the semantic evaluation starts from
       var code = CFGSymbolicExpressionTreeStringFormatter.StaticFormat(tree);
@@ -160,7 +156,7 @@ for l in lines:
         IEnumerable<int> changesOfSnippet;
         var linesAfterSnippet = traceChanges.Where(x => x > symbolLine.Value[1]);
         // if there are changes after the snippet and there is no other snippet inbetween the last line of the snippet and the change then this change belongs to the current snippet
-        if (linesAfterSnippet.Count() > 0 && !symbolLinesBegin.Any(x => x > symbolLine.Value[1] && x < linesAfterSnippet.Min())) {
+        if (linesAfterSnippet.Any() && !symbolLinesBegin.Any(x => x > symbolLine.Value[1] && x < linesAfterSnippet.Min())) {
           changesOfSnippet = traceChanges.Where(x => x > symbolLine.Value[0] && x <= linesAfterSnippet.Min()).OrderByDescending(x => x);
         } else {
           changesOfSnippet = traceChanges.Where(x => x > symbolLine.Value[0] && x <= symbolLine.Value[1]).OrderByDescending(x => x);
@@ -188,7 +184,7 @@ for l in lines:
     /// <returns>Is a Dictionary which contains a List of values for every node, where index 0 is the line number where the code of the node starts and index 1 is the line number where the code ends</returns>
     private Dictionary<ISymbolicExpressionTreeNode, List<int>> FindStatementSymbolsInTree(ISymbolicExpressionTreeNode node, IEnumerable<string> productions, ref int curline) {
       Dictionary<ISymbolicExpressionTreeNode, List<int>> symbolToLineDict = new Dictionary<ISymbolicExpressionTreeNode, List<int>>();
-      if (node.Subtrees.Count() > 0) {
+      if (node.Subtrees.Any()) {
         // node
         var symbol = node.Symbol as CFGSymbol;
         if (symbol != null) {

@@ -23,8 +23,8 @@ using HeuristicLab.Core;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  public interface ICFGPythonSemanticsCrossover<T> : ISymbolicExpressionTreeCrossover, ICFGPythonSemanticsOperator<T>
+  public interface ICFGPythonSemanticsManipulator<T> : ISymbolicExpressionTreeManipulator, ICFGPythonSemanticsOperator<T>
   where T : class, ICFGPythonProblemData {
-    ILookupParameter<ItemArray<ItemArray<PythonStatementSemantic>>> SemanticsParameter { get; }
+    ILookupParameter<ItemArray<PythonStatementSemantic>> SemanticsParameter { get; }
   }
 }

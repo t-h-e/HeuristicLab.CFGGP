@@ -24,11 +24,9 @@ using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
-using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using HeuristicLab.Random;
-using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [Item("SemanticAnalyzationSubtreeCrossover", "Semantic crossover for program synthesis, which evaluates statements to decide on a crossover point.")]
@@ -38,25 +36,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     [StorableConstructor]
     protected SemanticCrossoverAnalyzationSubtreeCrossover(bool deserializing) : base(deserializing) { }
     protected SemanticCrossoverAnalyzationSubtreeCrossover(SemanticCrossoverAnalyzationSubtreeCrossover<T> original, Cloner cloner) : base(original, cloner) { }
-    public SemanticCrossoverAnalyzationSubtreeCrossover()
-      : base() {
-    }
+    public SemanticCrossoverAnalyzationSubtreeCrossover() : base() { }
 
     public override IDeepCloneable Clone(Cloner cloner) {
       return new SemanticCrossoverAnalyzationSubtreeCrossover<T>(this, cloner);
     }
 
-    public override ISymbolicExpressionTree Crossover(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1) {
-      CrossoverExceptionsParameter.ActualValue = new ItemCollection<StringValue>();
-      if (Semantics.Length == 2 && random.NextDouble() < CrossoverProbability.Value)
-        return Cross(random, parent0, parent1, Semantics[0], Semantics[1], ProblemData,
-          MaximumSymbolicExpressionTreeLength.Value, MaximumSymbolicExpressionTreeDepth.Value, InternalCrossoverPointProbability.Value);
-
-      AddStatisticsNoCrossover(NoXoProbability);
-      return parent0;
-    }
-
-    private ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, ICFGPythonProblemData problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability) {
+    protected override ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, T problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability, out ItemArray<PythonStatementSemantic> newSemantics) {
+      newSemantics = semantic0;
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
         AddStatisticsNoCrossover(NoXoNoSemantics);
         return parent0;
@@ -108,19 +95,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       NumberOfPossibleBranchesSelected = compBranches.Count;
 
       // get possible semantic positions
-      var statementProductions = ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <code>")).Symbols.Union(
-                                 ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <statement>")).Symbols).Union(
-                                 ((GroupSymbol)crossoverPoint0.Parent.Grammar.GetSymbol("Rule: <predefined>")).Symbols);
-      var statementProductionNames = statementProductions.Select(x => x.Name);
+      var statementProductionNames = SemanticOperatorHelper.GetSemanticProductionNames(crossoverPoint0.Parent.Grammar);
 
       // find first node that can be used for evaluation in parent0
-      ISymbolicExpressionTreeNode statement = statementProductionNames.Contains(crossoverPoint0.Child.Symbol.Name) ? crossoverPoint0.Child : crossoverPoint0.Parent;
-      while (statement != null && !statementProductionNames.Contains(statement.Symbol.Name)) {
-        statement = statement.Parent;
-      }
+      ISymbolicExpressionTreeNode statement = SemanticOperatorHelper.GetStatementNode(crossoverPoint0.Child, statementProductionNames);
 
       if (statement == null) {
-        Swap(crossoverPoint0, compBranches.SampleRandom(random));
+        newSemantics = SemanticSwap(crossoverPoint0, compBranches.SampleRandom(random), parent0, parent1, semantic0, semantic1);
         AddStatisticsNoCrossover(NoXoNoStatement);
         return parent0;
       }
@@ -128,31 +109,17 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statement);
       string variableSettings;
       if (problemData.VariableSettings.Count == 0) {
-        variableSettings = SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
+        variableSettings = SemanticOperatorHelper.SemanticToPythonVariableSettings(semantic0.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
       } else {
         variableSettings = String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
       }
       var variables = problemData.Variables.GetVariableNames().ToList();
 
-      // create symbols in order to improvize an ad-hoc tree so that the child can be evaluated
-      var rootSymbol = new ProgramRootSymbol();
-      var startSymbol = new StartSymbol();
-      var statementParent = statement.Parent;
-      EvaluationScript crossoverPointScript0 = new EvaluationScript() {
-        Script = FormatScript(CreateTreeFromNode(random, statement, rootSymbol, startSymbol), problemData.LoopBreakConst, variables, variableSettings),
-        Variables = variables,
-        Timeout = Timeout
-      };
-      JObject json0 = PyProcess.SendAndEvaluateProgram(crossoverPointScript0);
-      statement.Parent = statementParent; // restore parent
+      var json0 = SemanticOperatorHelper.EvaluateStatementNode(statement, PyProcess, random, problemData, variables, variableSettings, Timeout);
 
-      // perform the actual swap
-      if (selectedBranch != null) {
-        Swap(crossoverPoint0, selectedBranch);
-        AddStatistics(semantic0, parent0, statement, crossoverPoint0, json0, selectedBranch, random, variables, variableSettings, problemData.LoopBreakConst, problemData.Variables.GetTypesOfVariables()); // parent zero has been changed is now considered the child
-      } else {
-        AddStatisticsNoCrossover(NoXoNoSelectedBranch);
-      }
+      // perform the actual swap, selectedBranch is never null
+      newSemantics = SemanticSwap(crossoverPoint0, selectedBranch, parent0, parent1, semantic0, semantic1);
+      AddStatistics(semantic0, parent0, statement, crossoverPoint0, json0, selectedBranch, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child        
 
       return parent0;
     }

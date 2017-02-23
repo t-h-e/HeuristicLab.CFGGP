@@ -156,17 +156,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyzer\SemanticManipulatorAnalyzer.cs" />
     <Compile Include="Analyzer\SemanticCrossoverAnalyzer.cs" />
+    <Compile Include="Crossover\AbstractSemanticAnalyzationCrossover.cs" />
+    <Compile Include="Crossover\SubtreeCrossoverWithSemanticSwap.cs" />
+    <Compile Include="Crossover\SimpleSemanticAnalyzationCrossover.cs" />
     <Compile Include="Crossover\SemanticAnalyzationSubtreeCrossover.cs" />
     <Compile Include="Crossover\SemanticAnalyzationCrossover.cs" />
     <Compile Include="Crossover\CFGPythonSemanticEvalCrossover.cs" />
     <Compile Include="Evaluator\CFGPythonTraceTableEvaluator.cs" />
+    <Compile Include="Intefaces\ICFGPythonSemanticsOperator.cs" />
+    <Compile Include="Intefaces\ICFGPythonSemanticsManipulator.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
+    <Compile Include="Manipulators\SemanticAnalyzationManipulator.cs" />
+    <Compile Include="Manipulators\CFGPythonSemanticManipulator.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PythonProcessSemanticHelper.cs" />
     <Compile Include="PythonSemanticComparer.cs" />
     <Compile Include="PythonStatementSemantic.cs" />
+    <Compile Include="SemanticOperatorHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HeuristicLab.snk" />
