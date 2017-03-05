@@ -338,7 +338,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        DataRow worseThanRootedRow = new DataRow("Worse than rooted");
+        DataRow worseThanRootedRow = new DataRow("Worse than or equal to rooted");
         worseThanRootedRow.VisualProperties.StartIndexZero = true;
         table.Rows.Add(worseThanRootedRow);
 
@@ -357,7 +357,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         constructiveEffectCount[constructiveEffect[i].Value]++;
       }
 
-      ConstructiveEffectDataTable.Rows["Worse than rooted"].Values.Add(constructiveEffectCount[0] / constructiveEffect.Length * 100.0);
+      ConstructiveEffectDataTable.Rows["Worse than or equal to rooted"].Values.Add(constructiveEffectCount[0] / constructiveEffect.Length * 100.0);
       ConstructiveEffectDataTable.Rows["Better than rooted"].Values.Add((constructiveEffectCount[1] + constructiveEffectCount[2]) / constructiveEffect.Length * 100.0);
       ConstructiveEffectDataTable.Rows["Better than both"].Values.Add(constructiveEffectCount[2] / constructiveEffect.Length * 100.0);
     }

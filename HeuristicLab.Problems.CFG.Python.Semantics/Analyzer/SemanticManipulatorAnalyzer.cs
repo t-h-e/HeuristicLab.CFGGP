@@ -36,9 +36,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
   [StorableClass]
   public class SemanticManipulatorAnalyzer : SingleSuccessorOperator, IAnalyzer, IIterationBasedOperator {
     private const string NumberOfTriesParameterName = "NumberOfTriesMutation";
+    private const string NumberOfMutationsParameterName = "NumberOfMutations";
 
-    // options: semantic mutation, random mutation, no mutation
-    private const string SemanticMutationParameterName = "SemanticMutation";
+    // options: no mutation, semantic mutation, random mutation, 
+    private const string MutationTypeParameterName = "MutationType";
 
     private const string SemanticallyEquivalentMutationParameterName = "SemanticallyEquivalentMutation";
     private const string SemanticallyDifferentFromRootedParentParameterName = "SemanticallyDifferentFromRootedParentMutation";
@@ -57,8 +58,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public IScopeTreeLookupParameter<IntValue> NumberOfTriesParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfTriesParameterName]; }
     }
-    public IScopeTreeLookupParameter<IntValue> SemanticMutationParameter {
-      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[SemanticMutationParameterName]; }
+    public IScopeTreeLookupParameter<IntValue> MutationTypeParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[MutationTypeParameterName]; }
     }
     public IScopeTreeLookupParameter<IntValue> SemanticallyEquivalentMutationParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[SemanticallyEquivalentMutationParameterName]; }
@@ -85,6 +86,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public ResultCollection ResultCollection {
       get { return ResultsParameter.ActualValue; }
     }
+    public DataTable MutationTypeDataTable {
+      get { return ResultCollection.ContainsKey(MutationTypeParameterName) ? ((DataTable)ResultCollection[MutationTypeParameterName].Value) : null; }
+      set { ResultCollection.Add(new Result(MutationTypeParameterName, value)); }
+    }
     public DataTable SemanticallyEquivalentMutationDataTable {
       get { return ResultCollection.ContainsKey(SemanticallyEquivalentMutationParameterName) ? ((DataTable)ResultCollection[SemanticallyEquivalentMutationParameterName].Value) : null; }
       set { ResultCollection.Add(new Result(SemanticallyEquivalentMutationParameterName, value)); }
@@ -101,6 +106,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       get { return ResultCollection.ContainsKey(ConstructiveEffectParameterName) ? ((DataTable)ResultCollection[ConstructiveEffectParameterName].Value) : null; }
       set { ResultCollection.Add(new Result(ConstructiveEffectParameterName, value)); }
     }
+    public DataTable NumberOfMutationsDataTable {
+      get { return ResultCollection.ContainsKey(NumberOfMutationsParameterName) ? ((DataTable)ResultCollection[NumberOfMutationsParameterName].Value) : null; }
+      set { ResultCollection.Add(new Result(NumberOfMutationsParameterName, value)); }
+    }
     #endregion
 
     [StorableConstructor]
@@ -112,7 +121,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       Parameters.Add(new ValueLookupParameter<IntValue>("MaximumIterations", "Unused", new IntValue(-1)));
 
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfTriesParameterName, ""));
-      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticMutationParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(MutationTypeParameterName, ""));
 
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticallyEquivalentMutationParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
@@ -133,14 +142,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       if (IterationsParameter.ActualValue.Value <= 0) { return base.Apply(); }
 
       var numberOfTries = NumberOfTriesParameter.ActualValue.ToArray();
-
       AddAverageTableEntry(numberOfTries, NumberOfTriesParameterName);
 
+      var mutationType = MutationTypeParameter.ActualValue.ToArray();
       var semanticallyEquivalentMutation = SemanticallyEquivalentMutationParameter.ActualValue.ToArray();
       var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.ToArray();
       var semanticLocality = SemanticLocalityParameter.ActualValue.ToArray();
       var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
 
+      AddMutationTypeTableEntry(mutationType);
       AddSemanticallyEquivalentMutationTableEntry(semanticallyEquivalentMutation);
       AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent);
       AddSemanticLocalityTableEntry(semanticLocality);
@@ -197,6 +207,52 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       table.Rows["Average"].Values.Add(values.Select(x => x.Value).Average());
     }
 
+    private void AddMutationTypeTableEntry(IntValue[] mutationType) {
+      DataTable table;
+      if (MutationTypeDataTable == null) {
+        table = new DataTable(SemanticallyEquivalentMutationParameterName, "");
+        table.VisualProperties.YAxisTitle = "Percentage";
+        table.VisualProperties.YAxisMaximumFixedValue = 100.0;
+        table.VisualProperties.YAxisMaximumAuto = false;
+
+        List<string> rowNames = new List<string>() { "No Mutation", "Semantic Mutation", "Random Mutation" };
+        foreach (var name in rowNames) {
+          DataRow row = new DataRow(name);
+          row.VisualProperties.StartIndexZero = true;
+          table.Rows.Add(row);
+        }
+        MutationTypeDataTable = table;
+      }
+      List<int> mutationTypeCount = Enumerable.Repeat(0, 3).ToList();
+      for (int i = 0; i < mutationType.Length; i++) {
+        mutationTypeCount[mutationType[i].Value]++;
+      }
+      double total = mutationType.Length;
+      MutationTypeDataTable.Rows["No Mutation"].Values.Add(mutationTypeCount[0] / total * 100.0);
+      MutationTypeDataTable.Rows["Semantic Mutation"].Values.Add(mutationTypeCount[1] / total * 100.0);
+      MutationTypeDataTable.Rows["Random Mutation"].Values.Add(mutationTypeCount[2] / total * 100.0);
+
+      // Add number of mutations
+
+      if (NumberOfMutationsDataTable == null) {
+        table = new DataTable(NumberOfMutationsParameterName, "");
+        table.VisualProperties.YAxisTitle = "Absolute";
+        table.VisualProperties.YAxisMaximumAuto = false;
+
+        DataRow row = new DataRow("Mutations");
+        row.VisualProperties.StartIndexZero = true;
+        table.Rows.Add(row);
+        row = new DataRow("Mutations (incl. No Mutation)");
+        row.VisualProperties.StartIndexZero = true;
+        table.Rows.Add(row);
+
+        NumberOfMutationsDataTable = table;
+      }
+
+      MutationTypeDataTable.Rows["Mutations"].Values.Add(mutationTypeCount[1] + mutationTypeCount[2]);
+      MutationTypeDataTable.Rows["Mutations (incl. No Mutation)"].Values.Add(mutationTypeCount.Sum());
+    }
+
     private void AddSemanticallyEquivalentMutationTableEntry(IntValue[] semanticallyEquivalentMutation) {
       if (SemanticallyEquivalentMutationDataTable == null) {
         var table = new DataTable(SemanticallyEquivalentMutationParameterName, "");
@@ -204,7 +260,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        List<string> rowNames = new List<string>() { "No Mutation", "Equivalent", "Different", "NoXoProbability", "NoXoNoStatement", "NoXoNoAllowedBranch", "NoXoNoSelectedBranch", "NoXoNoSemantics" };
+        List<string> rowNames = new List<string>() { "No Mutation", "Equivalent", "Different" };
         foreach (var name in rowNames) {
           DataRow row = new DataRow(name);
           row.VisualProperties.StartIndexZero = true;
@@ -212,7 +268,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         }
         SemanticallyEquivalentMutationDataTable = table;
       }
-      List<int> semanticallyEquivalentMutationCount = Enumerable.Repeat(0, 3 + 5).ToList();
+      List<int> semanticallyEquivalentMutationCount = Enumerable.Repeat(0, 3).ToList();
       for (int i = 0; i < semanticallyEquivalentMutation.Length; i++) {
         semanticallyEquivalentMutationCount[semanticallyEquivalentMutation[i].Value]++;
       }
@@ -281,7 +337,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        DataRow worseThanRootedRow = new DataRow("Worse than rooted");
+        DataRow worseThanRootedRow = new DataRow("Worse than or equal to rooted");
         worseThanRootedRow.VisualProperties.StartIndexZero = true;
         table.Rows.Add(worseThanRootedRow);
 
@@ -289,20 +345,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         betterThanRootedRow.VisualProperties.StartIndexZero = true;
         table.Rows.Add(betterThanRootedRow);
 
-        DataRow betterThanBothRow = new DataRow("Better than both");
-        betterThanBothRow.VisualProperties.StartIndexZero = true;
-        table.Rows.Add(betterThanBothRow);
-
         ConstructiveEffectDataTable = table;
       }
-      List<double> constructiveEffectCount = new List<double>() { 0.0, 0.0, 0.0 };
+      List<double> constructiveEffectCount = new List<double>() { 0.0, 0.0 };
       for (int i = 0; i < constructiveEffect.Length; i++) {
         constructiveEffectCount[constructiveEffect[i].Value]++;
       }
 
-      ConstructiveEffectDataTable.Rows["Worse than rooted"].Values.Add(constructiveEffectCount[0] / constructiveEffect.Length * 100.0);
-      ConstructiveEffectDataTable.Rows["Better than rooted"].Values.Add((constructiveEffectCount[1] + constructiveEffectCount[2]) / constructiveEffect.Length * 100.0);
-      ConstructiveEffectDataTable.Rows["Better than both"].Values.Add(constructiveEffectCount[2] / constructiveEffect.Length * 100.0);
+      ConstructiveEffectDataTable.Rows["Worse than or equal to rooted"].Values.Add(constructiveEffectCount[0] / constructiveEffect.Length * 100.0);
+      ConstructiveEffectDataTable.Rows["Better than rooted"].Values.Add((constructiveEffectCount[1]) / constructiveEffect.Length * 100.0);
     }
   }
 }

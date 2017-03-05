@@ -168,6 +168,8 @@
     <Compile Include="Intefaces\ICFGPythonSemanticsOperator.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsManipulator.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
+    <Compile Include="Manipulators\AbstractSemanticAnalyzationManipulator.cs" />
+    <Compile Include="Manipulators\SemanticAnalyzationReplaceManipulator.cs" />
     <Compile Include="Manipulators\SemanticAnalyzationManipulator.cs" />
     <Compile Include="Manipulators\CFGPythonSemanticManipulator.cs" />
     <Compile Include="Plugin.cs" />
