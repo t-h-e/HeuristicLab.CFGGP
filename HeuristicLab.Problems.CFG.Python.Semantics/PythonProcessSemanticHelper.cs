@@ -8,6 +8,66 @@ using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class PythonProcessSemanticHelper {
+    #region traceCodeWithComments
+    private const string traceCodeWithComments = @"import sys
+
+past_locals = {{}}
+variable_list = ['{0}']
+traceTable = {{}}
+executedLines = set()
+
+# http://stackoverflow.com/questions/1645028/trace-table-for-python-programs/1645159#1645159
+def trace(frame, event, arg_unused):
+    global past_locals, traceTable, variable_list
+    # only trace changes within evolve
+    if frame.f_code.co_name != 'evolve':
+        return None
+    # event has to be line to avoid using the return statement twice
+    if event != 'line':
+        if event == 'call':  # reset past_locals as this is a new call to evolve
+            past_locals = {{}}
+        return trace
+
+    # if past_locals is empty, us the current frame to get input variables
+    # ToDo: if the first statement is a function call, this could lead to problems, as the variable changes of the function call might be saved as well
+    # use past locals, as the variables have already been set
+    # cannot use variables of current frame, as they are not set correctly yet, as the line has not yet been executed
+    # using the current variables has different effects, when executing a simple assignment compared to a method call
+    if past_locals:
+        past_locals = frame.f_locals
+    # use current line number to indicate how the variables were set before executing this line
+    current_lineno = frame.f_lineno
+
+    relevant_locals = {{}}
+    executedLines.add(current_lineno)
+    for k, v in past_locals.items():
+        if k in variable_list:
+            relevant_locals[k] = v
+
+    if len(relevant_locals) > 0:
+        # create dict for line number and all variable dicts
+        if current_lineno not in traceTable:
+            traceTable[current_lineno] = {{}}
+            for v in variable_list:
+                traceTable[current_lineno][v] = []
+        elif len(traceTable[current_lineno][variable_list[0]]) >= {1}:
+            past_locals = frame.f_locals
+            return trace
+
+        for v in variable_list:
+            if v in relevant_locals:
+                traceTable[current_lineno][v].append(relevant_locals[v])
+            else:
+                # actually not needed for IronPython, but added so it works for all python versions
+                traceTable[current_lineno][v].append(None)
+    past_locals = frame.f_locals
+    return trace
+
+sys.settrace(trace)
+
+";
+    #endregion
+
     private const string traceCode = @"import sys
 
 past_locals = {{}}
@@ -17,36 +77,38 @@ executedLines = set()
 
 def trace(frame, event, arg_unused):
     global past_locals, traceTable, variable_list
-
     if frame.f_code.co_name != 'evolve':
         return None
+    if event != 'line':
+        if event == 'call':
+            past_locals = {{}}
+        return trace
+
+    if past_locals:
+        past_locals = frame.f_locals
+    current_lineno = frame.f_lineno
 
     relevant_locals = {{}}
-    all_locals = frame.f_locals.copy()
-
-    executedLines.add(frame.f_lineno)
-    for k, v in all_locals.items():
+    executedLines.add(current_lineno)
+    for k, v in past_locals.items():
         if k in variable_list:
             relevant_locals[k] = v
 
-    if len(relevant_locals) > 0 and past_locals != relevant_locals:
-        # create dict for line number and all variable dicts
-        if frame.f_lineno not in traceTable:
-            traceTable[frame.f_lineno] = {{}}
+    if len(relevant_locals) > 0:
+        if current_lineno not in traceTable:
+            traceTable[current_lineno] = {{}}
             for v in variable_list:
-                traceTable[frame.f_lineno][v] = []
-        else:
-            if len(traceTable[frame.f_lineno][variable_list[0]]) >= {1}:
-                past_locals = relevant_locals
-                return trace
+                traceTable[current_lineno][v] = []
+        elif len(traceTable[current_lineno][variable_list[0]]) >= {1}:
+            past_locals = frame.f_locals
+            return trace
 
         for v in variable_list:
             if v in relevant_locals:
-                traceTable[frame.f_lineno][v].append(relevant_locals[v])
+                traceTable[current_lineno][v].append(relevant_locals[v])
             else:
-                # actually not needed for IronPython, but added so it works for all python versions
-                traceTable[frame.f_lineno][v].append(None)
-        past_locals = relevant_locals
+                traceTable[current_lineno][v].append(None)
+    past_locals = frame.f_locals
     return trace
 
 sys.settrace(trace)
@@ -67,14 +129,14 @@ for l in lines:
   if not traceTable[l]:
     del traceTable[l]";
 
-    private string traceCodeWithVariables;
+    private readonly string traceCodeWithVariables;
 
     public PythonProcessSemanticHelper() {
       traceCodeWithVariables = String.Empty;
     }
 
     public PythonProcessSemanticHelper(IEnumerable<string> variableNames, int limit) {
-      if (variableNames == null || variableNames.Count() == 0 || limit <= 0) {
+      if (variableNames == null || !variableNames.Any() || limit <= 0) {
         traceCodeWithVariables = String.Empty;
       } else {
         traceCodeWithVariables = String.Format(traceCode, String.Join("', '", variableNames.Where(x => !String.IsNullOrWhiteSpace(x))), limit);

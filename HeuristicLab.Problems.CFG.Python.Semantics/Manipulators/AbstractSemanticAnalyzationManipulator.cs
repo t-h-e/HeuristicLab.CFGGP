@@ -132,7 +132,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (String.IsNullOrEmpty(beforeResults.Item4) && !String.IsNullOrEmpty(afterResults.Item4)) {
         SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(true);
       } else {
-        CheckDifference(beforeResults.Item5.Last(), afterResults.Item5.Last());
+        CheckDifference(beforeResults.Item5.First(), afterResults.Item5.First()); // first semantic statement is <predefined> which contains all code and therefore all changes to res*
       }
       SemanticLocalityParameter.ActualValue = new DoubleValue(Math.Abs(beforeResults.Item3 - afterResults.Item3));
       ConstructiveEffectParameter.ActualValue = new IntValue(afterResults.Item3 < beforeResults.Item3 ? 1 : 0); // 1 == contructive; 0 == not
@@ -147,16 +147,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     // copied from AbstractSemanticAnalyzationCrossover
     private void CheckDifference(PythonStatementSemantic beforeSemantics, PythonStatementSemantic afterSemantics) {
+      SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
       // check all results
-      var resKeys = beforeSemantics.After.Keys.Where(x => x.StartsWith("res"));
+      var resKeys = beforeSemantics.Before.Keys.Where(x => x.StartsWith("res"));
       foreach (var resKey in resKeys) {
         var beforeRes = beforeSemantics.After.Keys.Contains(resKey) ? beforeSemantics.After[resKey] : beforeSemantics.Before[resKey];
         var afterRes = afterSemantics.After.Keys.Contains(resKey) ? afterSemantics.After[resKey] : afterSemantics.Before[resKey];
 
         var enumParent = beforeRes.GetEnumerator();
         var enumChild = afterRes.GetEnumerator();
-
-        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
 
         var type = ProblemData.Variables.GetTypesOfVariables().First(x => x.Value.Contains(resKey)).Key;
         if (type.IsListType()) {

@@ -159,7 +159,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         }
         #endregion
         tries++;
-      } while (tries < MAX_TRIES && allowedSymbols.Count == 0 && semanticTries <= maximumSemanticTries);
+      } while (tries < MAX_TRIES && allowedSymbols.Count == 0);
 
       NumberOfTriesParameter.ActualValue = new IntValue(semanticTries);
       if (SemanticallyEquivalentMutationParameter.ActualValue == null) {

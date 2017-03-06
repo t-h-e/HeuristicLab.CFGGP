@@ -232,19 +232,19 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(true);
         return; // no semantics is available, but the child is different because it failed, which is different from its parent
       }
-      var parent0Semantic = semantic0.Last();
-      var childSemantic = childResults.Item5.Last();
+      // first semantic statement is <predefined> which contains all code and therefore all changes to res*
+      var parent0Semantic = semantic0.First();
+      var childSemantic = childResults.Item5.First();
 
       // check all results
       var resKeys = parent0Semantic.After.Keys.Where(x => x.StartsWith("res"));
+      SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
       foreach (var resKey in resKeys) {
         var parent0Res = parent0Semantic.After.Keys.Contains(resKey) ? parent0Semantic.After[resKey] : parent0Semantic.Before[resKey];
         var child0Res = childSemantic.After.Keys.Contains(resKey) ? childSemantic.After[resKey] : childSemantic.Before[resKey];
 
         var enumParent = parent0Res.GetEnumerator();
         var enumChild = child0Res.GetEnumerator();
-
-        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
 
         var type = ProblemData.Variables.GetTypesOfVariables().First(x => x.Value.Contains(resKey)).Key;
         if (type.IsListType()) {

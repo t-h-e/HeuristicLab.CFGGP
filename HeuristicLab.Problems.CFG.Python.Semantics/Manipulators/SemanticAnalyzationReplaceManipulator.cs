@@ -123,7 +123,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
           SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
         }
 
-        SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(RandomMutation);
         MutationTypeParameter.ActualValue = new IntValue(RandomMutation);
       } else {
         SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(NoMutation);

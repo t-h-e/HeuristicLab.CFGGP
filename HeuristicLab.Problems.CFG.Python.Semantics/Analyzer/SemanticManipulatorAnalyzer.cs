@@ -150,6 +150,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       var semanticLocality = SemanticLocalityParameter.ActualValue.ToArray();
       var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
 
+      if (mutationType.Length != semanticallyEquivalentMutation.Length && mutationType.Length != semanticallyDifferentFromRootedParent.Length && mutationType.Length != semanticLocality.Length && mutationType.Length != constructiveEffect.Length) {
+        throw new ArgumentException("All arrays should have the same length");
+      }
+
       AddMutationTypeTableEntry(mutationType);
       AddSemanticallyEquivalentMutationTableEntry(semanticallyEquivalentMutation);
       AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent);
@@ -249,8 +253,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         NumberOfMutationsDataTable = table;
       }
 
-      MutationTypeDataTable.Rows["Mutations"].Values.Add(mutationTypeCount[1] + mutationTypeCount[2]);
-      MutationTypeDataTable.Rows["Mutations (incl. No Mutation)"].Values.Add(mutationTypeCount.Sum());
+      NumberOfMutationsDataTable.Rows["Mutations"].Values.Add(mutationTypeCount[1] + mutationTypeCount[2]);
+      NumberOfMutationsDataTable.Rows["Mutations (incl. No Mutation)"].Values.Add(mutationTypeCount.Sum());
     }
 
     private void AddSemanticallyEquivalentMutationTableEntry(IntValue[] semanticallyEquivalentMutation) {
