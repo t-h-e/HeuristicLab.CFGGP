@@ -159,6 +159,10 @@
       <HintPath>..\..\HeuristicLab\bin\HeuristicLab.Selection-3.3.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="HeuristicLab.SequentialEngine-3.3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=ba48961d6f65dcec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\HeuristicLab\bin\HeuristicLab.SequentialEngine-3.3.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\HeuristicLab\bin\Newtonsoft.Json.dll</HintPath>
@@ -185,16 +189,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplesUtils.cs" />
     <Compile Include="PythonEvaluationTest.cs" />
-    <Compile Include="Semantic.cs" />
+    <Compile Include="Semantics.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HeuristicLab.snk" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Data\Negative_To_Zero-Input.txt">
+    <Content Include="Data\Smallest-Input.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Data\Negative_To_Zero-Output.txt">
+    <Content Include="Data\Smallest-Output.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Data\NormalResultJson.txt">

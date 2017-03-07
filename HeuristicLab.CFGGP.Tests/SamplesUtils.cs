@@ -79,7 +79,7 @@ namespace HeuristicLab.CFGGP.Tests {
       if (tSelector != null) {
         tSelector.GroupSizeParameter.Value.Value = tournGroupSize;
       }
-      ga.Engine = new ParallelEngine.ParallelEngine();
+      ga.Engine = new SequentialEngine.SequentialEngine();
     }
   }
 }

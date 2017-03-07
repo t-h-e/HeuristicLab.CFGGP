@@ -28,10 +28,10 @@ using HeuristicLab.Algorithms.GeneticAlgorithm;
 using HeuristicLab.Analysis;
 using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
+using HeuristicLab.Misc;
 using HeuristicLab.Persistence.Default.Xml;
 using HeuristicLab.Problems.CFG.Python;
 using HeuristicLab.Problems.Instances.CFG;
-using HeuristicLab.Selection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace HeuristicLab.CFGGP.Tests {
@@ -42,30 +42,32 @@ namespace HeuristicLab.CFGGP.Tests {
     [TestMethod]
     [TestCategory("Samples.Create")]
     [TestProperty("Time", "medium")]
-    public void CreateGpSymbolicRegressionSampleTest() {
-      var ga = CreateGpSymbolicRegressionSample();
+    public void CreateCFGGPSampleTest() {
+      var ga = CreateCFGGPSample();
       string path = Path.Combine(SampleFileName + SamplesUtils.SampleFileExtension);
       XmlGenerator.Serialize(ga, path);
     }
     [TestMethod]
     [TestCategory("Samples.Execute")]
     [TestProperty("Time", "long")]
-    public void RunGpSymbolicRegressionSampleTest() {
-      var ga = CreateGpSymbolicRegressionSample();
+    public void RunCFGGPSampleTest() {
+      var ga = CreateCFGGPSample();
       ga.SetSeedRandomly.Value = false;
-      ga.Seed.Value = 974337247;
+      ga.Seed.Value = 530223337;
       ((CFGPythonProblem)ga.Problem).TimeoutParameter.Value.Value = 10000;
       SamplesUtils.RunAlgorithm(ga);
-      Assert.AreEqual(1110680, SamplesUtils.GetDoubleResult(ga, "BestQuality"));
-      Assert.AreEqual(36740874.6, SamplesUtils.GetDoubleResult(ga, "CurrentAverageQuality"));
-      Assert.AreEqual(1480653094, SamplesUtils.GetDoubleResult(ga, "CurrentWorstQuality"));
-      Assert.AreEqual(5490, SamplesUtils.GetIntResult(ga, "EvaluatedSolutions"));
-      Assert.AreEqual(3, SamplesUtils.GetIntResult(ga, "Best training solution generation"));
+      Assert.AreEqual(56, SamplesUtils.GetDoubleResult(ga, "BestQuality"));
+      Assert.AreEqual(71.2, SamplesUtils.GetDoubleResult(ga, "CurrentAverageQuality"));
+      Assert.AreEqual(99, SamplesUtils.GetDoubleResult(ga, "CurrentWorstQuality"));
+      Assert.AreEqual(1090, SamplesUtils.GetIntResult(ga, "EvaluatedSolutions"));
+      Assert.AreEqual(10, SamplesUtils.GetIntResult(ga, "Best training solution generation"));
       var bestTrainingSolution = (CFGPythonSolution)ga.Results["Best training solution"].Value;
-      Assert.AreEqual(1110680, ((DoubleValue)bestTrainingSolution["Training Quality"].Value).Value);
-      Assert.AreEqual(12490706, ((DoubleValue)bestTrainingSolution["Test Quality"].Value).Value);
-      Assert.AreEqual(0.13, ((PercentValue)bestTrainingSolution["Training Solved Cases Percentage"].Value).Value);
-      Assert.AreEqual(0.0795, ((PercentValue)bestTrainingSolution["Test Solved Cases Percentage"].Value).Value);
+      Assert.AreEqual(56, ((DoubleValue)bestTrainingSolution["Training Quality"].Value).Value);
+      Assert.AreEqual(596, ((DoubleValue)bestTrainingSolution["Test Quality"].Value).Value);
+      Assert.AreEqual(38, ((IntValue)bestTrainingSolution["Model Depth"].Value).Value);
+      Assert.AreEqual(248, ((IntValue)bestTrainingSolution["Model Length"].Value).Value);
+      Assert.AreEqual(0.44, ((PercentValue)bestTrainingSolution["Training Solved Cases Percentage"].Value).Value);
+      Assert.AreEqual(0.404, ((PercentValue)bestTrainingSolution["Test Solved Cases Percentage"].Value).Value);
       var exceptionTable = (DataTable)ga.Results["Exception frequencies"].Value;
       Assert.AreEqual(1, exceptionTable.Rows.Count);
       Assert.IsTrue(exceptionTable.Rows.ContainsKey("No Exception"));
@@ -75,20 +77,22 @@ namespace HeuristicLab.CFGGP.Tests {
     [TestMethod]
     [TestCategory("Samples.Execute")]
     [TestProperty("Time", "long")]
-    public void RunGpSymbolicRegressionSampleTestSolutionFound() {
-      var ga = CreateGpSymbolicRegressionSample();
+    public void RunCFGGPSampleTestSolutionFound() {
+      var ga = CreateCFGGPSample();
       ga.SetSeedRandomly.Value = false;
-      ga.Seed.Value = 1525736133;
+      ga.Seed.Value = 461206446;
       ((CFGPythonProblem)ga.Problem).TimeoutParameter.Value.Value = 10000;
       SamplesUtils.RunAlgorithm(ga);
       Assert.AreEqual(0, SamplesUtils.GetDoubleResult(ga, "BestQuality"));
-      Assert.AreEqual(29072425.518, SamplesUtils.GetDoubleResult(ga, "CurrentAverageQuality"));
-      Assert.AreEqual(1434460000, SamplesUtils.GetDoubleResult(ga, "CurrentWorstQuality"));
-      Assert.AreEqual(5490, SamplesUtils.GetIntResult(ga, "EvaluatedSolutions"));
-      Assert.AreEqual(5, SamplesUtils.GetIntResult(ga, "Best training solution generation"));
+      Assert.AreEqual(13.09, SamplesUtils.GetDoubleResult(ga, "CurrentAverageQuality"));
+      Assert.AreEqual(99, SamplesUtils.GetDoubleResult(ga, "CurrentWorstQuality"));
+      Assert.AreEqual(1090, SamplesUtils.GetIntResult(ga, "EvaluatedSolutions"));
+      Assert.AreEqual(7, SamplesUtils.GetIntResult(ga, "Best training solution generation"));
       var bestTrainingSolution = (CFGPythonSolution)ga.Results["Best training solution"].Value;
       Assert.AreEqual(0, ((DoubleValue)bestTrainingSolution["Training Quality"].Value).Value);
       Assert.AreEqual(0, ((DoubleValue)bestTrainingSolution["Test Quality"].Value).Value);
+      Assert.AreEqual(17, ((IntValue)bestTrainingSolution["Model Depth"].Value).Value);
+      Assert.AreEqual(62, ((IntValue)bestTrainingSolution["Model Length"].Value).Value);
       Assert.AreEqual(1.0, ((PercentValue)bestTrainingSolution["Training Solved Cases Percentage"].Value).Value);
       Assert.AreEqual(1.0, ((PercentValue)bestTrainingSolution["Test Solved Cases Percentage"].Value).Value);
       var exceptionTable = (DataTable)ga.Results["Exception frequencies"].Value;
@@ -101,9 +105,9 @@ namespace HeuristicLab.CFGGP.Tests {
     [TestCategory("Samples.Execute")]
     [TestProperty("Time", "long")]
     public void DisposePythonProcesses() {
-      var ga = CreateGpSymbolicRegressionSample();
+      var ga = CreateCFGGPSample();
       ga.SetSeedRandomly.Value = false;
-      ga.Seed.Value = 1901283838;
+      ga.Seed.Value = 461206446;
       var before = Process.GetProcessesByName("python").Length;
       SamplesUtils.RunAlgorithm(ga);
       var after = Process.GetProcessesByName("python").Length;
@@ -114,17 +118,17 @@ namespace HeuristicLab.CFGGP.Tests {
       Assert.AreEqual(before, afterDispose);
     }
 
-    private GeneticAlgorithm CreateGpSymbolicRegressionSample() {
+    private GeneticAlgorithm CreateCFGGPSample() {
       GeneticAlgorithm ga = new GeneticAlgorithm();
       #region Problem Configuration
       CFGPythonProblem cfgPythonProblem = new CFGPythonProblem();
-      cfgPythonProblem.Name = "Negative To Zero Problem";
-      cfgPythonProblem.Description = "Negative To Zero (described in: http://dl.acm.org/citation.cfm?id=2754769)";
-      BenchmarkSuiteInstanceProvider provider = new BenchmarkSuiteInstanceProvider();
-      var instance = provider.GetDataDescriptors().Where(x => x.Name.Equals("Negative To Zero")).Single();
+      cfgPythonProblem.Name = "Smallest Problem";
+      cfgPythonProblem.Description = "Smallest (described in: http://dl.acm.org/citation.cfm?id=2754769)";
+      var provider = new BenchmarkSuiteListInstanceProvider();
+      var instance = provider.GetDataDescriptors().Single(x => x.Name.Equals("Smallest"));
       CFGData data = (CFGData)provider.LoadData(instance);
-      data.Input = File.ReadAllLines(@"Data\Negative_To_Zero-Input.txt");
-      data.Output = File.ReadAllLines(@"Data\Negative_To_Zero-Output.txt");
+      data.Input = File.ReadAllLines(@"Data\Smallest-Input.txt");
+      data.Output = File.ReadAllLines(@"Data\Smallest-Output.txt");
       cfgPythonProblem.Load(data);
 
       // configure remaining problem parameters
@@ -135,8 +139,8 @@ namespace HeuristicLab.CFGGP.Tests {
       ga.Problem = cfgPythonProblem;
       ga.Name = "Genetic Programming - CFG Python";
       ga.Description = "A standard genetic programming algorithm to solve a cfg python problem";
-      SamplesUtils.ConfigureGeneticAlgorithmParameters<TournamentSelector, SubtreeCrossover, MultiSymbolicExpressionTreeManipulator>(
-        ga, 500, 1, 10, 0.05, 5);
+      SamplesUtils.ConfigureGeneticAlgorithmParameters<LexicaseSelector, SubtreeCrossover, MultiSymbolicExpressionTreeManipulator>(
+        ga, 100, 1, 10, 0.05, 5);
       var mutator = (MultiSymbolicExpressionTreeManipulator)ga.Mutator;
       mutator.Operators.SetItemCheckedState(mutator.Operators
         .OfType<FullTreeShaker>()
