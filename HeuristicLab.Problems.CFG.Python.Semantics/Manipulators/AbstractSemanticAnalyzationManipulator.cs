@@ -129,8 +129,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public abstract void ReplaceBranch(IRandom random, ISymbolicExpressionTree symbolicExpressionTree, ICFGPythonProblemData problemData, ItemArray<PythonStatementSemantic> semantics, PythonProcess pythonProcess, double timeout, int maxTreeLength, int maxTreeDepth, int maximumSemanticTries);
 
     private void AddStatistics(Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> beforeResults, Tuple<IEnumerable<bool>, IEnumerable<double>, double, string, List<PythonStatementSemantic>> afterResults) {
-      if (String.IsNullOrEmpty(beforeResults.Item4) && !String.IsNullOrEmpty(afterResults.Item4)) {
-        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(true);
+      if (!String.IsNullOrEmpty(beforeResults.Item4) || !String.IsNullOrEmpty(afterResults.Item4)) {
+        SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(beforeResults.Item4 != afterResults.Item4);
       } else {
         CheckDifference(beforeResults.Item5.First(), afterResults.Item5.First()); // first semantic statement is <predefined> which contains all code and therefore all changes to res*
       }
