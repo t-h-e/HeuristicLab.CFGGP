@@ -104,22 +104,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         return parent0;
       }
 
-      // select MaxCompares random crossover points
-      // Use set to avoid having the same node multiple times
-      HashSet<ISymbolicExpressionTreeNode> compBranches;
-      if (allowedBranches.Count < NumberOfCutPointsSecond) {
-        compBranches = new HashSet<ISymbolicExpressionTreeNode>(allowedBranches);
-      } else {
-        compBranches = new HashSet<ISymbolicExpressionTreeNode>();
-        for (int i = 0; i < NumberOfCutPointsSecond; i++) {
-          var possibleBranch = SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability);
-          allowedBranches.Remove(possibleBranch);
-          compBranches.Add(possibleBranch);
-        }
-      }
+      // select NumberOfCutPointsSecond random crossover points
+      // Ignore internalCrossoverPointProbability, was already used to select cutpoint and the cutpoint child already reduces possibilities 
+      var compBranches = allowedBranches.SampleRandomWithoutRepetition(random, NumberOfCutPointsSecond).ToList(); // convert to list so that the linq expression is only executed once, to always get the same branches
 
-      var allowedBranchesPerCutpoint = new List<IEnumerable<ISymbolicExpressionTreeNode>>() { allowedBranches };
-      allowedBranchesPerCutpoint.AddRange(crossoverPoints0.Skip(1).Select(x => FindFittingNodes(x, parent0, allowedBranches, maxTreeLength, maxTreeDepth)));
+      var allowedBranchesPerCutpoint = new List<IEnumerable<ISymbolicExpressionTreeNode>>() { compBranches };
+      allowedBranchesPerCutpoint.AddRange(crossoverPoints0.Skip(1).Select(x => FindFittingNodes(x, parent0, compBranches, maxTreeLength, maxTreeDepth)));
 
       // set NumberOfPossibleBranchesSelected
       NumberOfPossibleBranchesSelected = compBranches.Count;
@@ -176,19 +166,18 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         foreach (var possibleBranch in allowedBranchesPerCutpoint[i]) {
           JObject jsonPossibleBranch;
           if (!jsonOutput.ContainsKey(possibleBranch)) {
-            jsonPossibleBranch = SemanticOperatorHelper.EvaluateStatementNode(cutPoint.Child, PyProcess, random, problemData, variables, variableSettings, Timeout);
+            jsonPossibleBranch = SemanticOperatorHelper.EvaluateStatementNode(possibleBranch, PyProcess, random, problemData, variables, variableSettings, Timeout);
             jsonOutput.Add(possibleBranch, jsonPossibleBranch);
           } else {
             jsonPossibleBranch = jsonOutput[possibleBranch];
           }
 
           if (!String.IsNullOrWhiteSpace((string)jsonPossibleBranch["exception"])) { continue; }
+          if (JToken.EqualityComparer.Equals(jsonCur, jsonPossibleBranch)) continue;
 
-          if (!JToken.EqualityComparer.Equals(jsonCur, jsonPossibleBranch)) {
-            selectedBranch = possibleBranch;
-            selectedCutPoint = cutPoint;
-            return;
-          }
+          selectedBranch = possibleBranch;
+          selectedCutPoint = cutPoint;
+          return;
         }
       }
 
@@ -246,42 +235,43 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     // check the statement node of every cut point in the parent
     // takes longer, but really checks for differences
     private void SelectBranchFromNodes2(IEnumerable<string> statementProductionNames, IList<CutPoint> crossoverPoints0, IList<IEnumerable<ISymbolicExpressionTreeNode>> allowedBranchesPerCutpoint, IRandom random, List<string> variables, string variableSettings, ICFGPythonProblemData problemData, out ISymbolicExpressionTreeNode selectedBranch, out CutPoint selectedCutPoint) {
-      var primaryCutPoint = crossoverPoints0[0];
-      primaryCutPoint.Parent.RemoveSubtree(primaryCutPoint.ChildIndex); // removes parent from child
       for (int i = 0; i < crossoverPoints0.Count; i++) {
         var cutPoint = crossoverPoints0[i];
-        var curStatementNode = SemanticOperatorHelper.GetStatementNode(cutPoint.Child, statementProductionNames); ;
-        primaryCutPoint.Parent.InsertSubtree(primaryCutPoint.ChildIndex, cutPoint.Child); // this will affect cutPoint.Parent
+        ISymbolicExpressionTreeNode curStatementNode = SemanticOperatorHelper.GetStatementNode(cutPoint.Child, statementProductionNames);
         var jsonCur = SemanticOperatorHelper.EvaluateStatementNode(curStatementNode, PyProcess, random, problemData, variables, variableSettings, Timeout);
-        primaryCutPoint.Parent.RemoveSubtree(primaryCutPoint.ChildIndex); // removes intermediate parent from node
-        cutPoint.Child.Parent = cutPoint.Parent; // restore parent
 
         if (!String.IsNullOrWhiteSpace((string)jsonCur["exception"])) { continue; }
+        cutPoint.Parent.RemoveSubtree(cutPoint.ChildIndex); // removes parent from node
         foreach (var possibleBranch in allowedBranchesPerCutpoint[i]) {
-          var parent = possibleBranch.Parent; // save parent
-          primaryCutPoint.Parent.InsertSubtree(primaryCutPoint.ChildIndex, possibleBranch); // this will affect node.Parent
-          JObject jsonPossibleBranch = SemanticOperatorHelper.EvaluateStatementNode(curStatementNode, PyProcess, random, problemData, variables, variableSettings, Timeout);
-          primaryCutPoint.Parent.RemoveSubtree(primaryCutPoint.ChildIndex); // removes intermediate parent from node
-          possibleBranch.Parent = parent; // restore parent
+          JObject jsonPossibleBranch;
+          if (curStatementNode == cutPoint.Child) {
+            jsonPossibleBranch = SemanticOperatorHelper.EvaluateStatementNode(possibleBranch, PyProcess, random, problemData, variables, variableSettings, Timeout);
+          } else {
+            var parent = possibleBranch.Parent; // save parent
+            cutPoint.Parent.InsertSubtree(cutPoint.ChildIndex, possibleBranch); // this will affect node.Parent
+            jsonPossibleBranch = SemanticOperatorHelper.EvaluateStatementNode(curStatementNode, PyProcess, random, problemData, variables, variableSettings, Timeout);
+            cutPoint.Parent.RemoveSubtree(cutPoint.ChildIndex); // removes intermediate parent from node
+            possibleBranch.Parent = parent; // restore parent
+          }
 
           if (!String.IsNullOrWhiteSpace((string)jsonPossibleBranch["exception"])) { continue; }
+          if (JToken.EqualityComparer.Equals(jsonCur, jsonPossibleBranch)) { continue; } // equal json, therefore continue
 
-          if (!JToken.EqualityComparer.Equals(jsonCur, jsonPossibleBranch)) {
-            primaryCutPoint.Parent.InsertSubtree(primaryCutPoint.ChildIndex, primaryCutPoint.Child); // restore primaryCutPoint
-            selectedBranch = possibleBranch;
-            selectedCutPoint = cutPoint;
-            return;
-          }
+          cutPoint.Parent.InsertSubtree(cutPoint.ChildIndex, cutPoint.Child); // restore cutPoint
+          selectedBranch = possibleBranch;
+          selectedCutPoint = cutPoint;
+          return;
         }
+        cutPoint.Parent.InsertSubtree(cutPoint.ChildIndex, cutPoint.Child); // restore cutPoint
       }
 
-      primaryCutPoint.Parent.InsertSubtree(primaryCutPoint.ChildIndex, primaryCutPoint.Child); // restore primaryCutPoint
-      // no difference was found with any comparison, select random
+      // no difference was found with any comparison, select randomly
+      // only select form the first cut point, as the other cut points might not have allowedBranchesPerCutpoint
       selectedBranch = allowedBranchesPerCutpoint[0].SampleRandom(random);
       selectedCutPoint = crossoverPoints0[0];
     }
 
-    private IEnumerable<ISymbolicExpressionTreeNode> FindFittingNodes(CutPoint cutPoint, ISymbolicExpressionTree parent0, List<ISymbolicExpressionTreeNode> allowedBranches, int maxTreeLength, int maxTreeDepth) {
+    private IEnumerable<ISymbolicExpressionTreeNode> FindFittingNodes(CutPoint cutPoint, ISymbolicExpressionTree parent0, IEnumerable<ISymbolicExpressionTreeNode> allowedBranches, int maxTreeLength, int maxTreeDepth) {
       int childLength = cutPoint.Child != null ? cutPoint.Child.GetLength() : 0;
       // calculate the max length and depth that the inserted branch can have 
       int maxInsertedBranchLength = maxTreeLength - (parent0.Length - childLength);
@@ -337,7 +327,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private static IEnumerable<CutPoint> GetCutPointsOfMatchingType(IRandom random, IEnumerable<CutPoint> crossoverPoints, int count) {
       CutPoint cutPoint = crossoverPoints.SampleRandom(random);
       var cutPoints = new List<CutPoint>() { cutPoint };
-      cutPoints.AddRange(crossoverPoints.Where(x => x != cutPoint && cutPoint.IsMatchingPointType(x.Child)).SampleRandomWithoutRepetition(random, count));
+      cutPoints.AddRange(crossoverPoints.Where(x => x != cutPoint && cutPoint.IsMatchingPointType(x.Child)).SampleRandomWithoutRepetition(random, count - 1));
       return cutPoints;
     }
   }
