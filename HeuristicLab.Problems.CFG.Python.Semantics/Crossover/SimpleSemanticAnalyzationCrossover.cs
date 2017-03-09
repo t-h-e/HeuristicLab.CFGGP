@@ -245,6 +245,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         foreach (var possibleBranch in allowedBranchesPerCutpoint[i]) {
           JObject jsonPossibleBranch;
           if (curStatementNode == cutPoint.Child) {
+            // shouldn't actually happen
             jsonPossibleBranch = SemanticOperatorHelper.EvaluateStatementNode(possibleBranch, PyProcess, random, problemData, variables, variableSettings, Timeout);
           } else {
             var parent = possibleBranch.Parent; // save parent

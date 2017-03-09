@@ -148,28 +148,42 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public override IOperation Apply() {
       if (IterationsParameter.ActualValue.Value <= 0) { return base.Apply(); }
 
-      var numberOfAllowedBranches = NumberOfAllowedBranchesParameter.ActualValue.ToArray();
-      var numberOfPossibleBranchesSelected = NumberOfPossibleBranchesSelectedParameter.ActualValue.ToArray();
-      var numberOfNoChangeDetected = NumberOfNoChangeDetectedParameter.ActualValue.ToArray();
-      var typeSelectedForSimilarity = TypeSelectedForSimilarityParameter.ActualValue.ToArray();
+      var numberOfAllowedBranches = NumberOfAllowedBranchesParameter.ActualValue.Where(x => x != null).ToArray();
+      var numberOfPossibleBranchesSelected = NumberOfPossibleBranchesSelectedParameter.ActualValue.Where(x => x != null).ToArray();
+      var numberOfNoChangeDetected = NumberOfNoChangeDetectedParameter.ActualValue.Where(x => x != null).ToArray();
+      var typeSelectedForSimilarity = TypeSelectedForSimilarityParameter.ActualValue.Where(x => x != null).ToArray();
 
       AddAverageTableEntry(numberOfAllowedBranches, NumberOfAllowedBranchesParameterName);
       AddAverageTableEntry(numberOfPossibleBranchesSelected, NumberOfPossibleBranchesSelectedParameterName);
       AddAverageTableEntry(numberOfNoChangeDetected, NumberOfNoChangeDetectedParameterName);
       AddTypeSelectedForSimilarityTableEntry(typeSelectedForSimilarity);
 
-      var semanticallyEquivalentCrossover = SemanticallyEquivalentCrossoverParameter.ActualValue.ToArray();
-      var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.ToArray();
-      var semanticLocality = SemanticLocalityParameter.ActualValue.ToArray();
-      var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
+      var semanticallyEquivalentCrossover = SemanticallyEquivalentCrossoverParameter.ActualValue.Where(x => x != null).ToArray();
+      var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.Where(x => x != null).ToArray();
+      var semanticLocality = SemanticLocalityParameter.ActualValue.Where(x => x != null).ToArray();
+      var constructiveEffect = ConstructiveEffectParameter.ActualValue.Where(x => x != null).ToArray();
 
       AddSemanticallyEquivalentCrossoverTableEntry(semanticallyEquivalentCrossover);
       AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent);
       AddSemanticLocalityTableEntry(semanticLocality);
       AddConstructiveEffectTableEntry(constructiveEffect);
 
-      var crossoverExceptions = CrossoverExceptionsParameter.ActualValue.SelectMany(x => x).ToArray();
+      var crossoverExceptions = CrossoverExceptionsParameter.ActualValue.Where(x => x != null).SelectMany(x => x).ToArray();
       AddCrossoverExceptionsTableEntry(crossoverExceptions);
+
+      // Remove values, otherwise they might be saved in the elitists
+      var subScopeCount = ExecutionContext.Scope.SubScopes.Count;
+      var nullObjects = Enumerable.Repeat<object>(null, subScopeCount).ToList();
+      var nullIntValueList = nullObjects.Cast<IntValue>().ToList();
+      NumberOfAllowedBranchesParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      NumberOfPossibleBranchesSelectedParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      NumberOfNoChangeDetectedParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      TypeSelectedForSimilarityParameter.ActualValue = new ItemArray<StringValue>(nullObjects.Cast<StringValue>());
+      SemanticallyEquivalentCrossoverParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      SemanticallyDifferentFromRootedParentParameter.ActualValue = new ItemArray<BoolValue>(nullObjects.Cast<BoolValue>());
+      SemanticLocalityParameter.ActualValue = new ItemArray<DoubleValue>(nullObjects.Cast<DoubleValue>());
+      ConstructiveEffectParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      CrossoverExceptionsParameter.ActualValue = new ItemArray<ItemCollection<StringValue>>(nullObjects.Cast<ItemCollection<StringValue>>());
 
       return base.Apply();
     }

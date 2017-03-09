@@ -141,14 +141,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     public override IOperation Apply() {
       if (IterationsParameter.ActualValue.Value <= 0) { return base.Apply(); }
 
-      var numberOfTries = NumberOfTriesParameter.ActualValue.ToArray();
+      var numberOfTries = NumberOfTriesParameter.ActualValue.Where(x => x != null).ToArray();
       AddAverageTableEntry(numberOfTries, NumberOfTriesParameterName);
 
-      var mutationType = MutationTypeParameter.ActualValue.ToArray();
-      var semanticallyEquivalentMutation = SemanticallyEquivalentMutationParameter.ActualValue.ToArray();
-      var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.ToArray();
-      var semanticLocality = SemanticLocalityParameter.ActualValue.ToArray();
-      var constructiveEffect = ConstructiveEffectParameter.ActualValue.ToArray();
+      var mutationType = MutationTypeParameter.ActualValue.Where(x => x != null).ToArray();
+      var semanticallyEquivalentMutation = SemanticallyEquivalentMutationParameter.ActualValue.Where(x => x != null).ToArray();
+      var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.Where(x => x != null).ToArray();
+      var semanticLocality = SemanticLocalityParameter.ActualValue.Where(x => x != null).ToArray();
+      var constructiveEffect = ConstructiveEffectParameter.ActualValue.Where(x => x != null).ToArray();
 
       if (mutationType.Length != semanticallyEquivalentMutation.Length && mutationType.Length != semanticallyDifferentFromRootedParent.Length && mutationType.Length != semanticLocality.Length && mutationType.Length != constructiveEffect.Length) {
         throw new ArgumentException("All arrays should have the same length");
@@ -160,8 +160,20 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       AddSemanticLocalityTableEntry(semanticLocality);
       AddConstructiveEffectTableEntry(constructiveEffect);
 
-      var mutationExceptions = MutationExceptionsParameter.ActualValue.SelectMany(x => x).ToArray();
+      var mutationExceptions = MutationExceptionsParameter.ActualValue.Where(x => x != null).SelectMany(x => x).ToArray();
       AddMutationExceptionsTableEntry(mutationExceptions);
+
+      // Remove values, otherwise they might be saved in the elitists
+      var subScopeCount = ExecutionContext.Scope.SubScopes.Count;
+      var nullObjects = Enumerable.Repeat<object>(null, subScopeCount).ToList();
+      var nullIntValueList = nullObjects.Cast<IntValue>().ToList();
+      NumberOfTriesParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      MutationTypeParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      SemanticallyEquivalentMutationParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      SemanticallyDifferentFromRootedParentParameter.ActualValue = new ItemArray<BoolValue>(nullObjects.Cast<BoolValue>());
+      SemanticLocalityParameter.ActualValue = new ItemArray<DoubleValue>(nullObjects.Cast<DoubleValue>());
+      ConstructiveEffectParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      MutationExceptionsParameter.ActualValue = new ItemArray<ItemCollection<StringValue>>(nullObjects.Cast<ItemCollection<StringValue>>());
 
       return base.Apply();
     }
