@@ -75,7 +75,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         return parent0;
       }
 
-      var selectedBranch = (ISymbolicExpressionTreeNode)SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability).Clone();
+      var selectedBranch = (ISymbolicExpressionTreeNode)SelectRandomBranch(random, allowedBranches, internalCrossoverPointProbability);
 
       // select MaxCompares random crossover points
       // Use set to avoid having the same node multiple times
