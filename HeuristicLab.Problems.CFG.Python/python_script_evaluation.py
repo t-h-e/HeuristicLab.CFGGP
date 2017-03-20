@@ -28,7 +28,7 @@ class Worker(mp.Process):
         while True:
             exception = None
             self.stop.value = False
-            script = self.consume.get()
+            script, variables = self.consume.get()
             if script:
                 help_globals = {'stop': self.stop}
                 try:
@@ -39,10 +39,7 @@ class Worker(mp.Process):
                 if exception:
                     self.produce.put({'exception': exception})
                 else:
-                    self.produce.put({key: value for key, value in help_globals.items()
-                                      if not callable(value) and             # cannot be a function
-                                      not isinstance(value, ModuleType) and  # cannot be a module
-                                      key not in ['__builtins__', 'stop']})  # cannot be builtins or synchronized objects
+                    self.produce.put({key: value for key, value in help_globals.items() if key in variables})
                 del help_globals
             else:
                 break
@@ -78,7 +75,7 @@ if __name__ == '__main__':
             logging.debug(message)
             print(json.dumps({'exception': exception}), flush=True)
             continue
-        consume.put(message_dict['script'])
+        consume.put((message_dict['script'], message_dict['variables']))
         try:
             results = produce.get(block=True, timeout=message_dict['timeout'])
         except Empty:
