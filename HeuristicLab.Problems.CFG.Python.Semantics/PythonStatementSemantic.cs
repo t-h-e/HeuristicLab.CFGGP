@@ -40,7 +40,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
     [StorableConstructor]
     protected PythonStatementSemantic(bool deserializing) : base(deserializing) { }
-
     protected PythonStatementSemantic(PythonStatementSemantic original, Cloner cloner)
       : base(original, cloner) {
       TreeNodePrefixPos = original.TreeNodePrefixPos;

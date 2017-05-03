@@ -43,8 +43,7 @@ namespace HeuristicLab.Problems.CFG {
     public CFGExpressionGrammar readGrammarBNF(String bnf) {
       try {
         return readGrammarBNFPrivate(bnf);
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         ErrorHandling.ShowErrorDialog(e);
         return new CFGExpressionGrammar();
       }
@@ -94,7 +93,6 @@ namespace HeuristicLab.Problems.CFG {
                 var part = String.Join(String.Empty, Enumerable.Range(1, subRule.Groups.Count - 1).Select(x => subRule.Groups[x].Value));
                 // unescape characters so that tab and newline can be defined in the grammar
                 if (part.Contains('\\')) {
-                  part = part.Replace("\\n", Environment.NewLine);
                   part = Regex.Unescape(part);
                 }
                 parts[parts.Count - 1] = parts[parts.Count - 1] + part;
