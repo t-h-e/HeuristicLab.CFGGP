@@ -49,7 +49,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     protected override IEnumerable<List<int>> GenerateTest() {
-      return CreateThresholdsAndGrade(2000, rand);
+      return CreateThresholdsAndGrade(2000, rand).ToList();
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> grades) {

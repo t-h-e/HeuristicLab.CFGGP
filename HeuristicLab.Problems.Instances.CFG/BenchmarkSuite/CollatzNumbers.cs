@@ -48,7 +48,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     protected override IEnumerable<int> GenerateTest() {
-      return ValueGenerator.GenerateUniformDistributedValues(2000, 1, 10000, rand);
+      return ValueGenerator.GenerateUniformDistributedValues(2000, 1, 10000, rand).ToList();
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<int> x0) {

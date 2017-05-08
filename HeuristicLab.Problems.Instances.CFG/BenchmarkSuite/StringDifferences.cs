@@ -53,7 +53,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override IEnumerable<List<string>> GenerateTest() {
       return StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand)
                   .Zip(StringValueGenerator.GetRandomStringsWithoutSpaces(2000, 0, 10, rand),
-                        (x, y) => new List<string>(2) { x, y });
+                        (x, y) => new List<string>(2) { x, y }).ToList();
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<string>> strings) {

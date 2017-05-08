@@ -60,11 +60,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
       CFGData cfgData = descriptor.GenerateData(treeStructure, numberOfVariables);
       var instanceArchiveName = GetResourceName(FileName + @"\.zip");
       using (
-        var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName),
-          ZipArchiveMode.Read)) {
-        IEnumerable<ZipArchiveEntry> entries =
-          instancesZipFile.Entries.Where(
-            e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
+        var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName), ZipArchiveMode.Read)) {
+        IEnumerable<ZipArchiveEntry> entries = instancesZipFile.Entries.Where(e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
 
         var embedEntry = entries.FirstOrDefault(x => x.Name.EndsWith("Embed.txt"));
         if (embedEntry != null) {

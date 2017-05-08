@@ -61,5 +61,15 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return enumerable.SampleRandomWithoutRepetition(rand, count);
     }
 
+
+    public static IEnumerable<List<int>> GenerateUniformDistributedLists(int n, IEnumerable<int> sizes, int start, int end, FastRandom rand) {
+      foreach (var s in sizes) {
+        List<int> l = new List<int>(s);
+        for (int j = 0; j < s; j++) {
+          l.Add(rand.Next(start, end + 1));
+        }
+        yield return l;
+      }
+    }
   }
 }

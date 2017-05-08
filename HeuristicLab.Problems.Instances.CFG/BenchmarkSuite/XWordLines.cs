@@ -44,13 +44,13 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Boolean, DataType.String }; } }
 
     protected override IEnumerable<Tuple<string, int>> GenerateTraining() {
-      var strings = GetHardcodedTrainingSamples();
+      var strings = GetHardcodedTrainingSamples().ToList();
       strings.AddRange(GetRandomTuple(104, rand));
       return strings;
     }
 
     protected override IEnumerable<Tuple<string, int>> GenerateTest() {
-      return GetRandomTuple(2000, rand);
+      return GetRandomTuple(2000, rand).ToList();
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<Tuple<string, int>> strings) {

@@ -4,27 +4,20 @@ using System.Linq;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class PythonGrammarConstructor {
+  public class DeepCoderDSLConstructor {
 
-    private const string Structure = "structure.bnf";
-    private const string StructureTree = "structure_tree.bnf";
+    private const string Structure = "DSL.bnf";
     private const string RootRule = "<predefined>";
 
-    private const string ArchiveName = "Python.Python.zip";
+    private const string ArchiveName = "DeepCoderDSL.DeepCoderDSL.zip";
 
     private const string OutputPrefix = "res";
     private const string InputPrefix = "in";
 
-    private Dictionary<string, List<DataType>> grammarMapping = new Dictionary<string, List<DataType>>() {
-      { "bool.bnf", new List<DataType>() { DataType.Boolean } },
-      { "integer.bnf", new List<DataType>() { DataType.Integer } },
-      { "float.bnf", new List<DataType>() { DataType.Float } },
-      { "string.bnf", new List<DataType>() { DataType.String } },
-      { "list_bool.bnf", new List<DataType>() { DataType.ListBoolean } },
-      { "list_integer.bnf", new List<DataType>() { DataType.ListInteger } },
-      { "list_float.bnf", new List<DataType>() { DataType.ListFloat } },
-      { "list_string.bnf", new List<DataType>() { DataType.ListString } }
-    };
+    //private Dictionary<string, List<DataType>> grammarMapping = new Dictionary<string, List<DataType>>() {
+    //  { "integer.bnf", new List<DataType>() { DataType.Integer } },
+    //  { "list_integer.bnf", new List<DataType>() { DataType.ListInteger } },
+    //};
 
     private class DataTypeMapping {
       public string VariableRule { get; }
@@ -40,28 +33,22 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private Dictionary<DataType, DataTypeMapping> dataTypeMapping = new Dictionary<DataType, DataTypeMapping>() {
-      {DataType.Boolean,     new DataTypeMapping("<bool_var>",        "<bool>",        "b{0}", "bool()")},
       {DataType.Integer,     new DataTypeMapping("<int_var>",         "<int>" ,        "i{0}", "int()")},
-      {DataType.Float,       new DataTypeMapping("<float_var>",       "<float>",       "f{0}", "float()")},
-      {DataType.String,      new DataTypeMapping("<string_var>",      "<string>",      "s{0}", "str()")},
-      {DataType.ListBoolean, new DataTypeMapping("<list_bool_var>",   "<list_bool>",   "lb{0}", "[]")},
-      {DataType.ListInteger, new DataTypeMapping("<list_int_var>",    "<list_int>",    "li{0}", "[]")},
-      {DataType.ListFloat,   new DataTypeMapping("<list_float_var>",  "<list_float>",  "lf{0}", "[]")},
-      {DataType.ListString,  new DataTypeMapping("<list_string_var>", "<list_string>" ,"ls{0}", "[]")}
+      {DataType.ListInteger, new DataTypeMapping("<list_int_var>",    "<list_int>",    "li{0}", "[]")}
     };
 
-    public PythonGrammarConstructor() { }
+    public DeepCoderDSLConstructor() { }
 
     public Grammar CombineDataTypes(Options options) {
       // parse grammars again to make sure they have not been changed in the meantime
       Dictionary<string, Grammar> pythonGrammars = GrammarParser.ParseGrammarsByEmbededArchive(ArchiveName);
-      var grammar = options.Tree ? pythonGrammars[StructureTree] : pythonGrammars[Structure];
+      var grammar = pythonGrammars[Structure];
 
-      var combinations = GetCombinations(options.Datatypes);
-      foreach (var grammarName in combinations) {
-        var cur = pythonGrammars[grammarName];
-        grammar.Combine(cur);
-      }
+      //var combinations = GetCombinations(options.Datatypes);
+      //foreach (var grammarName in combinations) {
+      //  var cur = pythonGrammars[grammarName];
+      //  grammar.Combine(cur);
+      //}
 
       var tempVariables = GetTempVariables(options.Datatypes, options.NumberOfInputVariables);
       var inputVariables = GetVariables(options.Input, InputPrefix);
@@ -99,11 +86,12 @@ namespace HeuristicLab.Problems.Instances.CFG {
         }
       }
 
+      // Probably not necessary for DeepCoderDSLConstructor
       // Remove types that might have been added, but that are not set as data types
       // will be completely removed after trimming
-      foreach (var dataType in Enum.GetValues(typeof(DataType)).Cast<DataType>().Except(options.Datatypes)) {
-        if (grammar.Rules.ContainsKey(dataTypeMapping[dataType].Rule)) grammar.Rules.Remove(dataTypeMapping[dataType].Rule);
-      }
+      //foreach (var dataType in Enum.GetValues(typeof(DataType)).Cast<DataType>().Except(options.Datatypes).Except(new List<DataType>() { DataType.Boolean, DataType.Float, DataType.String, DataType.ListBoolean, DataType.ListFloat, DataType.ListString })) {
+      //  if (grammar.Rules.ContainsKey(dataTypeMapping[dataType].Rule)) grammar.Rules.Remove(dataTypeMapping[dataType].Rule);
+      //}
 
       return grammar;
     }
@@ -139,13 +127,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return new Tuple<string, Dictionary<DataType, List<string>>>(String.Join("; ", varList) + Environment.NewLine, variableNames);
     }
 
-    private IEnumerable<string> GetCombinations(IEnumerable<DataType> dataTypes) {
-      var requiredTypes = dataTypes.SelectMany(x => x.Requires()).Distinct().Except(dataTypes).ToList();
-      if (requiredTypes.Any()) {
-        requiredTypes.AddRange(dataTypes);
-        dataTypes = requiredTypes;
-      }
-      return grammarMapping.Where(x => x.Value.All(y => dataTypes.Contains(y))).Select(x => x.Key);
-    }
+    //private IEnumerable<string> GetCombinations(IEnumerable<DataType> dataTypes) {
+    //  var requiredTypes = dataTypes.SelectMany(x => x.Requires()).Distinct().Except(dataTypes).ToList();
+    //  if (requiredTypes.Any()) {
+    //    System.Console.WriteLine("Some data types are required due to your selection and have been added");
+    //    foreach (var dt in requiredTypes) {
+    //      System.Console.WriteLine(dt);
+    //    }
+    //    requiredTypes.AddRange(dataTypes);
+    //    dataTypes = requiredTypes;
+    //  }
+    //  return grammarMapping.Where(x => x.Value.All(y => dataTypes.Contains(y))).Select(x => x.Key);
+    //}
   }
 }

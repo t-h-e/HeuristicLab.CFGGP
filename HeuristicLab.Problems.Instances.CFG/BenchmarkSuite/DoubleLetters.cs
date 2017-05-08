@@ -49,7 +49,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     protected override IEnumerable<string> GenerateTest() {
-      return StringValueGenerator.GetRandomStrings(1000, 0, 20, rand);
+      return StringValueGenerator.GetRandomStrings(1000, 0, 20, rand).ToList();
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {

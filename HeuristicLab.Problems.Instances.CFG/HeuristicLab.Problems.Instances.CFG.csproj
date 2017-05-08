@@ -148,7 +148,19 @@
     <Compile Include="CFGArtificialDataDescriptor.cs" />
     <Compile Include="CFGArtificialInstanceProvider.cs" />
     <Compile Include="CFGInstanceProvider.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\DeepCoderDataDescritpor.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\DeepCoderBenchmarkSuiteInstanceProvider.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program0.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program1.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program2.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program3.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program4.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program5.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program6.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program7.cs" />
+    <Compile Include="DeepCoderBenchmarkSuite\Program8.cs" />
     <Compile Include="GrammarConstruction\DataType.cs" />
+    <Compile Include="GrammarConstruction\DeepCoderDSL\DeepCoderDSLConstructor.cs" />
     <Compile Include="GrammarConstruction\Grammar.cs" />
     <Compile Include="GrammarConstruction\GrammarParser.cs" />
     <Compile Include="GrammarConstruction\Options.cs" />
@@ -164,6 +176,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Data\BenchmarkSuite.zip" />
     <EmbeddedResource Include="GrammarConstruction\Python\Python.zip" />
+    <EmbeddedResource Include="GrammarConstruction\DeepCoderDSL\DeepCoderDSL.zip" />
+    <EmbeddedResource Include="Data\DeepCoder.zip" />
     <None Include="HeuristicLab.snk" />
   </ItemGroup>
   <ItemGroup />

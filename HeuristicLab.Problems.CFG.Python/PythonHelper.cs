@@ -85,7 +85,7 @@ namespace HeuristicLab.Problems.CFG.Python {
 
     public static string ConvertBracketsToIndent(string code, string additionalIndent = "") {
       StringBuilder stringBuilder = new StringBuilder();
-      String[] split = code.Split(new string[] { Environment.NewLine }, StringSplitOptions.None); ;
+      String[] split = code.Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.None); // order of the separator array is important
 
       int indent = 0;
 

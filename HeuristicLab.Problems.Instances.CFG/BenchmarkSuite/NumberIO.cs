@@ -43,14 +43,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Float }; } }
 
     protected override IEnumerable<Tuple<int, double>> GenerateTraining() {
-      var x0 = ValueGenerator.GenerateUniformDistributedValues(25, -100, 100, rand);
-      var x1 = ValueGenerator.GenerateUniformDistributedValues(25, -100.0, 100.0, rand);
+      var x0 = ValueGenerator.GenerateUniformDistributedValues(25, -100, 100, rand).ToList();
+      var x1 = ValueGenerator.GenerateUniformDistributedValues(25, -100.0, 100.0, rand).ToList();
       return x0.Zip(x1, (first, second) => new Tuple<int, double>(first, second));
     }
 
     protected override IEnumerable<Tuple<int, double>> GenerateTest() {
-      var x0 = ValueGenerator.GenerateUniformDistributedValues(1000, -100, 100, rand);
-      var x1 = ValueGenerator.GenerateUniformDistributedValues(1000, -100.0, 100.0, rand);
+      var x0 = ValueGenerator.GenerateUniformDistributedValues(1000, -100, 100, rand).ToList();
+      var x1 = ValueGenerator.GenerateUniformDistributedValues(1000, -100.0, 100.0, rand).ToList();
       return x0.Zip(x1, (first, second) => new Tuple<int, double>(first, second));
     }
 

@@ -49,7 +49,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     protected override IEnumerable<List<string>> GenerateTest() {
-      return GetCloseOrSuperAnagrams(2000, rand);
+      return GetCloseOrSuperAnagrams(2000, rand).ToList();
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<string>> strings) {
