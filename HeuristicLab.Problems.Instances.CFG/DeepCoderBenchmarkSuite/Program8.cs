@@ -53,8 +53,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<List<int>> trainingAndTest) {
       var input = trainingAndTest.Select(x => String.Format("{0}", String.Format("[{0}]", String.Join(", ", x)))).ToArray();
       var output = trainingAndTest.Select(x => {
-        x.ToList().Reverse();
-        return x.Zip(x, (a, b) => a - b).Where(y => y > 0).Sum().ToString();
+        var y = x.ToList();
+        y.Reverse();
+        return y.Zip(x, (a, b) => a - b).Where(z => z > 0).Sum().ToString();
       }).ToArray();
       return new Tuple<string[], string[]>(input, output);
     }
