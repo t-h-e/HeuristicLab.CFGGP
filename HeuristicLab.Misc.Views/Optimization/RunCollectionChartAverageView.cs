@@ -34,7 +34,7 @@ namespace HeuristicLab.Misc.Views {
       InitializeComponent();
     }
 
-    protected override List<Tuple<string, string, IEnumerable<double>>> doStuff(string rowKey, IEnumerable<IEnumerable<double>> aggreateRows) {
+    protected override List<Tuple<string, string, IEnumerable<double>>> AggregateRows(string rowKey, IEnumerable<IEnumerable<double>> aggreateRows) {
       var averageValues = DataRowsAggregate(Enumerable.Average, aggreateRows);
       return new List<Tuple<string, string, IEnumerable<double>>>() { new Tuple<string, string, IEnumerable<double>>(rowKey, "Average of Values", averageValues) };
 

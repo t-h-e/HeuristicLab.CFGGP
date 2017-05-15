@@ -171,7 +171,7 @@ namespace HeuristicLab.Misc.Views {
 
       int tableCount = dataTables.Count();
       foreach (var row in dataRows) {
-        var aggreateRows = row.Select(r => (IEnumerable<double>)r.Values).ToList();
+        var aggregateRows = row.Select(r => (IEnumerable<double>)r.Values).ToList();
         // check if all rows have the same length
         if (row.Any(r => r.Values.Count != row.First().Values.Count)) {
           errorTextBox.Text = String.Format("One or more runs do not contain the same number of entries per row {0}", resultName);
@@ -183,10 +183,10 @@ namespace HeuristicLab.Misc.Views {
         // add zero rows for missing rows, otherwise the aggragation is off
         if (row.Count() < tableCount) {
           var zeroRows = Enumerable.Repeat(Enumerable.Repeat(0.0, row.First().Values.Count), tableCount - row.Count());
-          aggreateRows.AddRange(zeroRows);
+          aggregateRows.AddRange(zeroRows);
         }
 
-        foreach (var item in doStuff(row.Key, aggreateRows)) {
+        foreach (var item in AggregateRows(row.Key, aggregateRows)) {
           // Windows Forms calculates internally with Decimal instead of Double, which can lead to Overflow exceptions
           // To avoid this exception, values get replaced with +/-7.92E+27 as max and min value
           var helper = item.Item3.Select(x => Math.Max(Math.Min(x, 7.92E+27), -7.92E+27));
@@ -199,7 +199,7 @@ namespace HeuristicLab.Misc.Views {
       combinedDataTable.Name = String.Format("Combined {0}", resultName);
     }
 
-    protected virtual List<Tuple<string, string, IEnumerable<double>>> doStuff(string rowKey, IEnumerable<IEnumerable<double>> aggreateRows) {
+    protected virtual List<Tuple<string, string, IEnumerable<double>>> AggregateRows(string rowKey, IEnumerable<IEnumerable<double>> aggreateRows) {
       // do nothing here
       return new List<Tuple<string, string, IEnumerable<double>>>();
     }
