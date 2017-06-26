@@ -162,6 +162,7 @@ namespace HeuristicLab.Problems.CFG.Python {
         op.TimeoutParameter.ActualName = TimeoutParameter.Name;
       }
     }
+
     private void SetVariables() {
       ProblemData.Variables.Clear();
       if (Grammar != null && Grammar != CFGExpressionGrammar.Empty) {

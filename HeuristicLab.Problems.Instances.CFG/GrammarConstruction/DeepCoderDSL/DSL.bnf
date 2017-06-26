@@ -1,0 +1,33 @@
+<code>      ::= <code>'\n'<statement> | <statement>
+<statement> ::= <int_assign> | <list_int_assign>
+
+<int_var> ::= // placholder for variable names
+<int_assign> ::= <int_var> '=' <int>
+
+<int> ::= <int_var>
+        | 'head('<list_int>')'
+        | 'last('<list_int>')'
+        | 'access('<int>','<list_int>')'
+        | 'minimum('<list_int>')'
+        | 'maximum('<list_int>')'
+        | 'sum('<list_int>')'
+        | 'head('<list_int>')'
+        | 'count('<function_bool>','<list_int>')'
+
+<list_int_var> ::= // placholder for variable names
+<list_int_assign> ::= <list_int_var>' = '<list_int>
+
+<list_int> ::= <list_int_var>
+             | 'take('<int>','<list_int>')'
+             | 'drop('<int>','<list_int>')'
+             | 'reverse('<list_int>')'
+             | 'sort('<list_int>')'
+             | 'map('<function_int>','<list_int>')'
+             | 'filter('<function_bool>','<list_int>')'
+             | 'zipwith('<function_pair>','<list_int>','<list_int>')'
+             | 'scanl1('<function_pair>','<list_int>','<list_int>')'
+
+
+<function_int> ::= 'plus1' | 'minus1' | 'times2' | 'div2' | 'timesminus1' | 'square' | 'times3' | 'div3' | 'times4' | 'div4'
+<function_bool> ::= 'greater_than' | 'less_than' | 'even' | 'odd'
+<function_pair> ::= 'add_pair' | 'subtract_pair' | 'multiply_pair' | 'max_pair' | 'min_pair'

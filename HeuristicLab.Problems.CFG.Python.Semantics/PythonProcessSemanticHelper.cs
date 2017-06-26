@@ -68,6 +68,7 @@ sys.settrace(trace)
 ";
     #endregion
 
+    #region traceCode
     private const string traceCode = @"import sys
 
 past_locals = {{}}
@@ -128,6 +129,7 @@ for i in range(1, len(lines)):
 for l in lines:
   if not traceTable[l]:
     del traceTable[l]";
+    #endregion
 
     private readonly string traceCodeWithVariables;
 
