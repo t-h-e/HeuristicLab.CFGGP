@@ -98,7 +98,7 @@ def evolve(in0, in1):
 def fitnessTrainingCase(i, o):
   eval = evolve(i[0], i[1])
 
-  return [eval == o[0]]
+  return [0 if eval == o[0] else 1]
 
 
 #  function to evaluate fitness
