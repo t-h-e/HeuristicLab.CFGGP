@@ -109,7 +109,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return strBuilder.ToString();
     }
 
-    private static char GetRandomLowerCaseChar(FastRandom rand) {
+    public static char GetRandomLowerCaseChar(FastRandom rand) {
       int value = rand.Next(0, 25);
       return (char)(value + 97);
     }

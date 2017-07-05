@@ -86,7 +86,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       for (int i = 0; i < n; i++) {
         int length = rand.Next(0, 20);
         string value0 = StringValueGenerator.GetRandomLowerCaseString(length, rand);
-        string value1 = DropCharsAndShuffle(value0, rand);
+        string value1 = ReplaceDropCharsAndShuffle(value0, rand);
         yield return rand.NextDouble() < 0.2  // bias towards value1 first, since value0.Length >= value1.Length
                   ? new List<string>() { value0, value1 }
                   : new List<string>() { value1, value0 };
@@ -94,13 +94,16 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    private string DropCharsAndShuffle(string original, FastRandom rand) {
+    private string ReplaceDropCharsAndShuffle(string original, FastRandom rand) {
       if (String.IsNullOrEmpty(original)) return original;
 
-      int drop = rand.Next(0, original.Length);
-      var originalChars = original.ToCharArray();
-      var result = originalChars.Shuffle(rand).ToList();
-      result = result.SampleRandomWithoutRepetition(rand, original.Length - drop).ToList();
+      // Replace
+      var result = original.Select(x => rand.NextDouble() < 0.1 ? StringValueGenerator.GetRandomLowerCaseChar(rand) : x).ToList(); //Each char has 10% chance of being replaced
+      // Shuffle
+      result = result.Shuffle(rand).ToList();
+      // Drop
+      int drop = rand.Next(0, result.Count);
+      result = result.SampleRandomWithoutRepetition(rand, result.Count - drop).ToList();
       return new String(result.ToArray());
     }
 
