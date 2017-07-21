@@ -20,12 +20,81 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
+using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class PythonSemanticComparer {
+
+    /// <summary>
+    /// Compares to variable settings if they are equal
+    /// </summary>
+    /// <param name="first"></param>
+    /// <param name="second"></param>
+    /// <returns></returns>
+    public static bool CompareSequence(IEnumerable first, IEnumerable second) {
+      var v1Enumerator = first.GetEnumerator();
+      var v2Enumerator = second.GetEnumerator();
+      while (v1Enumerator.MoveNext() && v2Enumerator.MoveNext()) {
+        if (v1Enumerator.Current is IList) {
+          // then both must be IEnumerable
+          if (!CompareSequence((IList)v1Enumerator.Current, (IList)v2Enumerator.Current)) {
+            return false;
+          }
+        } else if (!v1Enumerator.Current.Equals(v2Enumerator.Current)) {
+          return false;
+        }
+      }
+      if (v1Enumerator.MoveNext() || v2Enumerator.MoveNext()) {
+        return false;
+      }
+      return true;
+    }
+
+    public static bool AnyChange(IDictionary<string, JToken> sem1, IDictionary<string, JToken> sem2) {
+      var allKeys = sem1.Keys.Union(sem2.Keys);
+      if (allKeys.Except(sem1.Keys).Any() || allKeys.Except(sem2.Keys).Any()) return true;
+
+      foreach (var key in allKeys) {
+        if (ChangesPerVariable(sem1[key], sem2[key]).Any(x => x)) return true;
+      }
+
+      return false;
+    }
+
+    public static bool PartialChangeInAtLeastOneVariable(IDictionary<string, JToken> sem1, IDictionary<string, JToken> sem2) {
+      var keysInBoth = sem1.Keys.Intersect(sem2.Keys);
+      if (!keysInBoth.Any()) return false;
+
+      foreach (var key in keysInBoth) {
+        var changes = ChangesPerVariable(sem1[key], sem2[key]).ToList();
+        if (!(changes.All(x => x) || changes.All(y => !y))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    public static IEnumerable<bool> ChangesPerVariable(IEnumerable<JToken> values1, IEnumerable<JToken> values2) {
+      var v1Enumerator = values1.GetEnumerator();
+      var v2Enumerator = values2.GetEnumerator();
+      while (v1Enumerator.MoveNext() && v2Enumerator.MoveNext()) {
+        if (v1Enumerator.Current.Any()) {
+          yield return v1Enumerator.Current.SequenceEqual(v2Enumerator.Current);
+        } else {
+          yield return !v1Enumerator.Current.Equals(v2Enumerator.Current);
+        }
+      }
+
+      if (!v1Enumerator.MoveNext() && !v2Enumerator.MoveNext()) yield break;
+      for (int i = 0; i < Math.Abs(values1.Count() - values2.Count()); i++) {
+        yield return true;
+      }
+      v1Enumerator.Dispose();
+      v2Enumerator.Dispose();
+    }
 
     #region base data types
     //---------------------------------------------------------------------------------------------------------------

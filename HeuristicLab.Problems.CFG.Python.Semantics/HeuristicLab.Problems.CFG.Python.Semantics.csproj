@@ -159,6 +159,10 @@
     <Compile Include="Analyzer\SemanticManipulatorAnalyzer.cs" />
     <Compile Include="Analyzer\SemanticCrossoverAnalyzer.cs" />
     <Compile Include="Crossover\AbstractSemanticAnalyzationCrossover.cs" />
+    <Compile Include="Crossover\Semantic1TestCrossover.cs" />
+    <Compile Include="Crossover\Semantic2TestCrossover.cs" />
+    <Compile Include="Crossover\Semantic5TestCrossover.cs" />
+    <Compile Include="Crossover\SemanticTestAnalyzationCrossover.cs" />
     <Compile Include="Crossover\SubtreeCrossoverWithSemanticSwap.cs" />
     <Compile Include="Crossover\SimpleSemanticAnalyzationCrossover.cs" />
     <Compile Include="Crossover\SemanticAnalyzationSubtreeCrossover.cs" />
@@ -169,6 +173,10 @@
     <Compile Include="Intefaces\ICFGPythonSemanticsManipulator.cs" />
     <Compile Include="Intefaces\ICFGPythonSemanticsCrossover.cs" />
     <Compile Include="Manipulators\AbstractSemanticAnalyzationManipulator.cs" />
+    <Compile Include="Manipulators\Semantic5TestManipulator.cs" />
+    <Compile Include="Manipulators\Semantic2TestManipulator.cs" />
+    <Compile Include="Manipulators\Semantic1TestManipulator.cs" />
+    <Compile Include="Manipulators\SemanticTestAnalyzationManipulator.cs" />
     <Compile Include="Manipulators\SemanticAnalyzationReplaceManipulator.cs" />
     <Compile Include="Manipulators\SemanticAnalyzationManipulator.cs" />
     <Compile Include="Manipulators\CFGPythonSemanticManipulator.cs" />

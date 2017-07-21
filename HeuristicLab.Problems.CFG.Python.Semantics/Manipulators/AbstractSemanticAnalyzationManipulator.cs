@@ -31,8 +31,8 @@ using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
-  [Item("AbstractSemanticAnalyzationManipulator", "Base class for semantic analyzation manipulator.")]
   [StorableClass]
+  [Item("AbstractSemanticAnalyzationManipulator", "Base class for semantic analyzation manipulator.")]
   public abstract class AbstractSemanticAnalyzationManipulator<T> : CFGPythonSemanticManipulator<T>
     where T : class, ICFGPythonProblemData {
     protected const int MAX_TRIES = 100; // as used in other manipulators

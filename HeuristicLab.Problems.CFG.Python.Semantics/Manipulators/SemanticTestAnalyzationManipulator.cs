@@ -31,31 +31,15 @@ using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
-  [Item("SemanticAnalyzationManipulator",
-    "Removes a random sub-tree of the input tree and fixes the tree by generating random subtrees if necessary.")]
-  public class SemanticAnalyzationManipulator<T> : AbstractSemanticAnalyzationManipulator<T>
+  [Item("SemanticTestAnalyzationManipulator", "Base class to test different Semantics.")]
+  public abstract class SemanticTestAnalyzationManipulator<T> : AbstractSemanticAnalyzationManipulator<T>
     where T : class, ICFGPythonProblemData {
 
     [StorableConstructor]
-    protected SemanticAnalyzationManipulator(bool deserializing) : base(deserializing) { }
-    protected SemanticAnalyzationManipulator(SemanticAnalyzationManipulator<T> original, Cloner cloner)
-      : base(original, cloner) { }
-    public SemanticAnalyzationManipulator() { }
+    protected SemanticTestAnalyzationManipulator(bool deserializing) : base(deserializing) { }
+    protected SemanticTestAnalyzationManipulator(SemanticTestAnalyzationManipulator<T> original, Cloner cloner) : base(original, cloner) { }
+    public SemanticTestAnalyzationManipulator() { }
 
-    public override IDeepCloneable Clone(Cloner cloner) {
-      return new SemanticAnalyzationManipulator<T>(this, cloner);
-    }
-
-    // ReplaceBranch is an the ReplaceSemanticallyDifferentBranch from CFGPythonSemanticManipulator, with small adaptions needed to analyze the mutation
-    /// <summary>
-    /// 1. find a mutation point
-    /// 2. generate new random tree
-    /// 3. calculate semantic of old and new subtree (or of the closest parent)
-    /// 4. do mutation if semantically different
-    /// 5. retry until a certain number of tries is reached
-    /// 
-    /// if no mutation has happened, do random mutation
-    /// </summary>
     public override void ReplaceBranch(IRandom random, ISymbolicExpressionTree symbolicExpressionTree, ICFGPythonProblemData problemData, ItemArray<PythonStatementSemantic> semantics, PythonProcess pythonProcess, double timeout, int maxTreeLength, int maxTreeDepth, int maximumSemanticTries) {
       var statementProductionNames = SemanticOperatorHelper.GetSemanticProductionNames(symbolicExpressionTree.Root.Grammar);
       var variables = problemData.Variables.GetVariableNames().ToList();
@@ -65,6 +49,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // repeat until a fitting parent and child are found (MAX_TRIES times)
       int tries = 0;
       int semanticTries = 0;
+
+      var saveOriginalSemantics = new List<JObject>(semanticTries);
+      var saveReplaceSemantics = new List<JObject>(semanticTries);
+      var possibleChildren = new List<Tuple<ISymbolicExpressionTreeNode, int>>(semanticTries);
+      bool success = false;
       do {
         #region find mutation point
 #pragma warning disable 612, 618
@@ -87,7 +76,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
           }
         }
         #endregion
-
         #region check for semantic difference with a new random tree
         if (allowedSymbols.Count > 0) {
           if (semanticTries <= maximumSemanticTries) {
@@ -100,6 +88,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             }
 
             var jsonOriginal = SemanticOperatorHelper.EvaluateStatementNode(statement, pythonProcess, random, problemData, variables, variableSettings, timeout);
+
+            // compare jsonOriginal to semantic after! Maybe avoid additional evaluation.
+
             #endregion
 
             var seedNode = GenerateAndInsertNewSubtree(random, parent, allowedSymbols, childIndex, maxLength, maxDepth);
@@ -113,14 +104,18 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               jsonReplaced = SemanticOperatorHelper.EvaluateStatementNode(statement, pythonProcess, random, problemData, variables, variableSettings, timeout);
             }
 
-            if (JToken.EqualityComparer.Equals(jsonOriginal, jsonReplaced)) {
-              // semantically equivalent. undo mutation
+            if (SemanticMeasure(jsonOriginal, jsonReplaced)) {
+              success = true;
+              SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
+              MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
+            } else {
+              // undo mutation
               parent.RemoveSubtree(childIndex);
               parent.InsertSubtree(childIndex, child);
               allowedSymbols.Clear();
-            } else {
-              SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
-              MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
+              saveOriginalSemantics.Add(jsonOriginal);
+              saveReplaceSemantics.Add(jsonReplaced);
+              possibleChildren.Add(new Tuple<ISymbolicExpressionTreeNode, int>(seedNode, childIndex));
             }
 
             if (problemData.VariableSettings.Count == 0) {
@@ -129,6 +124,21 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             }
             semanticTries++;
             #endregion
+
+            #region try second semantic comparison
+            if (semanticTries >= maximumSemanticTries) {
+              for (int index = 0; index < saveOriginalSemantics.Count; index++) {
+                if (AdditionalSemanticMeasure(saveOriginalSemantics[index], saveReplaceSemantics[index])) {
+                  var mutation = possibleChildren[index];
+                  parent.RemoveSubtree(mutation.Item2);
+                  parent.InsertSubtree(mutation.Item2, mutation.Item1);
+                  success = true;
+                  break;
+                }
+              }
+            }
+            #endregion
+
           } else {
             // do random mutation
             #region calculate original json output
@@ -155,17 +165,30 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
             }
             MutationTypeParameter.ActualValue = new IntValue(RandomMutation);
+            success = true;
           }
         }
         #endregion
         tries++;
-      } while (tries < MAX_TRIES && allowedSymbols.Count == 0);
+      } while (tries < MAX_TRIES && !success);
 
       NumberOfTriesParameter.ActualValue = new IntValue(semanticTries);
       if (SemanticallyEquivalentMutationParameter.ActualValue == null) {
         SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(NoMutation);
         MutationTypeParameter.ActualValue = new IntValue(NoMutation);
       }
+    }
+
+    /// <summary>
+    /// return true if the mutation should take place
+    /// </summary>
+    protected abstract bool SemanticMeasure(JObject original, JObject replaced);
+
+    /// <summary>
+    /// return the index where the mutation should take place. If no mutation should take place, return a value out of range. 
+    /// </summary>
+    protected virtual bool AdditionalSemanticMeasure(JObject original, JObject replaced) {
+      return false;
     }
   }
 }

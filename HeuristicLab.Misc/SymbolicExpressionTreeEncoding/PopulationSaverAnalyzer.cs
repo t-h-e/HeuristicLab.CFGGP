@@ -86,6 +86,9 @@ namespace HeuristicLab.Misc {
       Parameters.Add(new ValueParameter<IntArray>("SaveGenerations", "", new IntArray()));
       Parameters.Add(new LookupParameter<IntValue>(IterationsParameterName, ""));
       Parameters.Add(new ValueLookupParameter<IntValue>(MaximumIterationsParameterName, ""));
+      IterationsParameter.Hidden = false;
+      SymbolicExpressionTreeParameter.Hidden = false;
+      MaximumIterationsParameter.Hidden = true;
     }
 
     public override IDeepCloneable Clone(Cloner cloner) {

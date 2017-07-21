@@ -105,5 +105,5 @@ if __name__ == '__main__':
             for v in message_dict['variables']:
                 if v in results:
                     ret_message_dict[v] = list(results[v]) if isinstance(results[v], set) else results[v]
-            print(json.dumps(ret_message_dict), flush=True)
+            print(json.dumps(ret_message_dict, separators=(',',':')), flush=True)
             logging.debug('Sent output normal')
