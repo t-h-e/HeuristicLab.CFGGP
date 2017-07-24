@@ -24,9 +24,9 @@ using HeuristicLab.Core;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using Newtonsoft.Json.Linq;
 
-namespace HeuristicLab.Problems.CFG.Python.Semantics.Manipulators {
+namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
-  [Item("Semantic5TestManipulator", "AnyChange.")]
+  [Item("Semantic5TestManipulator", "Semantic 1 + 2.")]
   public class Semantic5TestManipulator<T> : SemanticTestAnalyzationManipulator<T>
      where T : class, ICFGPythonProblemData {
 

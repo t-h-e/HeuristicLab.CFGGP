@@ -24,10 +24,10 @@ using HeuristicLab.Core;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using Newtonsoft.Json.Linq;
 
-namespace HeuristicLab.Problems.CFG.Python.Semantics.Manipulators {
+namespace HeuristicLab.Problems.CFG.Python.Semantics {
   [StorableClass]
   [Item("Semantic1TestCrossover", "PartialChangeInAtLeastOneVariable")]
-  public class Semantic1TestCrossover<T> : SemanticTestAnalyzationManipulator<T>
+  public class Semantic1TestCrossover<T> : SemanticTestAnalyzationCrossover<T>
      where T : class, ICFGPythonProblemData {
 
     [StorableConstructor]
