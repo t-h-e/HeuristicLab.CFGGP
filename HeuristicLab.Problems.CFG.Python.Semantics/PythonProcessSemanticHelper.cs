@@ -110,6 +110,8 @@ def trace(frame, event, arg_unused):
                 traceTable[prev_line][v] = [None] * (newcall - 1)
         if len(traceTable[prev_line][variable_list[0]]) < limit:
             for v in variable_list:
+                if len(traceTable[prev_line][v]) < newcall - 1:
+                    traceTable[prev_line][v] += [None] * (newcall - 1 - len(traceTable[prev_line][v]))
                 if len(traceTable[prev_line][v]) < newcall:
                     if v in relevant_locals:
                         traceTable[prev_line][v].append(relevant_locals[v])
@@ -122,6 +124,8 @@ def trace(frame, event, arg_unused):
                 traceTableBefore[current_lineno][v] = [None] * (newcall - 1)
         if len(traceTableBefore[current_lineno][variable_list[0]]) < limit:
             for v in variable_list:
+                if len(traceTableBefore[current_lineno][v]) < newcall - 1:
+                    traceTableBefore[current_lineno][v] += [None] * (newcall - 1 - len(traceTableBefore[current_lineno][v]))
                 if len(traceTableBefore[current_lineno][v]) < newcall:
                     if v in relevant_locals:
                         traceTableBefore[current_lineno][v].append(relevant_locals[v])
