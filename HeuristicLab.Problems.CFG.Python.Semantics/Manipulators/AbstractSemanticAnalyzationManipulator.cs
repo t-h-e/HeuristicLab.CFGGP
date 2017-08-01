@@ -53,6 +53,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     //public const int NoMutation = 0;
     public const int Equvivalent = 1;
     public const int Different = 2;
+    public const int NoSemantics = 3;
+
 
     #region parameter properties
     public ILookupParameter<IntValue> NumberOfTriesParameter {

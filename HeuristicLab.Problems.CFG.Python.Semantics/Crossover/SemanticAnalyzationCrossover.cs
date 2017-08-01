@@ -45,11 +45,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     protected override ISymbolicExpressionTree Cross(IRandom random, ISymbolicExpressionTree parent0, ISymbolicExpressionTree parent1, ItemArray<PythonStatementSemantic> semantic0, ItemArray<PythonStatementSemantic> semantic1, T problemData, int maxTreeLength, int maxTreeDepth, double internalCrossoverPointProbability, out ItemArray<PythonStatementSemantic> newSemantics) {
-      newSemantics = semantic0;
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
+        parent0 = SubtreeCrossover.Cross(random, parent0, parent1, internalCrossoverPointProbability, maxTreeLength, maxTreeDepth);
+        newSemantics = null;
         AddStatisticsNoCrossover(NoXoNoSemantics);
         return parent0;
       }
+      newSemantics = semantic0;
 
       // select a random crossover point in the first parent 
       CutPoint crossoverPoint0;
@@ -127,7 +129,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       // perform the actual swap
       if (selectedBranch != null) {
         newSemantics = SemanticSwap(crossoverPoint0, selectedBranch, parent0, parent1, semantic0, semantic1);
-        AddStatistics(semantic0, parent0, statement, crossoverPoint0, json0, selectedBranch, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
+        AddStatistics(semantic0, parent0, statement == crossoverPoint0.Child ? selectedBranch : statement, crossoverPoint0, json0, selectedBranch, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
       } else {
         AddStatisticsNoCrossover(NoXoNoSelectedBranch);
       }

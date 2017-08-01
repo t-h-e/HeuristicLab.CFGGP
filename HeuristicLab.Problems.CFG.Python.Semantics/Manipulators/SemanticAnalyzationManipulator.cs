@@ -57,6 +57,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     /// if no mutation has happened, do random mutation
     /// </summary>
     public override void ReplaceBranch(IRandom random, ISymbolicExpressionTree symbolicExpressionTree, ICFGPythonProblemData problemData, ItemArray<PythonStatementSemantic> semantics, PythonProcess pythonProcess, double timeout, int maxTreeLength, int maxTreeDepth, int maximumSemanticTries) {
+      if (semantics == null || semantics.Length == 0) {
+        ReplaceBranchManipulation.ReplaceRandomBranch(random, symbolicExpressionTree, maxTreeLength, maxTreeDepth);
+        SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(NoSemantics);
+        MutationTypeParameter.ActualValue = new IntValue(RandomMutation);
+        return;
+      }
+
       var statementProductionNames = SemanticOperatorHelper.GetSemanticProductionNames(symbolicExpressionTree.Root.Grammar);
       var variables = problemData.Variables.GetVariableNames().ToList();
       string variableSettings = problemData.VariableSettings.Count == 0 ? String.Empty : String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));

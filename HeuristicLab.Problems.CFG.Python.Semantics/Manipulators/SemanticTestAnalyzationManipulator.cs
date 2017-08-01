@@ -41,6 +41,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public SemanticTestAnalyzationManipulator() { }
 
     public override void ReplaceBranch(IRandom random, ISymbolicExpressionTree symbolicExpressionTree, ICFGPythonProblemData problemData, ItemArray<PythonStatementSemantic> semantics, PythonProcess pythonProcess, double timeout, int maxTreeLength, int maxTreeDepth, int maximumSemanticTries) {
+      if (semantics == null || semantics.Length == 0) {
+        ReplaceBranchManipulation.ReplaceRandomBranch(random, symbolicExpressionTree, maxTreeLength, maxTreeDepth);
+        SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(NoSemantics);
+        MutationTypeParameter.ActualValue = new IntValue(RandomMutation);
+        return;
+      }
+
       var statementProductionNames = SemanticOperatorHelper.GetSemanticProductionNames(symbolicExpressionTree.Root.Grammar);
       var variables = problemData.Variables.GetVariableNames().ToList();
       string variableSettings = problemData.VariableSettings.Count == 0 ? String.Empty : String.Join(Environment.NewLine, problemData.VariableSettings.Select(x => x.Value));
@@ -133,6 +140,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
                   parent.RemoveSubtree(mutation.Item2);
                   parent.InsertSubtree(mutation.Item2, mutation.Item1);
                   success = true;
+                  SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
+                  MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
                   break;
                 }
               }

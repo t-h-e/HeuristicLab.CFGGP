@@ -276,7 +276,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         table.VisualProperties.YAxisMaximumFixedValue = 100.0;
         table.VisualProperties.YAxisMaximumAuto = false;
 
-        List<string> rowNames = new List<string>() { "No Mutation", "Equivalent", "Different" };
+        List<string> rowNames = new List<string>() { "No Mutation", "Equivalent", "Different", "No Semantics" };
         foreach (var name in rowNames) {
           DataRow row = new DataRow(name);
           row.VisualProperties.StartIndexZero = true;
@@ -292,6 +292,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       SemanticallyEquivalentMutationDataTable.Rows["No Mutation"].Values.Add(semanticallyEquivalentMutationCount[0] / total * 100.0);
       SemanticallyEquivalentMutationDataTable.Rows["Equivalent"].Values.Add(semanticallyEquivalentMutationCount[1] / total * 100.0);
       SemanticallyEquivalentMutationDataTable.Rows["Different"].Values.Add(semanticallyEquivalentMutationCount[2] / total * 100.0);
+      SemanticallyEquivalentMutationDataTable.Rows["No Semantics"].Values.Add(semanticallyEquivalentMutationCount[3] / total * 100.0);
     }
 
     private void AddSemanticallyDifferentFromRootedParentTableEntry(BoolValue[] semanticallyDifferentFromRootedParent) {
