@@ -197,7 +197,7 @@ traceTable = fix_tracetable(traceTable)
 traceTable, traceTableBefore = clean_traceTable(traceTable, traceTableBefore)
 traceTableBefore = remove_redundant_data(traceTableBefore)
 traceTable = remove_redundant_data(traceTable)
-executedLines = {k: list(v) for k, v in executedLines.items()}
+executedLines = {k: sorted(v) for k, v in executedLines.items()}
 ";
     #endregion
 
@@ -237,9 +237,7 @@ executedLines = {k: list(v) for k, v in executedLines.items()}
 
       var traceTable = json["traceTable"].ToObject<IDictionary<int, IDictionary<string, IList>>>();
       var traceTableBefore = json["traceTableBefore"].ToObject<IDictionary<int, IDictionary<string, IList>>>();
-      var executedLinesNew = json["executedLines"].ToObject<IDictionary<int, List<int>>>();
-      var executedLines = executedLinesNew.Keys.ToList();
-      executedLines.Sort();
+      var executedLines = json["executedLines"].ToObject<IDictionary<int, List<int>>>();
 
       List<PythonStatementSemantic> semantics = new List<PythonStatementSemantic>();
       ISymbolicExpressionTreeNode root = tree.Root;
@@ -271,16 +269,13 @@ executedLines = {k: list(v) for k, v in executedLines.items()}
       }
       foreach (var symbolLine in symbolToLineDict) {
         symbolLine.Value[0] = moveLines[symbolLine.Value[0]];
-
-        if (symbolLine.Value[0] > symbolLine.Value[1]) {
-          Console.WriteLine("------------------symbolLine Problem");
-        }
       }
       #endregion
       #region fix Before line for <predefined> to have all variables initialised
       // not a great way to do it, but the python interpreter does not stop at e.g. 'while False:'
       int newMinBefore = traceTableBefore.OrderBy(x => x.Key).First(x => x.Value.ContainsKey("res0") && !x.Value["res0"].Contains(null)).Key; // first line that changes res0
       foreach (var symbolToLine in symbolToLineDict) {
+        symbolToLine.Value.Add(symbolToLine.Value[0]); // original beginning at [2], which is needed for executed lines
         if (symbolToLine.Value[0] < newMinBefore) {
           symbolToLine.Value[0] = newMinBefore;
         }
@@ -315,8 +310,10 @@ executedLines = {k: list(v) for k, v in executedLines.items()}
           }
         }
         // add semantics
+        var executedLinesWithinStatement = executedLines.Where(x => x.Key <= symbolLine.Value[2] && x.Key >= symbolLine.Value[1]);
         semantics.Add(new PythonStatementSemantic() {
           TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
+          ExecutedCases = executedLinesWithinStatement.Any() ? executedLinesWithinStatement.OrderByDescending(x => x.Value.Count).First().Value : new List<int>(),
           Before = before,
           After = after,
         });

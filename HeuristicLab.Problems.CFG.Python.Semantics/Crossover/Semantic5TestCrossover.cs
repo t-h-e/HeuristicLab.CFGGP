@@ -44,6 +44,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       return PythonSemanticComparer.PartialChangeInAtLeastOneVariable(original, replaced);
     }
 
+    protected override bool UsesAdditionalSemanticMeasure() {
+      return true;
+    }
+
     protected override bool AdditionalSemanticMeasure(JObject original, JObject replaced) {
       return PythonSemanticComparer.AnyChange(original, replaced);
     }

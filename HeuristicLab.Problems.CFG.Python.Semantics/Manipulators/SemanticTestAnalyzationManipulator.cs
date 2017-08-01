@@ -57,9 +57,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       int tries = 0;
       int semanticTries = 0;
 
-      var saveOriginalSemantics = new List<JObject>(semanticTries);
-      var saveReplaceSemantics = new List<JObject>(semanticTries);
-      var possibleChildren = new List<Tuple<ISymbolicExpressionTreeNode, int>>(semanticTries);
+      List<JObject> saveOriginalSemantics = null;
+      List<JObject> saveReplaceSemantics = null;
+      List<Tuple<ISymbolicExpressionTreeNode, int>> possibleChildren = null;
+      if (UsesAdditionalSemanticMeasure()) {
+        saveOriginalSemantics = new List<JObject>(semanticTries);
+        saveReplaceSemantics = new List<JObject>(semanticTries);
+        possibleChildren = new List<Tuple<ISymbolicExpressionTreeNode, int>>(semanticTries);
+      }
       bool success = false;
       do {
         #region find mutation point
@@ -90,8 +95,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             #region calculate original json output
             ISymbolicExpressionTreeNode statement = SemanticOperatorHelper.GetStatementNode(child, statementProductionNames);
             var statementPos0 = symbolicExpressionTree.IterateNodesPrefix().ToList().IndexOf(statement);
+            PythonStatementSemantic curSemantics = null;
             if (String.IsNullOrEmpty(variableSettings)) {
-              variableSettings = SemanticOperatorHelper.SemanticToPythonVariableSettings(semantics.First(x => x.TreeNodePrefixPos == statementPos0).Before, problemData.Variables.GetVariableTypes());
+              curSemantics = semantics.First(x => x.TreeNodePrefixPos == statementPos0);
+              variableSettings = SemanticOperatorHelper.SemanticToPythonVariableSettings(curSemantics.Before, problemData.Variables.GetVariableTypes());
             }
 
             var jsonOriginal = SemanticOperatorHelper.EvaluateStatementNode(statement, pythonProcess, random, problemData, variables, variableSettings, timeout);
@@ -111,6 +118,14 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               jsonReplaced = SemanticOperatorHelper.EvaluateStatementNode(statement, pythonProcess, random, problemData, variables, variableSettings, timeout);
             }
 
+            if (curSemantics != null) {
+              jsonOriginal = PythonSemanticComparer.ReplaceNotExecutedCases(jsonOriginal, curSemantics.Before, curSemantics.ExecutedCases);
+              jsonReplaced = PythonSemanticComparer.ReplaceNotExecutedCases(jsonReplaced, curSemantics.Before, curSemantics.ExecutedCases);
+
+              jsonOriginal = PythonSemanticComparer.ProduceDifference(jsonOriginal, curSemantics.Before);
+              jsonReplaced = PythonSemanticComparer.ProduceDifference(jsonReplaced, curSemantics.Before);
+            }
+
             if (SemanticMeasure(jsonOriginal, jsonReplaced)) {
               success = true;
               SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
@@ -120,9 +135,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               parent.RemoveSubtree(childIndex);
               parent.InsertSubtree(childIndex, child);
               allowedSymbols.Clear();
-              saveOriginalSemantics.Add(jsonOriginal);
-              saveReplaceSemantics.Add(jsonReplaced);
-              possibleChildren.Add(new Tuple<ISymbolicExpressionTreeNode, int>(seedNode, childIndex));
+
+              if (UsesAdditionalSemanticMeasure()) {
+                saveOriginalSemantics.Add(jsonOriginal);
+                saveReplaceSemantics.Add(jsonReplaced);
+                possibleChildren.Add(new Tuple<ISymbolicExpressionTreeNode, int>(seedNode, childIndex));
+              }
             }
 
             if (problemData.VariableSettings.Count == 0) {
@@ -133,7 +151,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             #endregion
 
             #region try second semantic comparison
-            if (semanticTries >= maximumSemanticTries) {
+            if (semanticTries >= maximumSemanticTries && UsesAdditionalSemanticMeasure()) {
               for (int index = 0; index < saveOriginalSemantics.Count; index++) {
                 if (AdditionalSemanticMeasure(saveOriginalSemantics[index], saveReplaceSemantics[index])) {
                   var mutation = possibleChildren[index];
@@ -192,6 +210,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     /// return true if the mutation should take place
     /// </summary>
     protected abstract bool SemanticMeasure(JObject original, JObject replaced);
+
+    /// <summary>
+    /// if no additional second measure is used, the semantic of a previous try does not have to be saved
+    /// </summary>
+    protected virtual bool UsesAdditionalSemanticMeasure() {
+      return false;
+    }
 
     /// <summary>
     /// return the index where the mutation should take place. If no mutation should take place, return a value out of range. 

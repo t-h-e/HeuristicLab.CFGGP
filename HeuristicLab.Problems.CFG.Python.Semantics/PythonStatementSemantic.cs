@@ -38,6 +38,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private IDictionary<string, IList> after;
     public IDictionary<string, IList> After { get { return after; } set { after = value; } }
 
+    [Storable]
+    private List<int> executedCases;
+    public List<int> ExecutedCases { get { return executedCases; } set { executedCases = value; } }
+
     [StorableConstructor]
     protected PythonStatementSemantic(bool deserializing) : base(deserializing) { }
     protected PythonStatementSemantic(PythonStatementSemantic original, Cloner cloner)
@@ -45,6 +49,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       TreeNodePrefixPos = original.TreeNodePrefixPos;
       before = original.before;
       after = original.after;
+      executedCases = original.executedCases;
     }
     public PythonStatementSemantic() { }
 

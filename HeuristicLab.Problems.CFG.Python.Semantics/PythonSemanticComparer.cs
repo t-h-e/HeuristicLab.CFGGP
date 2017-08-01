@@ -96,6 +96,49 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       v2Enumerator.Dispose();
     }
 
+    private static IEnumerable<bool> ChangesPerVariable(IEnumerable values1, IEnumerable values2) {
+      var v1Enumerator = values1.GetEnumerator();
+      var v2Enumerator = values2.GetEnumerator();
+      while (v1Enumerator.MoveNext() && v2Enumerator.MoveNext()) {
+        if (v1Enumerator.Current is IList) {
+          yield return !CompareSequence((IList)v1Enumerator.Current, (IList)v2Enumerator.Current);
+        } else {
+          yield return v1Enumerator.Current == null ? v2Enumerator.Current == null : !v1Enumerator.Current.Equals(v2Enumerator.Current);
+        }
+
+        if (!v1Enumerator.MoveNext() && !v2Enumerator.MoveNext()) yield break;
+        while (v1Enumerator.MoveNext() || v2Enumerator.MoveNext()) {
+          yield return true;
+        }
+      }
+    }
+
+    public static JObject ReplaceNotExecutedCases(JObject semantics, IDictionary<string, IList> before, List<int> executedCases) {
+      var converted = semantics.ToObject<IDictionary<string, IList>>();
+      foreach (var key in converted.Keys.ToList()) {
+        if (executedCases.Count == converted[key].Count) continue;
+        int pos = 0;
+        for (int i = 0; i < converted[key].Count; i++) {
+          if (pos >= executedCases.Count || (pos < executedCases.Count && executedCases[pos] != i)) {
+            converted[key][i] = before[key][i];
+          } else {
+            pos++;
+          }
+        }
+      }
+      return JObject.FromObject(converted);
+    }
+    public static JObject ProduceDifference(JObject evaluatedSemantics, IDictionary<string, IList> oldSemanticsBefore) {
+      var converted = evaluatedSemantics.ToObject<IDictionary<string, IList>>();
+      var tmp = new Dictionary<string, IList>();
+      foreach (var key in oldSemanticsBefore.Keys) {
+        if (ChangesPerVariable(converted[key], oldSemanticsBefore[key]).Any(x => x)) {
+          tmp[key] = converted[key];
+        }
+      }
+      return JObject.FromObject(tmp);
+    }
+
     #region base data types
     //---------------------------------------------------------------------------------------------------------------
     // Base Data Types
