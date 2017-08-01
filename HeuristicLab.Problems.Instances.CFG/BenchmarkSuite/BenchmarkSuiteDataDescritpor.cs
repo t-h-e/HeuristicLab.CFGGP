@@ -46,7 +46,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
   }
 
   public abstract class BenchmarkSuiteDataDescritpor : CFGArtificialDataDescriptor {
-    protected static FastRandom rand = new FastRandom();
+    protected static FastRandom rand;
 
     protected abstract IEnumerable<DataType> InputDataTypes { get; }
     protected abstract IEnumerable<DataType> OutputDataTypes { get; }
@@ -57,6 +57,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     public CFGData GenerateData(bool treeStructure, int numberOfVariables) {
+      // Always generate the same dataset 
+      rand = new FastRandom(0);
       var cfgData = base.GenerateData();
       cfgData.Grammar = GenerateGrammar(treeStructure, numberOfVariables);
       return cfgData;
