@@ -310,7 +310,7 @@ executedLines = {k: sorted(v) for k, v in executedLines.items()}
           }
         }
         // add semantics
-        var executedLinesWithinStatement = executedLines.Where(x => x.Key <= symbolLine.Value[2] && x.Key >= symbolLine.Value[1]);
+        var executedLinesWithinStatement = executedLines.Where(x => x.Key >= symbolLine.Value[2] && x.Key <= symbolLine.Value[1]);
         semantics.Add(new PythonStatementSemantic() {
           TreeNodePrefixPos = prefixTreeNodes.IndexOf(symbolLine.Key),
           ExecutedCases = executedLinesWithinStatement.Any() ? executedLinesWithinStatement.OrderByDescending(x => x.Value.Count).First().Value : new List<int>(),

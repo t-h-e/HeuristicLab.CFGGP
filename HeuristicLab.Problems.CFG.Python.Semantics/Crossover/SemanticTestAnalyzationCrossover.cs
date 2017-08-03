@@ -56,14 +56,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       int maximumSemanticTries = MaxComparesParameter.Value.Value;
       int semanticTries = 0;
 
-      List<JObject> saveOriginalSemantics = null;
-      List<JObject> saveReplaceSemantics = null;
-      List<Tuple<CutPoint, ISymbolicExpressionTreeNode>> possibleChildren = null;
-      if (UsesAdditionalSemanticMeasure()) {
-        saveOriginalSemantics = new List<JObject>(semanticTries);
-        saveReplaceSemantics = new List<JObject>(semanticTries);
-        possibleChildren = new List<Tuple<CutPoint, ISymbolicExpressionTreeNode>>(semanticTries);
-      }
+      var saveOriginalSemantics = new List<JObject>(semanticTries);
+      var saveReplaceSemantics = new List<JObject>(semanticTries);
+      var possibleChildren = new List<Tuple<CutPoint, ISymbolicExpressionTreeNode>>(semanticTries);
       bool success = false;
       do {
         // select a random crossover point in the first parent 
@@ -123,7 +118,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             newSemantics = SemanticSwap(crossoverPoint0, selectedBranch, parent0, parent1, semantic0, semantic1);
             AddStatistics(semantic0, parent0, statement == crossoverPoint0.Child ? selectedBranch : statement, crossoverPoint0, jsonOriginal, selectedBranch, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
             success = true;
-          } else if (UsesAdditionalSemanticMeasure()) {
+          } else {
             saveOriginalSemantics.Add(jsonOriginal);
             saveReplaceSemantics.Add(jsonReplaced);
             possibleChildren.Add(new Tuple<CutPoint, ISymbolicExpressionTreeNode>(crossoverPoint0, selectedBranch));
@@ -133,13 +128,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
         #region try second semantic comparison
 
-        if (!success && semanticTries >= maximumSemanticTries && UsesAdditionalSemanticMeasure()) {
+        if (!success && semanticTries >= maximumSemanticTries) {
           for (int index = 0; index < saveOriginalSemantics.Count; index++) {
             if (AdditionalSemanticMeasure(saveOriginalSemantics[index], saveReplaceSemantics[index])) {
               var crossover = possibleChildren[index];
               crossoverPoint0 = crossover.Item1;
               newSemantics = SemanticSwap(crossoverPoint0, crossover.Item2, parent0, parent1, semantic0, semantic1);
-              var statement = SemanticOperatorHelper.GetStatementNode(crossoverPoint0.Child, statementProductionNames);
+              var statement = SemanticOperatorHelper.GetStatementNode(crossover.Item2, statementProductionNames);
               AddStatistics(semantic0, parent0, statement, crossoverPoint0, saveOriginalSemantics[index], crossover.Item2, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
               success = true;
               break;
@@ -156,11 +151,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
           var crossover = possibleChildren.First();
           var crossoverPoint0 = crossover.Item1;
           newSemantics = SemanticSwap(crossoverPoint0, crossover.Item2, parent0, parent1, semantic0, semantic1);
-          var statement = SemanticOperatorHelper.GetStatementNode(crossoverPoint0.Child, statementProductionNames);
+          var statement = SemanticOperatorHelper.GetStatementNode(crossover.Item2, statementProductionNames);
           AddStatistics(semantic0, parent0, statement, crossoverPoint0, saveOriginalSemantics.First(), crossover.Item2, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
         }
         AddStatisticsNoCrossover(NoXoNoAllowedBranch);
       }
+
+      saveOriginalSemantics.Clear();
+      saveReplaceSemantics.Clear();
+      possibleChildren.Clear();
 
       return parent0;
     }
@@ -169,13 +168,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     /// return true if the mutation should take place
     /// </summary>
     protected abstract bool SemanticMeasure(JObject original, JObject replaced);
-
-    /// <summary>
-    /// if no additional second measure is used, the semantic of a previous try does not have to be saved
-    /// </summary>
-    protected virtual bool UsesAdditionalSemanticMeasure() {
-      return false;
-    }
 
     /// <summary>
     /// return the index where the mutation should take place. If no mutation should take place, return a value out of range. 
