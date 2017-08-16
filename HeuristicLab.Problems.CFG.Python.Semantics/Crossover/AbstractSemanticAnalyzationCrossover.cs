@@ -46,6 +46,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     private const string SemanticLocalityParameterName = "SemanticLocality";
     private const string ConstructiveEffectParameterName = "ConstructiveEffect";
 
+    private const string NumberOfCrossoverTriesParameterName = "NumberOfCrossoverTries";
+
     private const string CrossoverExceptionsParameterName = "CrossoverExceptions";
 
     private const string QualityParameterName = "Quality";
@@ -87,6 +89,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public ILookupParameter<IntValue> ConstructiveEffectParameter {
       get { return (ILookupParameter<IntValue>)Parameters[ConstructiveEffectParameterName]; }
     }
+    public ILookupParameter<IntValue> NumberOfCrossoverTriesParameter {
+      get { return (ILookupParameter<IntValue>)Parameters[NumberOfCrossoverTriesParameterName]; }
+    }
     public ILookupParameter<ItemCollection<StringValue>> CrossoverExceptionsParameter {
       get { return (ILookupParameter<ItemCollection<StringValue>>)Parameters[CrossoverExceptionsParameterName]; }
     }
@@ -108,6 +113,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
     public int NumberOfNoChangeDetected {
       set { NumberOfNoChangeDetectedParameter.ActualValue = new IntValue(value); }
+    }
+    public int NumberOfCrossoverTries {
+      set { NumberOfCrossoverTriesParameter.ActualValue = new IntValue(value); }
     }
     #endregion
 
@@ -136,6 +144,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       Parameters.Add(new LookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
       Parameters.Add(new LookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
+      Parameters.Add(new LookupParameter<IntValue>(NumberOfCrossoverTriesParameterName, ""));
       Parameters.Add(new LookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
 
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(QualityParameterName, "The qualities of the trees that should be analyzed."));
@@ -170,6 +179,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (NumberOfNoChangeDetectedParameter.ActualValue == null) {
         NumberOfNoChangeDetected = 0;
       }
+      if (NumberOfCrossoverTriesParameter.ActualValue == null) {
+        NumberOfCrossoverTries = 0;
+      }
       if (TypeSelectedForSimilarityParameter.ActualValue == null) {
         TypeSelectedForSimilarityParameter.ActualValue = new StringValue(reason == NoXoNoStatement ? "Random crossover (No Statement)" : "No Crossover");
       }
@@ -201,6 +213,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       }
       if (NumberOfNoChangeDetectedParameter.ActualValue == null) {
         NumberOfNoChangeDetected = 0;
+      }
+      if (NumberOfCrossoverTriesParameter.ActualValue == null) {
+        NumberOfCrossoverTries = 0;
       }
       if (TypeSelectedForSimilarityParameter.ActualValue == null) {
         TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Random crossover");

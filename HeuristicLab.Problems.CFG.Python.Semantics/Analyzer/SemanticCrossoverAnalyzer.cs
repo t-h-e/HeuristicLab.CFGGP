@@ -43,6 +43,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     private const string SemanticallyEquivalentCrossoverParameterName = "SemanticallyEquivalentCrossover";
     private const string SemanticallyDifferentFromRootedParentParameterName = "SemanticallyDifferentFromRootedParent";
     private const string SemanticLocalityParameterName = "SemanticLocality";
+    private const string NumberOfCrossoverTriesParameterName = "NumberOfCrossoverTries";
     private const string ConstructiveEffectParameterName = "ConstructiveEffect";
 
     private const string CrossoverExceptionsParameterName = "CrossoverExceptions";
@@ -77,6 +78,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     }
     public IScopeTreeLookupParameter<IntValue> ConstructiveEffectParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[ConstructiveEffectParameterName]; }
+    }
+    public IScopeTreeLookupParameter<IntValue> NumberOfCrossoverTriesParameter {
+      get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfCrossoverTriesParameterName]; }
     }
     public IScopeTreeLookupParameter<ItemCollection<StringValue>> CrossoverExceptionsParameter {
       get { return (IScopeTreeLookupParameter<ItemCollection<StringValue>>)Parameters[CrossoverExceptionsParameterName]; }
@@ -134,6 +138,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       Parameters.Add(new ScopeTreeLookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<DoubleValue>(SemanticLocalityParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(ConstructiveEffectParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfCrossoverTriesParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<ItemCollection<StringValue>>(CrossoverExceptionsParameterName, ""));
 
       Parameters.Add(new LookupParameter<ResultCollection>("Results", "The result collection where the exception frequencies should be stored."));
@@ -152,11 +157,13 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       var numberOfPossibleBranchesSelected = NumberOfPossibleBranchesSelectedParameter.ActualValue.Where(x => x != null).ToArray();
       var numberOfNoChangeDetected = NumberOfNoChangeDetectedParameter.ActualValue.Where(x => x != null).ToArray();
       var typeSelectedForSimilarity = TypeSelectedForSimilarityParameter.ActualValue.Where(x => x != null).ToArray();
+      var numberOfCrossoverTries = NumberOfCrossoverTriesParameter.ActualValue.Where(x => x != null).ToArray();
 
       AddAverageTableEntry(numberOfAllowedBranches, NumberOfAllowedBranchesParameterName);
       AddAverageTableEntry(numberOfPossibleBranchesSelected, NumberOfPossibleBranchesSelectedParameterName);
       AddAverageTableEntry(numberOfNoChangeDetected, NumberOfNoChangeDetectedParameterName);
       AddTypeSelectedForSimilarityTableEntry(typeSelectedForSimilarity);
+      AddAverageTableEntry(numberOfCrossoverTries, NumberOfCrossoverTriesParameterName);
 
       var semanticallyEquivalentCrossover = SemanticallyEquivalentCrossoverParameter.ActualValue.Where(x => x != null).ToArray();
       var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.Where(x => x != null).ToArray();
@@ -179,6 +186,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       NumberOfPossibleBranchesSelectedParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
       NumberOfNoChangeDetectedParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
       TypeSelectedForSimilarityParameter.ActualValue = new ItemArray<StringValue>(nullObjects.Cast<StringValue>());
+      NumberOfCrossoverTriesParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
       SemanticallyEquivalentCrossoverParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
       SemanticallyDifferentFromRootedParentParameter.ActualValue = new ItemArray<BoolValue>(nullObjects.Cast<BoolValue>());
       SemanticLocalityParameter.ActualValue = new ItemArray<DoubleValue>(nullObjects.Cast<DoubleValue>());
@@ -253,14 +261,18 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         newTable.VisualProperties.YAxisTitle = "Average";
         newTable.VisualProperties.YAxisMaximumAuto = false;
 
-        DataRow row = new DataRow("Average");
-        row.VisualProperties.StartIndexZero = true;
-        newTable.Rows.Add(row);
+        List<string> rowNames = new List<string>() { "Average", "Average (excluding Zero)" };
+        foreach (var name in rowNames) {
+          DataRow row = new DataRow(name);
+          row.VisualProperties.StartIndexZero = true;
+          newTable.Rows.Add(row);
+        }
 
         ResultCollection.Add(new Result(tableName, newTable));
       }
       var table = ((DataTable)ResultCollection[tableName].Value);
-      table.Rows["Average"].Values.Add(values.Select(x => x.Value).Average());
+      table.Rows["Average"].Values.Add(values.Select(x => x.Value).DefaultIfEmpty().Average());
+      table.Rows["Average (excluding Zero)"].Values.Add(values.Select(x => x.Value).Where(x => x != 0).DefaultIfEmpty().Average());
     }
 
     private void AddSemanticallyEquivalentCrossoverTableEntry(IntValue[] semanticallyEquivalentCrossover) {

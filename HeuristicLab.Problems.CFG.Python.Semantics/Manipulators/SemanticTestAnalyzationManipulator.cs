@@ -59,11 +59,11 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
 
       List<JObject> saveOriginalSemantics = null;
       List<JObject> saveReplaceSemantics = null;
-      List<Tuple<ISymbolicExpressionTreeNode, int>> possibleChildren = null;
+      List<Tuple<ISymbolicExpressionTreeNode, ISymbolicExpressionTreeNode, int>> possibleChildren = null; // Item1 = parent, Item2 = seedNode, Item3 = childIndex
       if (UsesAdditionalSemanticMeasure()) {
         saveOriginalSemantics = new List<JObject>(semanticTries);
         saveReplaceSemantics = new List<JObject>(semanticTries);
-        possibleChildren = new List<Tuple<ISymbolicExpressionTreeNode, int>>(semanticTries);
+        possibleChildren = new List<Tuple<ISymbolicExpressionTreeNode, ISymbolicExpressionTreeNode, int>>(semanticTries);
       }
       bool success = false;
       do {
@@ -104,7 +104,6 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             var jsonOriginal = SemanticOperatorHelper.EvaluateStatementNode(statement, pythonProcess, random, problemData, variables, variableSettings, timeout);
 
             // compare jsonOriginal to semantic after! Maybe avoid additional evaluation.
-
             #endregion
 
             var seedNode = GenerateAndInsertNewSubtree(random, parent, allowedSymbols, childIndex, maxLength, maxDepth);
@@ -118,7 +117,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               jsonReplaced = SemanticOperatorHelper.EvaluateStatementNode(statement, pythonProcess, random, problemData, variables, variableSettings, timeout);
             }
 
-            if (curSemantics != null) {
+            var exception = jsonOriginal["exception"] != null || jsonReplaced["exception"] != null;
+            if (curSemantics != null && !exception) {
               jsonOriginal = PythonSemanticComparer.ReplaceNotExecutedCases(jsonOriginal, curSemantics.Before, curSemantics.ExecutedCases);
               jsonReplaced = PythonSemanticComparer.ReplaceNotExecutedCases(jsonReplaced, curSemantics.Before, curSemantics.ExecutedCases);
 
@@ -126,7 +126,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               jsonReplaced = PythonSemanticComparer.ProduceDifference(jsonReplaced, curSemantics.Before);
             }
 
-            if (SemanticMeasure(jsonOriginal, jsonReplaced)) {
+            if (!exception && SemanticMeasure(jsonOriginal, jsonReplaced)) {
               success = true;
               SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
               MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
@@ -136,10 +136,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
               parent.InsertSubtree(childIndex, child);
               allowedSymbols.Clear();
 
-              if (UsesAdditionalSemanticMeasure()) {
+              if (!exception && UsesAdditionalSemanticMeasure()) {
                 saveOriginalSemantics.Add(jsonOriginal);
                 saveReplaceSemantics.Add(jsonReplaced);
-                possibleChildren.Add(new Tuple<ISymbolicExpressionTreeNode, int>(seedNode, childIndex));
+                possibleChildren.Add(new Tuple<ISymbolicExpressionTreeNode, ISymbolicExpressionTreeNode, int>(parent, seedNode, childIndex));
               }
             }
 
@@ -151,12 +151,12 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             #endregion
 
             #region try second semantic comparison
-            if (semanticTries >= maximumSemanticTries && UsesAdditionalSemanticMeasure()) {
+            if (!success && semanticTries >= maximumSemanticTries && UsesAdditionalSemanticMeasure()) {
               for (int index = 0; index < saveOriginalSemantics.Count; index++) {
                 if (AdditionalSemanticMeasure(saveOriginalSemantics[index], saveReplaceSemantics[index])) {
                   var mutation = possibleChildren[index];
-                  parent.RemoveSubtree(mutation.Item2);
-                  parent.InsertSubtree(mutation.Item2, mutation.Item1);
+                  mutation.Item1.RemoveSubtree(mutation.Item3);
+                  mutation.Item1.InsertSubtree(mutation.Item3, mutation.Item2);
                   success = true;
                   SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
                   MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);

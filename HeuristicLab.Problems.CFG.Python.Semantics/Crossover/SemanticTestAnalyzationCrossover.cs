@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HeuristicLab.Common;
 using HeuristicLab.Core;
+using HeuristicLab.Data;
 using HeuristicLab.Encodings.SymbolicExpressionTreeEncoding;
 using HeuristicLab.Persistence.Default.CompositeSerializers.Storable;
 using Newtonsoft.Json.Linq;
@@ -44,6 +45,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       if (semantic0 == null || semantic1 == null || semantic0.Length == 0 || semantic1.Length == 0) {
         parent0 = SubtreeCrossover.Cross(random, parent0, parent1, internalCrossoverPointProbability, maxTreeLength, maxTreeDepth);
         newSemantics = null;
+        TypeSelectedForSimilarityParameter.ActualValue = new StringValue("No Semantics; Random Crossover");
         AddStatisticsNoCrossover(NoXoNoSemantics);
         return parent0;
       }
@@ -56,9 +58,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       int maximumSemanticTries = MaxComparesParameter.Value.Value;
       int semanticTries = 0;
 
-      var saveOriginalSemantics = new List<JObject>(semanticTries);
-      var saveReplaceSemantics = new List<JObject>(semanticTries);
-      var possibleChildren = new List<Tuple<CutPoint, ISymbolicExpressionTreeNode>>(semanticTries);
+      var saveOriginalSemantics = new List<JObject>(maximumSemanticTries);
+      var saveReplaceSemantics = new List<JObject>(maximumSemanticTries);
+      var possibleChildren = new List<Tuple<CutPoint, ISymbolicExpressionTreeNode>>(maximumSemanticTries);
       bool success = false;
       do {
         // select a random crossover point in the first parent 
@@ -105,8 +107,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             selectedBranch.Parent = parent; // restore parent
             crossoverPoint0.Parent.InsertSubtree(crossoverPoint0.ChildIndex, crossoverPoint0.Child); // restore cutPoint
           }
+          var exception = jsonOriginal["exception"] != null || jsonReplaced["exception"] != null;
 
-          if (curSemantics != null) {
+          if (curSemantics != null && !exception) {
             jsonOriginal = PythonSemanticComparer.ReplaceNotExecutedCases(jsonOriginal, curSemantics.Before, curSemantics.ExecutedCases);
             jsonReplaced = PythonSemanticComparer.ReplaceNotExecutedCases(jsonReplaced, curSemantics.Before, curSemantics.ExecutedCases);
 
@@ -114,8 +117,10 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             jsonReplaced = PythonSemanticComparer.ProduceDifference(jsonReplaced, curSemantics.Before);
           }
 
-          if (SemanticMeasure(jsonOriginal, jsonReplaced)) {
+          if (!exception && SemanticMeasure(jsonOriginal, jsonReplaced)) {
             newSemantics = SemanticSwap(crossoverPoint0, selectedBranch, parent0, parent1, semantic0, semantic1);
+            SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(2);
+            TypeSelectedForSimilarityParameter.ActualValue = new StringValue("First Semantic");
             AddStatistics(semantic0, parent0, statement == crossoverPoint0.Child ? selectedBranch : statement, crossoverPoint0, jsonOriginal, selectedBranch, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
             success = true;
           } else {
@@ -127,21 +132,26 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         semanticTries++;
 
         #region try second semantic comparison
-
         if (!success && semanticTries >= maximumSemanticTries) {
           for (int index = 0; index < saveOriginalSemantics.Count; index++) {
-            if (AdditionalSemanticMeasure(saveOriginalSemantics[index], saveReplaceSemantics[index])) {
+            var exception = saveOriginalSemantics[index]["exception"] == null && saveReplaceSemantics[index]["exception"] == null;
+            if (!exception && AdditionalSemanticMeasure(saveOriginalSemantics[index], saveReplaceSemantics[index])) {
               var crossover = possibleChildren[index];
               crossoverPoint0 = crossover.Item1;
+
+              // Recreate jsonOriginal as it might have changed due to ReplaceNotExecutedCases and ProduceDifference
+              var jsonOriginal = GenerateOriginalJson(crossoverPoint0, statementProductionNames, parent0, variableSettings, semantic0, problemData, random, variables);
+
               newSemantics = SemanticSwap(crossoverPoint0, crossover.Item2, parent0, parent1, semantic0, semantic1);
               var statement = SemanticOperatorHelper.GetStatementNode(crossover.Item2, statementProductionNames);
-              AddStatistics(semantic0, parent0, statement, crossoverPoint0, saveOriginalSemantics[index], crossover.Item2, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
+              SemanticallyEquivalentCrossoverParameter.ActualValue = new IntValue(2);
+              TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Second Semantic");
+              AddStatistics(semantic0, parent0, statement, crossoverPoint0, jsonOriginal, crossover.Item2, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
               success = true;
               break;
             }
           }
         }
-
         #endregion
       } while (!success && semanticTries < maximumSemanticTries);
 
@@ -150,18 +160,34 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         if (saveOriginalSemantics.Any()) {
           var crossover = possibleChildren.First();
           var crossoverPoint0 = crossover.Item1;
+          // Recreate jsonOriginal as it might have changed due to ReplaceNotExecutedCases and ProduceDifference
+          var jsonOriginal = GenerateOriginalJson(crossoverPoint0, statementProductionNames, parent0, variableSettings, semantic0, problemData, random, variables);
           newSemantics = SemanticSwap(crossoverPoint0, crossover.Item2, parent0, parent1, semantic0, semantic1);
           var statement = SemanticOperatorHelper.GetStatementNode(crossover.Item2, statementProductionNames);
-          AddStatistics(semantic0, parent0, statement, crossoverPoint0, saveOriginalSemantics.First(), crossover.Item2, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
+          TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Random Crossover; Reached Max Semantic Tries");
+          AddStatistics(semantic0, parent0, statement, crossoverPoint0, jsonOriginal, crossover.Item2, random, problemData, variables, variableSettings); // parent zero has been changed is now considered the child
+        } else {
+          AddStatisticsNoCrossover(NoXoNoAllowedBranch);
         }
-        AddStatisticsNoCrossover(NoXoNoAllowedBranch);
       }
 
       saveOriginalSemantics.Clear();
       saveReplaceSemantics.Clear();
       possibleChildren.Clear();
 
+      NumberOfCrossoverTries = semanticTries;
+
       return parent0;
+    }
+
+    private JObject GenerateOriginalJson(CutPoint crossoverPoint0, IEnumerable<string> statementProductionNames, ISymbolicExpressionTree parent0, string variableSettings, ItemArray<PythonStatementSemantic> semantic0, ICFGPythonProblemData problemData, IRandom random, List<string> variables) {
+      ISymbolicExpressionTreeNode statementOriginal = SemanticOperatorHelper.GetStatementNode(crossoverPoint0.Child, statementProductionNames);   // statementOriginal is not always the same as statement
+      var statementPos0 = parent0.IterateNodesPrefix().ToList().IndexOf(statementOriginal);
+      if (String.IsNullOrEmpty(variableSettings)) {
+        var curSemantics = semantic0.First(x => x.TreeNodePrefixPos == statementPos0);
+        variableSettings = SemanticOperatorHelper.SemanticToPythonVariableSettings(curSemantics.Before, problemData.Variables.GetVariableTypes());
+      }
+      return SemanticOperatorHelper.EvaluateStatementNode(statementOriginal, PyProcess, random, problemData, variables, variableSettings, Timeout);
     }
 
     /// <summary>

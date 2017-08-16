@@ -284,7 +284,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         }
         SemanticallyEquivalentMutationDataTable = table;
       }
-      List<int> semanticallyEquivalentMutationCount = Enumerable.Repeat(0, 3).ToList();
+      List<int> semanticallyEquivalentMutationCount = Enumerable.Repeat(0, 4).ToList();
       for (int i = 0; i < semanticallyEquivalentMutation.Length; i++) {
         semanticallyEquivalentMutationCount[semanticallyEquivalentMutation[i].Value]++;
       }
