@@ -60,7 +60,7 @@ if __name__ == '__main__':
             # No data was read with input()
             # HeuristicLab is not running anymore
             # stop thread
-            consume.put(None, None)
+            consume.put((None, None))
             if not p.join(5):
                 p.terminate()
             break
