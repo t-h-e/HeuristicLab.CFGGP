@@ -61,7 +61,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<string> GetStringWithSpaces(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        var value = StringValueGenerator.GetRandomStringWithoutSpaces(rand.Next(0, 20), rand).ToCharArray();
+        var value = StringValueGenerator.GetRandomStringWithoutSpaces(rand.Next(2, 20 + 1), rand).ToCharArray();
 
         // add 20% spaces
         for (int j = 0; j < value.Length; j++) {

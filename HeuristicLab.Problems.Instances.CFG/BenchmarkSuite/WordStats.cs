@@ -95,11 +95,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<string> GetRandomString(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(1, 100);
+        int length = rand.Next(1, 100 + 1);
         var value = GetRandomChar(length, rand).ToArray();
 
         if (!value.Any(x => terminators.Contains(x))) {
-          value[rand.Next(0, value.Length - 1)] = terminators[rand.Next(0, terminators.Length - 1)];
+          value[rand.Next(0, value.Length)] = terminators[rand.Next(0, terminators.Length)];
         }
         yield return new String(value);
       }
@@ -116,8 +116,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
         if (prob < tabProb) yield return '\t';
         if (prob < tabProb + newlineProb) yield return '\n';
         if (prob < tabProb + newlineProb + spaceProb) yield return ' ';
-        if (prob < tabProb + newlineProb + spaceProb + terminatorProb) yield return terminators[rand.Next(0, terminators.Length - 1)];
-        else yield return (char)rand.Next(33, 126);
+        if (prob < tabProb + newlineProb + spaceProb + terminatorProb) yield return terminators[rand.Next(0, terminators.Length)];
+        else yield return (char)rand.Next(33, 126 + 1);
       }
     }
 

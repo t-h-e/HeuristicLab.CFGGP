@@ -64,9 +64,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return new Tuple<string[], string[]>(input, output);
     }
 
-    private IEnumerable<List<int>> GetRandom(int n, FastRandom rand, int min = -1000, int max = 1000) {
+    private IEnumerable<List<int>> GetRandom(int n, FastRandom rand, int min = -1000, int max = 1000 + 1) {
       for (int i = 1; i <= n; i++) {
-        int length = rand.Next(0, 50);
+        int length = rand.Next(1, 51);
         List<int> vector = new List<int>(length);
         for (int j = 0; j < length; j++) {
           vector.Add(rand.Next(min, max));
@@ -77,7 +77,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetLength1(int n, FastRandom rand) {
       for (int i = 1; i <= n; i++) {
-        yield return new List<int>(1) { rand.Next(-1000, 1000) };
+        yield return new List<int>(1) { rand.Next(-1000, 1000 + 1) };
       }
     }
 

@@ -60,9 +60,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<string> GetStringsWithSomeVowels(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        var value = StringValueGenerator.GetRandomStringWithOnlyPrintableCharactersWithoutUpperCaseCharacters(rand.Next(0, 20), rand).ToCharArray();
+        var value = StringValueGenerator.GetRandomStringWithOnlyPrintableCharactersWithoutUpperCaseCharacters(rand.Next(0, 20 + 1), rand).ToCharArray();
         for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
-          if (rand.NextDouble() < 0.2) value[j] = StringValueGenerator.vowel[rand.Next(0, StringValueGenerator.vowel.Length - 1)];
+          if (rand.NextDouble() < 0.2) value[j] = StringValueGenerator.vowel[rand.Next(0, StringValueGenerator.vowel.Length)];
         }
         yield return new String(value);
       }

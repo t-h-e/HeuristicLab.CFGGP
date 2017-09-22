@@ -60,7 +60,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<string>> GetRandomStringsOfStrings(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int count = rand.Next(0, 50);
+        int count = rand.Next(1, 50 + 1);
         yield return StringValueGenerator.GetRandomStrings(count, 0, 50, rand).ToList();
       }
     }

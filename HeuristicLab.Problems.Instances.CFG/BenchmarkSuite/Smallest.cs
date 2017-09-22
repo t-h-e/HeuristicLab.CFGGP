@@ -68,27 +68,27 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetQuadrupel(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return Enumerable.Repeat(rand.Next(-100, 100), 4).ToList();
+        yield return Enumerable.Repeat(rand.Next(-100, 100 + 1), 4).ToList();
       }
     }
 
     private IEnumerable<List<int>> GetTriple(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        var temp = Enumerable.Repeat(rand.Next(-100, 100), 3).ToList();
-        temp.Add(rand.Next(-100, 100));
+        var temp = Enumerable.Repeat(rand.Next(-100, 100 + 1), 3).ToList();
+        temp.Add(rand.Next(-100, 100 + 1));
         yield return temp.Shuffle(rand).ToList();
       }
     }
 
     private IEnumerable<List<int>> GetNonNegativeSingles(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return new List<int>(4) { rand.Next(0, 100), rand.Next(0, 100), rand.Next(0, 100), rand.Next(0, 100) };
+        yield return new List<int>(4) { rand.Next(0, 100 + 1), rand.Next(0, 100 + 1), rand.Next(0, 100 + 1), rand.Next(0, 100 + 1) };
       }
     }
 
     private IEnumerable<List<int>> GetRandom(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return new List<int>(4) { rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100) };
+        yield return new List<int>(4) { rand.Next(-100, 100 + 1), rand.Next(-100, 100 + 1), rand.Next(-100, 100 + 1), rand.Next(-100, 100 + 1) };
       }
     }
 

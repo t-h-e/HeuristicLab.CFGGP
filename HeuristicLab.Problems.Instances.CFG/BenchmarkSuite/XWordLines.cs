@@ -77,7 +77,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<Tuple<string, int>> GetRandomTuple(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        string strValue = GetRandomString(rand.Next(0, 100), rand);
+        string strValue = GetRandomString(rand.Next(1, 100 + 1), rand);
         int intValue = intValues[rand.Next(0, intValues.Length)];
         yield return new Tuple<string, int>(strValue, intValue);
       }
@@ -94,7 +94,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private char GetRandomChar(FastRandom rand) {
       if (rand.NextDouble() < 0.15) return ' ';
       if (rand.NextDouble() < 0.2) return '\n';
-      int value = rand.Next(0, 94);
+      int value = rand.Next(0, 94 + 1);
       return (char)(value + 32);
     }
 

@@ -33,9 +33,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
     public override string Identifier { get { return "Checksum"; } }
     protected override int TrainingPartitionStart { get { return 0; } }
-    protected override int TrainingPartitionEnd { get { return 100; } }
-    protected override int TestPartitionStart { get { return 100; } }
-    protected override int TestPartitionEnd { get { return 1100; } }
+    protected override int TrainingPartitionEnd { get { return 300; } }
+    protected override int TestPartitionStart { get { return 300; } }
+    protected override int TestPartitionEnd { get { return 2300; } }
 
     protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.String }; } }
     protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.String }; } }
@@ -43,12 +43,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     protected override IEnumerable<string> GenerateTraining() {
       List<string> strings = GetHardcodedTrainingSamples();
-      strings.AddRange(StringValueGenerator.GetRandomStrings(88, 0, 50, rand));
+      strings.AddRange(StringValueGenerator.GetRandomStrings(55, 2, 2, rand)); // Random length-2 inputs
+      strings.AddRange(StringValueGenerator.GetRandomStrings(50, 3, 3, rand)); // Random length-3 inputs
+      strings.AddRange(StringValueGenerator.GetRandomStrings(89, 2, 50, rand)); // Random >= 2 length inputs
       return strings;
     }
 
     protected override IEnumerable<string> GenerateTest() {
-      return StringValueGenerator.GetRandomStrings(1000, 0, 50, rand).ToList();
+      List<string> strings = StringValueGenerator.GetRandomStrings(500, 2, 2, rand).ToList(); // Random length-2 inputs
+      strings.AddRange(StringValueGenerator.GetRandomStrings(500, 3, 3, rand)); // Random length-3 inputs
+      strings.AddRange(StringValueGenerator.GetRandomStrings(1000, 2, 50, rand)); // Random >= 2 length inputs
+      return strings;
     }
 
     protected override Tuple<string[], string[]> GenerateInputOutput(IEnumerable<string> strings) {
@@ -66,15 +71,17 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private List<string> GetHardcodedTrainingSamples() {
-      return new List<string>() {
-        "", "A", "\t", "\n", "B\n", "\n\n",
+      var hardCoded = new List<string>() {
+        "", "\t", "\n", "B\n", "\n\n",
           String.Concat(Enumerable.Repeat('\n', 50)),
           String.Concat(Enumerable.Repeat(' ', 50)),
           String.Concat(Enumerable.Repeat('s', 50)),
           String.Concat(Enumerable.Repeat("CD\n", 16)) + "CD",
           String.Concat(Enumerable.Repeat("x\ny ", 12)) + "x\n",
           String.Concat(Enumerable.Repeat(" \n", 25)),
-      };
+      }; // "Special" inputs covering some base cases
+      var everyVisibleCharater = Enumerable.Range(32, 95).Select(x => ((char)x).ToString()).ToList();  // All visible characters once
+      return hardCoded.Union(everyVisibleCharater).ToList();
     }
   }
 }

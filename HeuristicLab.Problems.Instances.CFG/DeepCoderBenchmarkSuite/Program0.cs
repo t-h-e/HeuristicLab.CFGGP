@@ -57,9 +57,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return new Tuple<string[], string[]>(input, output);
     }
 
-    private IEnumerable<List<int>> GetRandom(int n, FastRandom rand, IEnumerable<int> sizes, int min = -256, int max = 255) {
+    private IEnumerable<List<int>> GetRandom(int n, FastRandom rand, IEnumerable<int> sizes, int min = -256, int max = 256) {
       foreach (var s in sizes) {
-        int length = rand.Next(s + 1, 20);
+        int length = rand.Next(s + 1, 20 + 1);
         List<int> vector = new List<int>(length);  // vector has to be bigger than s
         for (int j = 0; j < length; j++) {
           vector.Add(rand.Next(min, max + 1));

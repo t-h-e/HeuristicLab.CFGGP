@@ -65,21 +65,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetTriple(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return Enumerable.Repeat(rand.Next(-100, 100), 3).ToList();
+        yield return Enumerable.Repeat(rand.Next(-100, 100 + 1), 3).ToList();
       }
     }
 
     private IEnumerable<List<int>> GetDoubles(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        var temp = Enumerable.Repeat(rand.Next(-100, 100), 2).ToList();
-        temp.Add(rand.Next(-100, 100));
+        var temp = Enumerable.Repeat(rand.Next(-100, 100 + 1), 2).ToList();
+        temp.Add(rand.Next(-100, 100 + 1));
         yield return temp.Shuffle(rand).ToList();
       }
     }
 
     private IEnumerable<List<int>> GetSingles(int n, IRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return new List<int>(3) { rand.Next(-100, 100), rand.Next(-100, 100), rand.Next(-100, 100) };
+        yield return new List<int>(3) { rand.Next(-100, 100 + 1), rand.Next(-100, 100 + 1), rand.Next(-100, 100 + 1) };
       }
     }
   }

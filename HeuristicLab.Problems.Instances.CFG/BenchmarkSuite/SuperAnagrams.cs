@@ -84,7 +84,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private IEnumerable<List<string>> GetCloseOrSuperAnagrams(int n, FastRandom rand) {
       // string with only letters! no other symbols
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(0, 20);
+        int length = rand.Next(1, 20 + 1);
         string value0 = StringValueGenerator.GetRandomLowerCaseString(length, rand);
         string value1 = ReplaceDropCharsAndShuffle(value0, rand);
         yield return rand.NextDouble() < 0.2  // bias towards value1 first, since value0.Length >= value1.Length

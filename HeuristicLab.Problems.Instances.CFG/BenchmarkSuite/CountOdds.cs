@@ -65,10 +65,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetAllOdd(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(0, 50);
+        int length = rand.Next(1, 51);
         List<int> vector = new List<int>(length);
         for (int j = 0; j < length; j++) {
-          vector.Add(rand.Next(0, 999) * 2 - 999);
+          vector.Add(rand.Next(0, 1000) * 2 - 999);
         }
         yield return vector;
       }
@@ -76,10 +76,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetAllEven(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(0, 50);
+        int length = rand.Next(1, 51);
         List<int> vector = new List<int>(length);
         for (int j = 0; j < length; j++) {
-          vector.Add(rand.Next(0, 1000) * 2 - 1000);
+          vector.Add(rand.Next(0, 1001) * 2 - 1000);
         }
         yield return vector;
       }
@@ -87,10 +87,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetRandom(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(0, 50);
+        int length = rand.Next(1, 51);
         List<int> vector = new List<int>(length);
         for (int j = 0; j < length; j++) {
-          vector.Add(rand.Next(-1000, 1000));
+          vector.Add(rand.Next(-1000, 1001));
         }
         yield return vector;
       }

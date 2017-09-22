@@ -35,9 +35,12 @@ namespace HeuristicLab.Problems.Instances.CFG {
     // 32 space
     // 33-126 other printable characters
 
-    public static IEnumerable<string> GetRandomStrings(int n, int minLength, int maxLength, FastRandom rand) {
+    /// <summary>
+    /// length is inclusive minLength and inclusive maxLength
+    /// </summary>
+    public static IEnumerable<string> GetRandomStrings(int n, int minLength, int maxLengthInclusive, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return StringValueGenerator.GetRandomString(rand.Next(minLength, maxLength), rand);
+        yield return StringValueGenerator.GetRandomString(rand.Next(minLength, maxLengthInclusive + 1), rand); // +1 , because rand.Next is exclusive upperBound
       }
     }
 
@@ -50,7 +53,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private static char GetRandomChar(FastRandom rand) {
-      int value = rand.Next(0, 96);
+      int value = rand.Next(0, 96 + 1); // +1 , because rand.Next is exclusive upperBound
       switch (value) {
         case 0:
           return '\t';
@@ -63,7 +66,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     public static IEnumerable<string> GetRandomStringsWithoutSpaces(int n, int minLength, int maxLength, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return StringValueGenerator.GetRandomStringWithoutSpaces(rand.Next(minLength, maxLength), rand);
+        yield return StringValueGenerator.GetRandomStringWithoutSpaces(rand.Next(minLength, maxLength + 1), rand); // +1 , because rand.Next is exclusive upperBound
       }
     }
 
@@ -76,7 +79,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     public static char GetRandomCharWithoutSpace(FastRandom rand) {
-      int value = rand.Next(0, 95);
+      int value = rand.Next(0, 95 + 1); // +1 , because rand.Next is exclusive upperBound
       switch (value) {
         case 0:
           return '\t';
@@ -96,7 +99,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private static char GetRandomPrintableCharExceptUpperCase(FastRandom rand) {
-      int value = rand.Next(0, 68) + 32;
+      int value = rand.Next(0, 68 + 1) + 32; // +1 , because rand.Next is exclusive upperBound
       if (value < 65) return (char)value;
       return (char)(value + 26);
     }
@@ -110,7 +113,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     public static char GetRandomLowerCaseChar(FastRandom rand) {
-      int value = rand.Next(0, 25);
+      int value = rand.Next(0, 25 + 1); // +1 , because rand.Next is exclusive upperBound
       return (char)(value + 97);
     }
   }

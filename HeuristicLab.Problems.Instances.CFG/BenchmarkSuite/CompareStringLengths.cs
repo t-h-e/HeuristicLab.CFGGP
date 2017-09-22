@@ -69,9 +69,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private IEnumerable<List<string>> GetStrings(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
         List<string> strings = new List<string>(3) {
-          StringValueGenerator.GetRandomString(rand.Next(0, 49), rand),
-          StringValueGenerator.GetRandomString(rand.Next(0, 49), rand),
-          StringValueGenerator.GetRandomString(rand.Next(0, 49), rand) };
+          StringValueGenerator.GetRandomString(rand.Next(0, 50), rand),
+          StringValueGenerator.GetRandomString(rand.Next(0, 50), rand),
+          StringValueGenerator.GetRandomString(rand.Next(0, 50), rand) };
 
         yield return strings;
       }
@@ -80,9 +80,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private IEnumerable<List<string>> GetStringsInSortedLengthOrder(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
         List<string> strings = new List<string>(3) {
-          StringValueGenerator.GetRandomString(rand.Next(0, 49), rand),
-          StringValueGenerator.GetRandomString(rand.Next(0, 49), rand),
-          StringValueGenerator.GetRandomString(rand.Next(0, 49), rand) };
+          StringValueGenerator.GetRandomString(rand.Next(0, 50), rand),
+          StringValueGenerator.GetRandomString(rand.Next(0, 50), rand),
+          StringValueGenerator.GetRandomString(rand.Next(0, 50), rand) };
 
         yield return strings.OrderBy(x => x.Length).ToList();
       }
@@ -90,14 +90,14 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<string>> GetRepeatedString(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        yield return Enumerable.Repeat(StringValueGenerator.GetRandomString(rand.Next(1, 49), rand), 3).ToList();
+        yield return Enumerable.Repeat(StringValueGenerator.GetRandomString(rand.Next(1, 50), rand), 3).ToList();
       }
     }
 
     private List<List<string>> GetPermutationsWithOneEmptyStrings(int n, FastRandom rand) {
       List<List<string>> strings = new List<List<string>>();
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(1, 49);
+        int length = rand.Next(1, 50);
         string value = StringValueGenerator.GetRandomString(length, rand);
         strings.AddRange(GetDistinctPermutations(new string[] { String.Empty, value, String.Copy(value) }));
       }
@@ -107,7 +107,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private List<List<string>> GetPermutationsWithTwoEmptyStrings(int n, FastRandom rand) {
       List<List<string>> strings = new List<List<string>>();
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(1, 49);
+        int length = rand.Next(1, 50);
         string value = StringValueGenerator.GetRandomString(length, rand);
         strings.AddRange(GetDistinctPermutations(new string[] { String.Empty, String.Empty, value }));
       }

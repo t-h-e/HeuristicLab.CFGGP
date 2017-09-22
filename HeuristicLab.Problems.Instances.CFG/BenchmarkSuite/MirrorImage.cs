@@ -79,12 +79,12 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
         // add few changes
         int length = vector.Count;
-        int changes = rand.Next(1, 5);
+        int changes = rand.Next(1, 5 + 1);
         for (int j = 0; j < changes; j++) {
           if (rand.NextBool()) {
-            vector[rand.Next(0, length - 1)] = rand.Next(-1000, 1000);
+            vector[rand.Next(0, length)] = rand.Next(-1000, 1000 + 1);
           } else {
-            mirror[rand.Next(0, length - 1)] = rand.Next(-1000, 1000);
+            mirror[rand.Next(0, length)] = rand.Next(-1000, 1000 + 1);
           }
         }
         yield return new Tuple<List<int>, List<int>>(vector, mirror);
@@ -106,11 +106,11 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    private List<int> GetRandom(FastRandom rand, int minLength = 0) {
-      int length = rand.Next(minLength, 50);
+    private List<int> GetRandom(FastRandom rand, int minLength = 1) {
+      int length = rand.Next(minLength, 50 + 1);
       List<int> vector = new List<int>(length);
       for (int j = 0; j < length; j++) {
-        vector.Add(rand.Next(-1000, 1000));
+        vector.Add(rand.Next(-1000, 1000 + 1));
       }
       return vector;
     }

@@ -77,10 +77,10 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<List<int>> GetRandomVectors(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        int length = rand.Next(1, 50);
+        int length = rand.Next(1, 50 + 1);
         List<int> cur = new List<int>(length) { 0 };
         for (int j = 0; j < length - 1; j++) {
-          cur.Add(rand.Next(-50, 50));
+          cur.Add(rand.Next(-50, 50 + 1));
         }
         yield return cur.Shuffle(rand).ToList();
       }

@@ -63,7 +63,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     private IEnumerable<Tuple<List<int>, List<int>>> GetRandomTuple(int n, FastRandom rand) {
-      int length = rand.Next(0, 50);
+      int length = rand.Next(1, 50 + 1);
       return GetVectorOfLength(n, length, rand);
     }
 
@@ -76,7 +76,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private List<int> GetRandom(FastRandom rand, int length) {
       List<int> vector = new List<int>(length);
       for (int j = 0; j < length; j++) {
-        vector.Add(rand.Next(-1000, 1000));
+        vector.Add(rand.Next(-1000, 1000 + 1));
       }
       return vector;
     }

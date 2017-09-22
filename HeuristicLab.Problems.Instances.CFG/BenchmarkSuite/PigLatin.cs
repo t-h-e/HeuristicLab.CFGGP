@@ -81,7 +81,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private IEnumerable<string> GetLetterStrings(int n, FastRandom rand) {
       for (int i = 0; i < n; i++) {
-        var value = StringValueGenerator.GetRandomLowerCaseString(rand.Next(0, 50), rand).ToCharArray();
+        var value = StringValueGenerator.GetRandomLowerCaseString(rand.Next(3, 50 + 1), rand).ToCharArray();
         for (int j = 0; j < value.Length; j++) {  // randomly add spaces with 20% probability at each position
           if (rand.NextDouble() < 0.2) value[j] = ' ';
         }

@@ -68,9 +68,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private IEnumerable<Tuple<int, int, int>> CreateCasesAroundZero(int n) {
       int start, step, end;
       for (int i = 0; i < n; i++) {
-        step = rand.Next(1, 10);
-        start = rand.Next(-(step * 20) + 1, -1);
-        end = rand.Next(1, start + (20 * step));
+        step = rand.Next(1, 11);
+        start = rand.Next(-(step * 20) + 1, 0);
+        end = rand.Next(1, start + (20 * step) + 1);
         yield return new Tuple<int, int, int>(start, end, step);
       }
     }
@@ -78,9 +78,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private IEnumerable<Tuple<int, int, int>> CreateCasesEverywhere(int n) {
       int start, step, end;
       for (int i = 0; i < n; i++) {
-        step = rand.Next(1, 10);
+        step = rand.Next(1, 11);
         start = rand.Next(-500, 500 - (20 * step));
-        end = rand.Next(start + 1, start + (20 * step));
+        end = rand.Next(start + 1, start + (20 * step) + 1);
         yield return new Tuple<int, int, int>(start, end, step);
       }
     }
