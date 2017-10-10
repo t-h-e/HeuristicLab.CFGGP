@@ -128,6 +128,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             } else {
               SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
               MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
+              TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Semantic Mutation");
             }
 
             if (problemData.VariableSettings.Count == 0) {

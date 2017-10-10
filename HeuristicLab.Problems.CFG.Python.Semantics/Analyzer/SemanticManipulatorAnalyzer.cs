@@ -37,6 +37,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
   public class SemanticManipulatorAnalyzer : SingleSuccessorOperator, IAnalyzer, IIterationBasedOperator {
     private const string NumberOfTriesParameterName = "NumberOfTriesMutation";
     private const string NumberOfMutationsParameterName = "NumberOfMutations";
+    private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarityMutation";
 
     // options: no mutation, semantic mutation, random mutation, 
     private const string MutationTypeParameterName = "MutationType";
@@ -57,6 +58,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     }
     public IScopeTreeLookupParameter<IntValue> NumberOfTriesParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[NumberOfTriesParameterName]; }
+    }
+    public IScopeTreeLookupParameter<StringValue> TypeSelectedForSimilarityParameter {
+      get { return (IScopeTreeLookupParameter<StringValue>)Parameters[TypeSelectedForSimilarityParameterName]; }
     }
     public IScopeTreeLookupParameter<IntValue> MutationTypeParameter {
       get { return (IScopeTreeLookupParameter<IntValue>)Parameters[MutationTypeParameterName]; }
@@ -112,6 +116,15 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
     }
     #endregion
 
+    // ToDo: Remove on release
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      if (!Parameters.ContainsKey(TypeSelectedForSimilarityParameterName)) {
+        Parameters.Add(new ScopeTreeLookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
+      }
+    }
+
+
     [StorableConstructor]
     protected SemanticManipulatorAnalyzer(bool deserializing) : base(deserializing) { }
     protected SemanticManipulatorAnalyzer(SemanticManipulatorAnalyzer original, Cloner cloner) : base(original, cloner) {
@@ -121,6 +134,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       Parameters.Add(new ValueLookupParameter<IntValue>("MaximumIterations", "Unused", new IntValue(-1)));
 
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(NumberOfTriesParameterName, ""));
+      Parameters.Add(new ScopeTreeLookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(MutationTypeParameterName, ""));
 
       Parameters.Add(new ScopeTreeLookupParameter<IntValue>(SemanticallyEquivalentMutationParameterName, ""));
@@ -144,6 +158,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       var numberOfTries = NumberOfTriesParameter.ActualValue.Where(x => x != null).ToArray();
       AddAverageTableEntry(numberOfTries, NumberOfTriesParameterName);
 
+      var typeSelectedForSimilarity = TypeSelectedForSimilarityParameter.ActualValue.Where(x => x != null).ToArray();
       var mutationType = MutationTypeParameter.ActualValue.Where(x => x != null).ToArray();
       var semanticallyEquivalentMutation = SemanticallyEquivalentMutationParameter.ActualValue.Where(x => x != null).ToArray();
       var semanticallyDifferentFromRootedParent = SemanticallyDifferentFromRootedParentParameter.ActualValue.Where(x => x != null).ToArray();
@@ -154,6 +169,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         throw new ArgumentException("All arrays should have the same length");
       }
 
+      AddTypeSelectedForSimilarityTableEntry(typeSelectedForSimilarity);
       AddMutationTypeTableEntry(mutationType);
       AddSemanticallyEquivalentMutationTableEntry(semanticallyEquivalentMutation);
       AddSemanticallyDifferentFromRootedParentTableEntry(semanticallyDifferentFromRootedParent);
@@ -168,6 +184,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       var nullObjects = Enumerable.Repeat<object>(null, subScopeCount).ToList();
       var nullIntValueList = nullObjects.Cast<IntValue>().ToList();
       NumberOfTriesParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
+      TypeSelectedForSimilarityParameter.ActualValue = new ItemArray<StringValue>(nullObjects.Cast<StringValue>());
       MutationTypeParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
       SemanticallyEquivalentMutationParameter.ActualValue = new ItemArray<IntValue>(nullIntValueList);
       SemanticallyDifferentFromRootedParentParameter.ActualValue = new ItemArray<BoolValue>(nullObjects.Cast<BoolValue>());
@@ -221,6 +238,36 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
       }
       var table = ((DataTable)ResultCollection[tableName].Value);
       table.Rows["Average"].Values.Add(values.Select(x => x.Value).Average());
+    }
+
+    private void AddTypeSelectedForSimilarityTableEntry(StringValue[] typeSelectedForSimilarity) {
+      if (!ResultCollection.ContainsKey(TypeSelectedForSimilarityParameterName)) {
+        var newTable = new DataTable(TypeSelectedForSimilarityParameterName, "");
+        newTable.VisualProperties.YAxisTitle = "Percentage";
+        newTable.VisualProperties.YAxisMaximumAuto = false;
+
+        ResultCollection.Add(new Result(TypeSelectedForSimilarityParameterName, newTable));
+      }
+      var table = ((DataTable)ResultCollection[TypeSelectedForSimilarityParameterName].Value);
+
+      // all rows must have the same number of values so we can just take the first
+      int numberOfValues = table.Rows.Select(r => r.Values.Count).DefaultIfEmpty().First();
+
+      double count = typeSelectedForSimilarity.Count();
+      var groupedValues = typeSelectedForSimilarity.Select(x => x.Value).GroupBy(x => x);
+      foreach (var type in groupedValues) {
+        if (!table.Rows.ContainsKey(type.Key)) {
+          // initialize a new row for the symbol and pad with zeros
+          DataRow row = new DataRow(type.Key, "", Enumerable.Repeat(0.0, numberOfValues));
+          row.VisualProperties.StartIndexZero = true;
+          table.Rows.Add(row);
+        }
+        table.Rows[type.Key].Values.Add(type.Count() / count * 100);
+      }
+
+      // add a zero for each data row that was not modified in the previous loop 
+      foreach (var row in table.Rows.Where(r => r.Values.Count != numberOfValues + 1))
+        row.Values.Add(0.0);
     }
 
     private void AddMutationTypeTableEntry(IntValue[] mutationType) {

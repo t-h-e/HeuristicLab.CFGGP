@@ -129,6 +129,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             if (!exception && SemanticMeasure(jsonOriginal, jsonReplaced)) {
               success = true;
               SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
+              TypeSelectedForSimilarityParameter.ActualValue = new StringValue("First Semantic");
               MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
             } else {
               // undo mutation
@@ -159,6 +160,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
                   mutation.Item1.InsertSubtree(mutation.Item3, mutation.Item2);
                   success = true;
                   SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
+                  TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Second Semantic");
                   MutationTypeParameter.ActualValue = new IntValue(SemanticMutation);
                   break;
                 }
@@ -191,6 +193,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             } else {
               SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(Different);
             }
+            TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Random Crossover; Reached Max Semantic Tries");
             MutationTypeParameter.ActualValue = new IntValue(RandomMutation);
             success = true;
           }
@@ -202,6 +205,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       NumberOfTriesParameter.ActualValue = new IntValue(semanticTries);
       if (SemanticallyEquivalentMutationParameter.ActualValue == null) {
         SemanticallyEquivalentMutationParameter.ActualValue = new IntValue(NoMutation);
+        TypeSelectedForSimilarityParameter.ActualValue = new StringValue("No mutation");
         MutationTypeParameter.ActualValue = new IntValue(NoMutation);
       }
     }

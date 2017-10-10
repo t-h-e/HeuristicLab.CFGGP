@@ -37,6 +37,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     where T : class, ICFGPythonProblemData {
     protected const int MAX_TRIES = 100; // as used in other manipulators
     private const string NumberOfTriesParameterName = "NumberOfTriesMutation";
+    private const string TypeSelectedForSimilarityParameterName = "TypeSelectedForSimilarityMutation";
     private const string MutationTypeParameterName = "MutationType";
 
     private const string SemanticallyEquivalentMutationParameterName = "SemanticallyEquivalentMutation";
@@ -60,6 +61,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     public ILookupParameter<IntValue> NumberOfTriesParameter {
       get { return (ILookupParameter<IntValue>)Parameters[NumberOfTriesParameterName]; }
     }
+    public ILookupParameter<StringValue> TypeSelectedForSimilarityParameter {
+      get { return (ILookupParameter<StringValue>)Parameters[TypeSelectedForSimilarityParameterName]; }
+    }
     public ILookupParameter<IntValue> MutationTypeParameter {
       get { return (ILookupParameter<IntValue>)Parameters[MutationTypeParameterName]; }
     }
@@ -80,12 +84,21 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
     #endregion
 
+    // ToDo: Remove on release
+    [StorableHook(HookType.AfterDeserialization)]
+    private void AfterDeserialization() {
+      if (!Parameters.ContainsKey(TypeSelectedForSimilarityParameterName)) {
+        Parameters.Add(new LookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
+      }
+    }
+
     [StorableConstructor]
     protected AbstractSemanticAnalyzationManipulator(bool deserializing) : base(deserializing) { }
     protected AbstractSemanticAnalyzationManipulator(AbstractSemanticAnalyzationManipulator<T> original, Cloner cloner)
       : base(original, cloner) { }
     public AbstractSemanticAnalyzationManipulator() {
       Parameters.Add(new LookupParameter<IntValue>(NumberOfTriesParameterName, ""));
+      Parameters.Add(new LookupParameter<StringValue>(TypeSelectedForSimilarityParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(MutationTypeParameterName, ""));
       Parameters.Add(new LookupParameter<IntValue>(SemanticallyEquivalentMutationParameterName, ""));
       Parameters.Add(new LookupParameter<BoolValue>(SemanticallyDifferentFromRootedParentParameterName, ""));
@@ -136,6 +149,9 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       } else {
         CheckDifference(beforeResults.Item5.First(), afterResults.Item5.First()); // first semantic statement is <predefined> which contains all code and therefore all changes to res*
       }
+      if (TypeSelectedForSimilarityParameter.ActualValue == null) {
+        TypeSelectedForSimilarityParameter.ActualValue = new StringValue("Random mutation");
+      }
       SemanticLocalityParameter.ActualValue = new DoubleValue(Math.Abs(beforeResults.Item3 - afterResults.Item3));
       ConstructiveEffectParameter.ActualValue = new IntValue(afterResults.Item3 < beforeResults.Item3 ? 1 : 0); // 1 == contructive; 0 == not
     }
@@ -145,6 +161,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
       SemanticallyDifferentFromRootedParentParameter.ActualValue = new BoolValue(false);
       SemanticLocalityParameter.ActualValue = new DoubleValue(0.0);
       ConstructiveEffectParameter.ActualValue = new IntValue(0);
+      TypeSelectedForSimilarityParameter.ActualValue = new StringValue("No mutation");
     }
 
     // copied from AbstractSemanticAnalyzationCrossover
