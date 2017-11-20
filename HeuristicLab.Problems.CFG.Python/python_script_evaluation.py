@@ -81,9 +81,11 @@ if __name__ == '__main__':
         except Empty:
             results = None
         if not results:
+            print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
+            logging.debug('Sent output timeout')
             p.stop_current()
             try:
-                produce.get(block=True, timeout=message_dict['timeout'] * 10)
+                produce.get(block=False)  # do not wait here. if it does not return, terminate it
             except Empty:
                 # START: Used to terminate worker process if it does not return
                 # Possible reasons: OS X does not throw a MemoryError and might kill the worker itself
@@ -95,8 +97,6 @@ if __name__ == '__main__':
                 p.start()
                 logging.debug('terminated worker')
                 # END:
-            print(json.dumps({'exception': 'Timeout occurred.'}), flush=True)
-            logging.debug('Sent output timeout')
         elif 'exception' in results:
             print(json.dumps(results), flush=True)
             logging.debug('Sent output exception')
