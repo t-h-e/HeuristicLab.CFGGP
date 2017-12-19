@@ -10,23 +10,35 @@ namespace HeuristicLab.Problems.Instances.CFG {
     private const string StructureTree = "structure_tree.bnf";
     private const string RootRule = "<predefined>";
 
-    private const string ArchiveName = "Python.Python.zip";
+    private const string CallRule = "<call>";
+
+    private const string EvolvedProgramName = "evolve";
+
+    protected virtual string ArchiveName => "Python.Python.zip";
 
     private const string OutputPrefix = "res";
     private const string InputPrefix = "in";
 
-    private Dictionary<string, List<DataType>> grammarMapping = new Dictionary<string, List<DataType>>() {
-      { "bool.bnf", new List<DataType>() { DataType.Boolean } },
-      { "integer.bnf", new List<DataType>() { DataType.Integer } },
-      { "float.bnf", new List<DataType>() { DataType.Float } },
-      { "string.bnf", new List<DataType>() { DataType.String } },
-      { "list_bool.bnf", new List<DataType>() { DataType.ListBoolean } },
-      { "list_integer.bnf", new List<DataType>() { DataType.ListInteger } },
-      { "list_float.bnf", new List<DataType>() { DataType.ListFloat } },
-      { "list_string.bnf", new List<DataType>() { DataType.ListString } }
-    };
+    private static readonly string RecursionPredifined = "if 'rec_counter' not in globals():{:" + Environment.NewLine + "globals()['rec_counter'] = 0:}" + Environment.NewLine + "global rec_counter" + Environment.NewLine;
+    private static readonly string RecursionBefore = "if rec_counter < 900 and not stop.value:{:" + Environment.NewLine + "rec_counter += 1" + Environment.NewLine;
+    private static readonly string RecursionAfter = Environment.NewLine + "rec_counter -= 1";
 
-    private class DataTypeMapping {
+    protected virtual Dictionary<string, List<DataType>> grammarMapping {
+      get {
+        return new Dictionary<string, List<DataType>>() {
+          {"bool.bnf", new List<DataType>() {DataType.Boolean}},
+          {"integer.bnf", new List<DataType>() {DataType.Integer}},
+          {"float.bnf", new List<DataType>() {DataType.Float}},
+          {"string.bnf", new List<DataType>() {DataType.String}},
+          {"list_bool.bnf", new List<DataType>() {DataType.ListBoolean}},
+          {"list_integer.bnf", new List<DataType>() {DataType.ListInteger}},
+          {"list_float.bnf", new List<DataType>() {DataType.ListFloat}},
+          {"list_string.bnf", new List<DataType>() {DataType.ListString}}
+        };
+      }
+    }
+
+    protected class DataTypeMapping {
       public string VariableRule { get; }
       public string Rule { get; }
       public string Variable { get; }
@@ -39,16 +51,21 @@ namespace HeuristicLab.Problems.Instances.CFG {
       }
     }
 
-    private Dictionary<DataType, DataTypeMapping> dataTypeMapping = new Dictionary<DataType, DataTypeMapping>() {
-      {DataType.Boolean,     new DataTypeMapping("<bool_var>",        "<bool>",        "b{0}", "bool()")},
-      {DataType.Integer,     new DataTypeMapping("<int_var>",         "<int>" ,        "i{0}", "int()")},
-      {DataType.Float,       new DataTypeMapping("<float_var>",       "<float>",       "f{0}", "float()")},
-      {DataType.String,      new DataTypeMapping("<string_var>",      "<string>",      "s{0}", "str()")},
-      {DataType.ListBoolean, new DataTypeMapping("<list_bool_var>",   "<list_bool>",   "lb{0}", "[]")},
-      {DataType.ListInteger, new DataTypeMapping("<list_int_var>",    "<list_int>",    "li{0}", "[]")},
-      {DataType.ListFloat,   new DataTypeMapping("<list_float_var>",  "<list_float>",  "lf{0}", "[]")},
-      {DataType.ListString,  new DataTypeMapping("<list_string_var>", "<list_string>" ,"ls{0}", "[]")}
-    };
+
+    protected virtual Dictionary<DataType, DataTypeMapping> dataTypeMapping {
+      get {
+        return new Dictionary<DataType, DataTypeMapping>() {
+          {DataType.Boolean, new DataTypeMapping("<bool_var>", "<bool>", "b{0}", "bool()")},
+          {DataType.Integer, new DataTypeMapping("<int_var>", "<int>", "i{0}", "int()")},
+          {DataType.Float, new DataTypeMapping("<float_var>", "<float>", "f{0}", "float()")},
+          {DataType.String, new DataTypeMapping("<string_var>", "<string>", "s{0}", "str()")},
+          {DataType.ListBoolean, new DataTypeMapping("<list_bool_var>", "<list_bool>", "lb{0}", "[]")},
+          {DataType.ListInteger, new DataTypeMapping("<list_int_var>", "<list_int>", "li{0}", "[]")},
+          {DataType.ListFloat, new DataTypeMapping("<list_float_var>", "<list_float>", "lf{0}", "[]")},
+          {DataType.ListString, new DataTypeMapping("<list_string_var>", "<list_string>", "ls{0}", "[]")}
+        };
+      }
+    }
 
     public PythonGrammarConstructor() { }
 
@@ -99,9 +116,38 @@ namespace HeuristicLab.Problems.Instances.CFG {
         }
       }
 
+      if (true) {
+        //if (options.Recursion) {
+        var pre = grammar.Rules[RootRule].Productions;
+        if (pre.Count == 1) {
+          // should only have one rule
+          pre.First().Parts[0] = pre.First().Parts[0] + RecursionPredifined;
+        } else {
+          throw new ArgumentException("<predefined> should only have one production!?!");
+        }
+
+        //add recursion
+        var p = grammar.Rules[CallRule].Productions;
+        var input = options.Input.Select(x => dataTypeMapping[x].Rule).ToList();
+        var output = options.Output.Select(x => dataTypeMapping[x].VariableRule).ToList();
+
+        var parts = new List<string>() { RecursionBefore };
+        parts.AddRange(Enumerable.Repeat(", ", output.Count - 1));
+        parts.Add(String.Format(" = {0}(", EvolvedProgramName));
+        parts.AddRange(Enumerable.Repeat(", ", input.Count() - 1));
+        parts.Add(")" + RecursionAfter);
+        var rules = output;
+        rules.AddRange(input);
+        p.Add(new Production() { Parts = parts, RuleDependency = rules });
+
+        //add return statement
+        var returnStatement = String.Format("return {0}", String.Join(", ", outputVariables.Item3));
+        p.Add(new Production() { Parts = new List<string>() { returnStatement } });
+      }
+
       // Remove types that might have been added, but that are not set as data types
       // will be completely removed after trimming
-      foreach (var dataType in Enum.GetValues(typeof(DataType)).Cast<DataType>().Except(options.Datatypes)) {
+      foreach (var dataType in Enum.GetValues(typeof(DataType)).Cast<DataType>().Where(x => x != DataType.Char).Except(options.Datatypes)) {
         if (grammar.Rules.ContainsKey(dataTypeMapping[dataType].Rule)) grammar.Rules.Remove(dataTypeMapping[dataType].Rule);
       }
 
@@ -126,17 +172,20 @@ namespace HeuristicLab.Problems.Instances.CFG {
       return new Tuple<string, Dictionary<DataType, List<string>>>(strBuilder.ToString(), variableNames);
     }
 
-    private Tuple<string, Dictionary<DataType, List<string>>> GetVariables(IEnumerable<DataType> variable, string prefix) {
+    private Tuple<string, Dictionary<DataType, List<string>>, List<string>> GetVariables(IEnumerable<DataType> variable, string prefix) {
       List<string> varList = new List<string>();
+      List<string> varNamesList = new List<string>();
       var variableNames = new Dictionary<DataType, List<string>>();
       int i = 0;
       foreach (var v in variable) {
         if (!variableNames.ContainsKey(v)) { variableNames.Add(v, new List<string>()); }
-        variableNames[v].Add(prefix + i);
+        var curVar = prefix + i;
+        variableNames[v].Add(curVar);
+        varNamesList.Add(curVar);
         varList.Add(String.Format("{0}{1} = {2}", prefix, i, dataTypeMapping[v].Type));
         i++;
       }
-      return new Tuple<string, Dictionary<DataType, List<string>>>(String.Join("; ", varList) + Environment.NewLine, variableNames);
+      return new Tuple<string, Dictionary<DataType, List<string>>, List<string>>(String.Join("; ", varList) + Environment.NewLine, variableNames, varNamesList);
     }
 
     private IEnumerable<string> GetCombinations(IEnumerable<DataType> dataTypes) {

@@ -1,0 +1,39 @@
+// *****************************************************************************
+// list grammar for bool list
+// *****************************************************************************
+
+<list_bool_var> ::= // placholder for variable names
+
+<assign> ::= <list_bool_assign>
+<list_bool_assign> ::= <list_bool_var>' = '<list_bool>
+
+<list_bool> ::= <list_bool_var> | <list_bool_slice>
+              | <list_bool> + <list_bool>
+              | 'list(reversed('<list_bool>'))'
+              | '[x if x == '<bool>' else '<bool>' for x in '<list_bool>']'
+              | 'replaceFirstElementInList('<list_bool>','<bool>','<bool>')'
+              | '[x for x in '<list_bool>' if x == '<bool>']'
+
+
+<list_bool_slice> ::= <list_bool>'['<int>':'<int>']' | <list_bool>'[:'<int>']' | <list_bool>'['<int>':]'
+                    | <list_bool>'[1:]' | <list_bool>'[:1]'
+// Return bool
+
+<bool> ::= 'getIndexBoolList('<list_bool>', '<int>')' | 'getIndexBoolList('<list_bool>', 0)' | 'getIndexBoolList('<list_bool>', -1)'
+         | <bool> <in_list_comp_op> <list_bool> | <list_bool> <list_comp_op> <list_bool>
+         | <list_bool>' == []'
+
+// Add to
+
+<call> ::= <list_bool_var>'.insert('<int>','<bool>')'
+         | <list_bool_var>'.insert(0,'<bool>')'
+         | <list_bool_var>'.append('<bool>')'
+         | 'deleteListItem('<list_bool>', '<int>')'
+         | 'setListIndexTo('<list_bool>', '<int>', '<bool>')'
+
+<for> ::= <loop-header>'for forCounter% in '<list_bool><loop-block>
+        | <loop-header>'for '<bool_var>' in '<list_bool><loop-block>
+
+// Return int
+
+<int> ::= 'len('<list_bool>')' | 'saveIndex('<list_bool>', '<bool>')' | <list_bool>'.count('<bool>')'

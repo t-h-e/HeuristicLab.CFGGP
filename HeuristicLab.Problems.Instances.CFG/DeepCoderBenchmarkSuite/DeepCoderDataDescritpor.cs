@@ -53,7 +53,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     public override CFGData GenerateData() {
       var cfgData = base.GenerateData();
       var grammarConstructor = new DeepCoderDSLConstructor();
-      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, false, 3);
+      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, false, 3, false);
       var g = grammarConstructor.CombineDataTypes(options);
       g.TrimGrammar(true);
       cfgData.Grammar = g.PrintGrammar();

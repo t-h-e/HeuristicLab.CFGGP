@@ -2,7 +2,7 @@
 
 namespace HeuristicLab.Problems.Instances.CFG {
   public enum DataType {
-    Boolean, Integer, Float, String, ListBoolean, ListInteger, ListFloat, ListString
+    Boolean, Integer, Float, String, Char, ListBoolean, ListInteger, ListFloat, ListString
   }
 
   public static class DataTypeExtensions {

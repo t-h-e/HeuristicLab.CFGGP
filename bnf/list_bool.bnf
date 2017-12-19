@@ -14,16 +14,15 @@
 <setListIndexToCall_bool> ::= 'setListIndexTo('<list_bool>', '<int>', '<bool>')'
 <deleteListItemCall_bool> ::= 'deleteListItem('<list_bool>', '<int>')'
 
-<call> ::= <list_bool_var>'.insert('<int>','<bool>')'
-         | <deleteListItemCall_bool>
-         | <setListIndexToCall_bool>
-
 <bool> ::= <getListIndexCall_bool>
 
 
 // Add to
 
 <call> ::= <list_bool_var>'.append('<bool>')'
+         | <list_bool_var>'.insert('<int>','<bool>')'
+         | <deleteListItemCall_bool>
+         | <setListIndexToCall_bool>
 
 <for> ::= <loop-header>'for forCounter% in '<list_bool><loop-block>
         | <loop-header>'for '<bool_var>' in '<list_bool><loop-block>
@@ -34,4 +33,4 @@
 
 // Return bool
 
-<bool> ::= <bool> <in_list_comp_op> <list_bool> | <list_bool> <list_comp_op> <list_bool>
+<bool> ::= <bool> <in_list_comp_op> <list_bool> | <list_bool> <list_comp_op> <list_bool> | <list_bool>' == []'

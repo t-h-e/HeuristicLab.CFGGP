@@ -8,18 +8,26 @@
 <list_float_assign> ::= <list_float_var>' = '<list_float>
 
 <list_float> ::= <list_float_var> | <list_float_slice>
+               | 'list(reversed('<list_float>'))'
+               | '[x if x == '<float>' else '<float>' for x in '<list_float>']'
+               | 'replaceFirstElementInList('<list_float>','<float>','<float>')'
+               | '[x for x in '<list_float>' if x == '<float>']'
 <list_float_slice> ::= <list_float>'['<int>':'<int>']' | <list_float>'[:'<int>']' | <list_float>'['<int>':]'
+                     | <list_float>'[1:]' | <list_float>'[:1]'
 
 <getListIndexCall_float> ::= 'getIndexFloatList('<list_float>', '<int>')'
 <setListIndexToCall_float> ::= 'setListIndexTo('<list_float>', '<int>', '<float>')'
 <deleteListItemCall_float> ::= 'deleteListItem('<list_float>', '<int>')'
 
-<float> ::= <getListIndexCall_float>
+// Return float
+
+<float> ::= <getListIndexCall_float> | 'getIndexFloatList('<list_float>', 0)' | 'getIndexFloatList('<list_float>', -1)'
 
 // Add to
 
 <call> ::= <list_float_var>'.append('<float>')'
          | <list_float_var>'.insert('<int>','<float>')'
+         | <list_float_var>'.insert(0,'<float>')'
          | <deleteListItemCall_float>
          | <setListIndexToCall_float>
 
@@ -28,7 +36,7 @@
 
 // Return int
 
-<int> ::= 'len('<list_float>')'
+<int> ::= 'len('<list_float>')' | 'saveIndex('<list_float>', '<float>')' | <list_float>'.count('<float>')'
 
 // Return bool
 

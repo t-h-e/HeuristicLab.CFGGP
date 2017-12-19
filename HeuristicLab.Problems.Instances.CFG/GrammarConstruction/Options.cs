@@ -9,7 +9,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
     public bool Tree { get; }
     public int NumberOfInputVariables { get; }
 
-    public Options(IEnumerable<DataType> input, IEnumerable<DataType> output, HashSet<DataType> datatypes, bool tree, int numberOfInputVariables) {
+    public bool Recursion { get; }
+
+    public Options(IEnumerable<DataType> input, IEnumerable<DataType> output, HashSet<DataType> datatypes, bool tree, int numberOfInputVariables, bool recursion) {
       Input = input;
       Output = output;
       datatypes.UnionWith(input);
@@ -17,6 +19,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
       Datatypes = datatypes;
       Tree = tree;
       NumberOfInputVariables = numberOfInputVariables;
+      Recursion = recursion;
     }
   }
 }

@@ -14,6 +14,7 @@
         | 'min('<int>', '<int>')'
         | 'max('<int>', '<int>')'
         | 'abs('<int>')'
+        | '('<int> '+ 1)' | '('<int> '- 1)'
 
 // to avoid problems with leading zeros in python int
 <int_const> ::= 'int('<number>'.0)'
@@ -29,12 +30,16 @@
 
 // Return bool
 
-<bool> ::= <int> <comp_op> <int>
+<bool> ::= '('<int> <comp_op> <int>')' | 'bool('<int>')'
 
 // Return float
 
 <float> ::= <int>
 
+// Return char
+
+<char> ::= 'int_to_chr('<int>')'
+
 // Return string
 
-<string> ::= 'saveChr('<int>')'
+<string> ::= 'str('<int>')'

@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2016 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -21,14 +21,12 @@
 
 using System.Collections.Generic;
 
-namespace HeuristicLab.Problems.CFG.Python {
-  public static class Extensions {
-    private static List<VariableType> listTypes = new List<VariableType>() { VariableType.List_Bool, VariableType.List_Float, VariableType.List_Int, VariableType.List_String };
-    public static bool IsListType(this VariableType type) {
-      return listTypes.Contains(type);
-    }
-  }
-  public enum VariableType {
-    Bool, Char, Int, Float, String, List_Bool, List_Int, List_Float, List_String
+namespace HeuristicLab.Problems.Instances.CFG {
+  public class PushDoubleLetters : DoubleLetters {
+    protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.String }; } }
+    protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.String }; } }
+    protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Boolean, DataType.String, DataType.Char }; } }
+
+    protected override PythonGrammarConstructor GetGrammarConstructor => new PythonPushRelatedGrammarConstructor();
   }
 }

@@ -1,0 +1,106 @@
+import math
+import Levenshtein
+
+# *****************************************************************************
+# Helper Code
+# *****************************************************************************
+
+def div(nom, denom):
+  if denom <= 0.00001:
+    return nom
+  else:
+    return nom / denom
+
+def divInt(nom, denom):
+  if denom <= 0.00001:
+    return nom
+  else:
+    return nom // denom
+
+def mod(nom, denom):
+  if denom <= 0.00001:
+    return nom
+  else:
+    return nom % denom
+
+def deleteListItem(curList, index):
+  if not curList:
+    return
+  del curList[index % len(curList)]
+
+def setListIndexTo(curList, index, value):
+  if not curList:
+    return
+  curList[index % len(curList)] = value
+
+def getIndexBoolList(curList, index):
+  if not curList:
+    return bool()
+  return curList[index % len(curList)]
+
+def getIndexFloatList(curList, index):
+  if not curList:
+    return float()
+  return curList[index % len(curList)]
+
+def getIndexIntList(curList, index):
+  if not curList:
+    return int()
+  return curList[index % len(curList)]
+
+def getIndexStringList(curList, index):
+  if not curList:
+    return str()
+  return curList[index % len(curList)]
+
+def getCharFromString(curString, index):
+  if not curString:
+    return ' '
+  return curString[index % len(curString)]
+
+#def saveChr(number):
+#    return chr(number % 128)
+
+#def saveOrd(literal):
+#    if len(literal) <= 0:
+#        return 32
+#    return ord(literal[0])
+
+def saveSplit(curString, separator):
+  if not separator:
+    return []
+  return curString.split(separator)
+
+def saveRange(start, end):
+  if end > start and abs(start - end) > 10000:
+    return range(start, start + 10000)
+  return range(start, end)
+
+def setchar(s, c, i):
+  if not s:
+    return s
+  s = list(s)
+  s[i % len(s)] = c
+  return ''.join(s)
+
+chr_map = {0: chr(0), 1: chr(1)}
+def int_to_chr(i):
+  i = i % 96 # 96 visible characters in ascii + space + tab + newline
+  return chr_map[i] if i in chr_map else chr(i + 30)
+
+def float_to_chr(f):
+  return int_to_chr(int(f))
+
+def saveIndex(l, i):
+  if i not in l:
+    return -1
+  return l.index(i)
+
+def replaceFirstElementInList(l, a, b):
+  i = saveIndex(l, a)
+  if i < 0:
+    return l
+  l[i] = b
+  return l
+
+# *****************************************************************************

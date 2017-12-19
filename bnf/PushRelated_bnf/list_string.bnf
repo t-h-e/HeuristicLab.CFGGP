@@ -9,16 +9,26 @@
 
 <list_string> ::= <list_string_var> | <list_string_slice>
                 | 'saveSplit('<string>','<string>')'
+                | 'list(reversed('<list_string>'))'
+                | '[x if x == '<string>' else '<string>' for x in '<list_string>']'
+                | 'replaceFirstElementInList('<list_string>','<string>','<string>')'
+                | '[x for x in '<list_string>' if x == '<string>']'
 <list_string_slice> ::= <list_string>'['<int>':'<int>']' | <list_string>'[:'<int>']' | <list_string>'['<int>':]'
+                      | <list_string>'[1:]' | <list_string>'[:1]'
 
 <getListIndexCall_string> ::= 'getIndexStringList('<list_string>', '<int>')'
 <setListIndexToCall_string> ::= 'setListIndexTo('<list_string>', '<int>', '<string>')'
 <deleteListItemCall_string> ::= 'deleteListItem('<list_string>', '<int>')'
 
+<call> ::= <list_string_var>'.insert('<int>','<string>')'
+         | <deleteListItemCall_string>
+         | <setListIndexToCall_string>
+
 // Add to
 
 <call> ::= <list_string_var>'.append('<string>')'
          | <list_string_var>'.insert('<int>','<string>')'
+         | <list_string_var>'.insert(0,'<string>')'
          | <deleteListItemCall_string>
          | <setListIndexToCall_string>
 
@@ -27,11 +37,12 @@
 
 // Return int
 
-<int> ::= 'len('<list_string>')'
+<int> ::= 'len('<list_string>')' | 'saveIndex('<list_string>', '<string>')' | <list_string>'.count('<string>')'
 
 // Return string
 
 <string> ::= <string>'.join('<list_string>')' | <getListIndexCall_string>
+           | 'getIndexStringList('<list_string>', 0)' | 'getIndexStringList('<list_string>', -1)'
 
 // Return bool
 

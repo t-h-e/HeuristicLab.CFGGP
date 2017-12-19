@@ -61,7 +61,7 @@ namespace HeuristicLab.Problems.Instances.CFG.Views {
       AddTypeIfChecked(tempVarDataTypes, ListOfFloatCheckbox, DataType.ListFloat);
       AddTypeIfChecked(tempVarDataTypes, ListOfStringCheckbox, DataType.ListString);
 
-      return new Options(input, output, tempVarDataTypes, TreeStructureCheckbox.Checked, (int)NumberOfTempVariablesUpDown.Value);
+      return new Options(input, output, tempVarDataTypes, TreeStructureCheckbox.Checked, (int)NumberOfTempVariablesUpDown.Value, false);
     }
 
     private void AddTypeRepeat(List<DataType> list, NumericUpDown upDown, DataType dataType) {

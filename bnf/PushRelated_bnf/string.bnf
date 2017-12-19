@@ -8,24 +8,40 @@
 <string_assign> ::= <string_var>' = '<string>
 
 <string> ::= <string_var> | <string_const> | <string_slice>
-           | <getStringIndexCall>
            | '('<string>' + '<string>')'
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
            | <string>'.capitalize()'
+           | "''.join(reversed("<string>"))" # reverse
+           | <string>'.replace('<string>','<string>', 1)' | <string>'.replace('<string>','<string>')'
+           | <string>'.replace('<char>','<char>', 1)' | <string>'.replace('<char>','<char>')'
+           | <string>'.replace('<char>',"")'
+           | 'setchar('<string>','<char>','<int>')'
 
 <string_slice> ::= <string>'['<int>':'<int>']' | <string>'[:'<int>']' | <string>'['<int>':]'
-<getStringIndexCall> ::= 'getCharFromString('<string>', '<int>')'
+                 | <string>'[1:]' | <string>'[:1]'
 
 <string_const> ::= "'"<string_const_part>"'"
 // <string_const_part> in structure(_tree).bnf
 <string_literal> ::= '' | '\\n' | '\\t' | ' ' | '!' | '"' | '#' | '$' | '%' | '&' | "\\'" | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | ':' | ';' | '<' | '=' | '>' | '?' | '@' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\\\' | ']' | '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '{' | '|' | '}'
 
-// Returns int
+// Add to
+<for> ::= <loop-header>'for forCounter% in '<string><loop-block>
+        | <loop-header>'for '<char_var>' in '<string><loop-block>
+        | <loop-header>'for '<string_var>' in '<string><loop-block>
+        | <loop-header>'for '<string_var>' in '<string>'.strip().split()'<loop-block>
+        | <loop-header>'for '<string_var>' in '<string>'.strip().split('<string>')'<loop-block>
 
-<int>  ::= 'len('<string>')' | 'saveOrd('<string>')'
+// Returns int
+<int>  ::= 'len('<string>')' | <string>'.count('<char>')' | <string>'.count('<string>')'
 
 // Return bool
+<bool> ::= '('<string>' in '<string>')' | '('<string>' not in '<string>')'
+         | '('<string>' == '<string> | '('<string>' != '<string>')'
+         | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
+         | '(not '<string>')'  // is empty
 
-<bool> ::= <string>' in '<string> | <string>' not in '<string>
-             | <string>' == '<string> | <string>' != '<string>
-             | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
+// Return char
+<char> ::= 'getCharFromString('<string>', '<int>')'
+
+// Return char
+<list_string> ::= <string>'.strip().split()' | <string>'.strip().split('<string>')'

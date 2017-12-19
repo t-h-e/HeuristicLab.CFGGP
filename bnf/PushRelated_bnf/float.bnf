@@ -9,12 +9,14 @@
 
 <float> ::= <float_var> | <float_const>
         | <arith_prefix><float>
-        | '(' <float> <arith_ops> <float> ')'
+        | '('<float> <arith_ops> <float>')'
         | <float_arith_ops_protected>'('<float>','<float>')'
         | 'math.ceil('<float>')' | 'math.floor('<float>')' | 'round('<float>')'
         | 'min('<float>', '<float>')'
         | 'max('<float>', '<float>')'
         | 'abs('<float>')'
+        | 'math.sin('<float>')' | 'math.cos('<float>')' | 'math.tan('<float>')'
+        | '('<float> '+ 1)' | '('<float> '- 1)'
 
 <float_const> ::= <number>'.'<number>
 
@@ -27,4 +29,12 @@
 
 // Return bool
 
-<bool> ::= <float> <comp_op> <float> | <int> <comp_op> <float> | <float> <comp_op> <int>
+<bool> ::= '('<float> <comp_op> <float>')' | 'bool('<float>')'
+
+// Return char
+
+<char> ::= 'float_to_chr('<float>')'
+
+// Return string
+
+<string> ::= 'str('<float>')'

@@ -52,6 +52,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected abstract IEnumerable<DataType> OutputDataTypes { get; }
     protected abstract HashSet<DataType> AdditionalDataTypes { get; }
 
+    protected virtual PythonGrammarConstructor GetGrammarConstructor => new PythonGrammarConstructor();
+
     public override CFGData GenerateData() {
       return GenerateData(false, 3);
     }
@@ -65,8 +67,8 @@ namespace HeuristicLab.Problems.Instances.CFG {
     }
 
     public string GenerateGrammar(bool treeStructure, int numberOfVariables) {
-      var grammarConstructor = new PythonGrammarConstructor();
-      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, treeStructure, numberOfVariables);
+      var grammarConstructor = GetGrammarConstructor;
+      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, treeStructure, numberOfVariables, false);
       var g = grammarConstructor.CombineDataTypes(options);
       ModifyGrammar(g);
       g.TrimGrammar(true);

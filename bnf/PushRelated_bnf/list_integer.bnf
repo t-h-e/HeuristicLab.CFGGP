@@ -8,7 +8,12 @@
 <list_int_assign> ::= <list_int_var>' = '<list_int>
 
 <list_int> ::= <list_int_var> | <list_int_range> | <list_int_slice>
+             | 'list(reversed('<list_int>'))'
+             | '[x if x == '<int>' else '<int>' for x in '<list_int>']'
+             | 'replaceFirstElementInList('<list_int>','<int>','<int>')'
+             | '[x for x in '<list_int>' if x == '<int>']'
 <list_int_slice> ::= <list_int>'['<int>':'<int>']' | <list_int>'[:'<int>']' | <list_int>'['<int>':]'
+                   | <list_int>'[1:]' | <list_int>'[:1]'
 <list_int_range> ::= 'list(saveRange('<int>','<int>'))'
 
 <getListIndexCall_int> ::= 'getIndexIntList('<list_int>', '<int>')'
@@ -19,6 +24,7 @@
 
 <call> ::= <list_int_var>'.append('<int>')'
          | <list_int_var>'.insert('<int>','<int>')'
+         | <list_int_var>'.insert(0,'<int>')'
          | <deleteListItemCall_int>
          | <setListIndexToCall_int>
 
@@ -28,8 +34,10 @@
 // Return int
 
 <int> ::= <getListIndexCall_int>
-            | 'len('<list_int>')'
+        | 'len('<list_int>')'
+        | 'getIndexIntList('<list_int>', 0)' | 'getIndexIntList('<list_int>', -1)'
+        | 'saveIndex('<list_int>', '<int>')' | <list_int>'.count('<int>')'
 
 // Return bool
 
-<bool> ::= <int> <in_list_comp_op> <list_int> | <list_int> <list_comp_op> <list_int> | <list_int>' == []'
+<bool> ::= <int> <in_list_comp_op> <list_int> | <list_int> <list_comp_op> <list_int>  | <list_int>' == []'

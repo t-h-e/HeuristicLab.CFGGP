@@ -118,6 +118,18 @@
     <Compile Include="BenchmarkSuite\BenchmarkSuiteInstanceProvider.cs" />
     <Compile Include="BenchmarkSuite\Grade.cs" />
     <Compile Include="BenchmarkSuite\Median.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushChecksum.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushDigits.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushDoubleLetters.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushPigLatin.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushBenchmarkSuiteInstanceProvider.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushReplaceSpaceWithNewline.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushScrabbleScore.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushStringDifferences.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushSuperAnagrams.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushSyllables.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushWordStats.cs" />
+    <Compile Include="BenchmarkSuite\PushAdaptions\PushXWordLines.cs" />
     <Compile Include="BenchmarkSuite\Smallest.cs" />
     <Compile Include="BenchmarkSuite\Syllables.cs" />
     <Compile Include="BenchmarkSuite\Digits.cs" />
@@ -164,6 +176,7 @@
     <Compile Include="GrammarConstruction\Grammar.cs" />
     <Compile Include="GrammarConstruction\GrammarParser.cs" />
     <Compile Include="GrammarConstruction\Options.cs" />
+    <Compile Include="GrammarConstruction\PythonPushRelated\PythonPushRelatedGrammarConstructor.cs" />
     <Compile Include="GrammarConstruction\Python\PythonGrammarConstructor.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Plugin.cs" />
@@ -178,6 +191,7 @@
     <EmbeddedResource Include="GrammarConstruction\Python\Python.zip" />
     <EmbeddedResource Include="GrammarConstruction\DeepCoderDSL\DeepCoderDSL.zip" />
     <EmbeddedResource Include="Data\DeepCoder.zip" />
+    <EmbeddedResource Include="GrammarConstruction\PythonPushRelated\PushRelated.zip" />
     <None Include="HeuristicLab.snk" />
   </ItemGroup>
   <ItemGroup />
