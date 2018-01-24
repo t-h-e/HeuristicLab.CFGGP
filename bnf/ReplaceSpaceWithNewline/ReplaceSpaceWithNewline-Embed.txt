@@ -1,9 +1,8 @@
-import math
-import Levenshtein
-
 # *****************************************************************************
 # Helper Code
 # *****************************************************************************
+import math
+import Levenshtein
 
 def div(nom, denom):
   if denom <= 0.00001:
