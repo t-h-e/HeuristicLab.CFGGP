@@ -108,6 +108,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     }
 
     protected override void Manipulate(IRandom random, ISymbolicExpressionTree symbolicExpressionTree) {
+      MutationExceptionsParameter.ActualValue = new ItemCollection<StringValue>();
+
       var pythonSemanticHelper = new PythonProcessSemanticHelper(ProblemData.Variables.GetVariableNames(), 1000); // hardcoded value!!! // TODO: object created for every mutation
 
       var input = PythonHelper.ConvertToPythonValues(ProblemData.Input, ProblemData.TrainingIndices);

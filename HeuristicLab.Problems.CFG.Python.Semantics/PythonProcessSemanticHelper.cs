@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace HeuristicLab.Problems.CFG.Python.Semantics {
   public class PythonProcessSemanticHelper {
+    // traceCodeWithComments is out of date, but not used anyway
     #region traceCodeWithComments
     private const string traceCodeWithComments = @"import sys
 
@@ -71,6 +72,7 @@ sys.settrace(trace)
     private const string traceCode = @"import sys
 
 past_locals = {{}}
+past_globals = {{}}
 variable_list = ['{0}']
 traceTable = {{}}
 traceTableBefore = {{}}
@@ -80,30 +82,37 @@ limit = {1}
 prev_line = -1
 
 def trace(frame, event, arg_unused):
-    global past_locals, traceTableBefore, traceTable, variable_list, newcall, executedLines, limit, prev_line
+    global past_locals, past_globals, traceTableBefore, traceTable, variable_list, newcall, executedLines, limit, prev_line
     if frame.f_code.co_name != 'evolve':
         return None
 
     if event != 'line':
         if event == 'call':
             past_locals = {{}}
+            past_globals = {{}}
             newcall += 1
             prev_line = frame.f_lineno
         return trace
 
     if past_locals:
         past_locals = frame.f_locals
+    if past_globals:
+        past_globals = frame.f_globals
     current_lineno = frame.f_lineno
 
     relevant_locals = {{}}
+    relevant_globals = {{}}
     if current_lineno not in executedLines:
         executedLines[current_lineno] = set()
     executedLines[current_lineno].add(newcall - 1)
-    for k, v in past_locals.items():
-        if k in variable_list:
-            relevant_locals[k] = v
+    for k in variable_list:
+        if k in past_locals:
+            relevant_locals[k] = past_locals[k]
+    for k in variable_list:
+        if k in past_globals:
+            relevant_globals[k] = past_globals[k]
 
-    if len(relevant_locals) > 0:
+    if len(relevant_locals) > 0 or len(relevant_globals) > 0:
         if prev_line not in traceTable:
             traceTable[prev_line] = {{}}
             for v in variable_list:
@@ -115,6 +124,8 @@ def trace(frame, event, arg_unused):
                 if len(traceTable[prev_line][v]) < newcall:
                     if v in relevant_locals:
                         traceTable[prev_line][v].append(relevant_locals[v])
+                    elif v in relevant_globals:
+                        traceTable[prev_line][v].append(relevant_globals[v])
                     else:
                         traceTable[prev_line][v].append(None)
 
@@ -129,10 +140,13 @@ def trace(frame, event, arg_unused):
                 if len(traceTableBefore[current_lineno][v]) < newcall:
                     if v in relevant_locals:
                         traceTableBefore[current_lineno][v].append(relevant_locals[v])
+                    elif v in relevant_globals:
+                        traceTableBefore[current_lineno][v].append(relevant_globals[v])
                     else:
                         traceTableBefore[current_lineno][v].append(None)
 
     past_locals = frame.f_locals
+    past_globals = frame.f_globals
     prev_line = current_lineno
     return trace
 

@@ -80,7 +80,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override void ModifyGrammar(Grammar g) {
       var partialGrammar = GrammarParser.ReadGrammarBNF("<string_const> ::= \"'aeiou'\"");
       g.Combine(partialGrammar);
-      partialGrammar = GrammarParser.ReadGrammarBNF("<string_literal> ::= \"'a'\" | \"'e'\" | \"'i'\" | \"'o'\" | \"'u'\"");
+      partialGrammar = GrammarParser.ReadGrammarBNF("<string_literal> ::= 'a' | 'e' | 'i' | 'o' | 'u'");
       g.Combine(partialGrammar);
     }
   }

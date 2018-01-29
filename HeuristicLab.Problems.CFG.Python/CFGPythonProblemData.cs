@@ -34,10 +34,10 @@ namespace HeuristicLab.Problems.CFG.Python {
     protected const string LoopBreakConstParameterName = "LoopBreakConst";
     protected const string HelperCodeParameterName = "HelperCode";
     protected const string VariablesParameterName = "Variables";
-    protected const string VariableSettingsParameterName = "VariableSettings";  
+    protected const string VariableSettingsParameterName = "VariableSettings";
 
     protected const string VariablesParameterDescription = "Collection of variables and their types";
-    protected const string VariableSettingsParameterDescription = "Define values set for variables when testing semantics. By default the variable settings from a trace are used.";  
+    protected const string VariableSettingsParameterDescription = "Define values set for variables when testing semantics. By default the variable settings from a trace are used.";
 
     private static readonly CFGPythonProblemData emptyProblemData;
     public static new CFGPythonProblemData EmptyProblemData {
@@ -61,7 +61,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       problemData.Parameters.Add(new FixedValueParameter<TextValue>(HelperCodeParameterName, "", new TextValue().AsReadOnly()));
       // TODO: should be moved to HeuristicLab.Problems.CFG.Python.Semantics
       problemData.Parameters.Add(new FixedValueParameter<VariableTypeParameterCollection>(VariablesParameterName, VariablesParameterDescription, new VariableTypeParameterCollection()));
-      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, VariableSettingsParameterDescription, new ItemList<TextValue>()));    
+      problemData.Parameters.Add(new FixedValueParameter<ItemList<TextValue>>(VariableSettingsParameterName, VariableSettingsParameterDescription, new ItemList<TextValue>()));
       emptyProblemData = problemData;
     }
 
@@ -158,7 +158,7 @@ namespace HeuristicLab.Problems.CFG.Python {
       int helperCodeFooter = Header.Value.IndexOf(HELPER_CODE_FOOTER, helperCodeHeader + HELPER_CODE_HEADER.Length);
       if (helperCodeFooter < 0) return;
 
-      HelperCode.Value = Header.Value.Substring(helperCodeHeader, helperCodeFooter + HELPER_CODE_FOOTER.Length);
+      HelperCode.Value = Header.Value.Substring(helperCodeHeader, helperCodeFooter + HELPER_CODE_FOOTER.Length - helperCodeHeader);
     }
   }
 }

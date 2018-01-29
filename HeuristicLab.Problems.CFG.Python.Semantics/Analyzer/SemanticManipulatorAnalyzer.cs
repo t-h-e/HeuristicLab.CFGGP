@@ -237,7 +237,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics.Analyzer {
         ResultCollection.Add(new Result(tableName, newTable));
       }
       var table = ((DataTable)ResultCollection[tableName].Value);
-      table.Rows["Average"].Values.Add(values.Select(x => x.Value).Average());
+      table.Rows["Average"].Values.Add(values.Select(x => x.Value).Any() ? values.Select(x => x.Value).Average() : 0);
     }
 
     private void AddTypeSelectedForSimilarityTableEntry(StringValue[] typeSelectedForSimilarity) {

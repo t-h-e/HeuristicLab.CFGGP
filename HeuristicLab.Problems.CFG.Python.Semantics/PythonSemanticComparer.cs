@@ -119,7 +119,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         if (executedCases.Count == converted[key].Count) continue;
         int pos = 0;
         for (int i = 0; i < converted[key].Count; i++) {
-          if (pos >= executedCases.Count || (pos < executedCases.Count && executedCases[pos] != i)) {
+          if (pos >= executedCases.Count || pos < executedCases.Count && executedCases[pos] != i) {
             converted[key][i] = before[key][i];
           } else {
             pos++;

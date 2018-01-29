@@ -118,6 +118,16 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
             }
 
             var exception = jsonOriginal["exception"] != null || jsonReplaced["exception"] != null;
+
+            if (exception) {
+              if (jsonOriginal["exception"] != null) {
+                MutationExceptionsParameter.ActualValue.Add(new StringValue(jsonOriginal["exception"].ToString()));
+              }
+              if (jsonReplaced["exception"] != null) {
+                MutationExceptionsParameter.ActualValue.Add(new StringValue(jsonReplaced["exception"].ToString()));
+              }
+            }
+
             if (curSemantics != null && !exception) {
               jsonOriginal = PythonSemanticComparer.ReplaceNotExecutedCases(jsonOriginal, curSemantics.Before, curSemantics.ExecutedCases);
               jsonReplaced = PythonSemanticComparer.ReplaceNotExecutedCases(jsonReplaced, curSemantics.Before, curSemantics.ExecutedCases);
