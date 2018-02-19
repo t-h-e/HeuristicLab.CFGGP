@@ -11,7 +11,7 @@
            | '('<string>' + '<string>')'
            | <string>'.lstrip()' | <string>'.rstrip()' | <string>'.strip()' | <string>'.lstrip('<string>')' | <string>'.rstrip('<string>')' | <string>'.strip('<string>')'
            | <string>'.capitalize()'
-           | "''.join(reversed("<string>"))" # reverse
+           | "''.join(reversed("<string>"))" // reverse
            | <string>'.replace('<string>','<string>', 1)' | <string>'.replace('<string>','<string>')'
            | <string>'.replace('<char>','<char>', 1)' | <string>'.replace('<char>','<char>')'
            | <string>'.replace('<char>',"")'
@@ -29,19 +29,19 @@
         | <loop-header>'for '<char_var>' in '<string><loop-block>
         | <loop-header>'for '<string_var>' in '<string><loop-block>
         | <loop-header>'for '<string_var>' in '<string>'.strip().split()'<loop-block>
-        | <loop-header>'for '<string_var>' in '<string>'.strip().split('<string>')'<loop-block>
+        | <loop-header>'for '<string_var>' in saveSplit('<string>'.strip(), '<string>')'<loop-block>
 
 // Returns int
 <int>  ::= 'len('<string>')' | <string>'.count('<char>')' | <string>'.count('<string>')'
 
 // Return bool
 <bool> ::= '('<string>' in '<string>')' | '('<string>' not in '<string>')'
-         | '('<string>' == '<string> | '('<string>' != '<string>')'
+         | '('<string>' == '<string>')' | '('<string>' != '<string>')'
          | <string>'.startswith('<string>')' | <string>'.endswith('<string>')'
          | '(not '<string>')'  // is empty
 
 // Return char
 <char> ::= 'getCharFromString('<string>', '<int>')'
 
-// Return char
-<list_string> ::= <string>'.strip().split()' | <string>'.strip().split('<string>')'
+// Return list_string
+<list_string> ::= <string>'.strip().split()' | 'saveSplit('<string>'.strip(), '<string>')'

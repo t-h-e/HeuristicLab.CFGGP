@@ -28,6 +28,12 @@
 <arith_prefix> ::= '+'|'-'
 //|'~'
 
+// Add to
+<for> ::= <loop-header>'for forCounter% in saveRange(0, '<int>')'<loop-block>
+        | <loop-header>'for '<int_var>' in saveRange(0, '<int>')'<loop-block>
+        | <loop-header>'for forCounter% in saveRange('<int>', '<int>')'<loop-block>
+        | <loop-header>'for '<int_var>' in saveRange('<int>', '<int>')'<loop-block>
+
 // Return bool
 
 <bool> ::= '('<int> <comp_op> <int>')' | 'bool('<int>')'

@@ -102,4 +102,9 @@ def replaceFirstElementInList(l, a, b):
   l[i] = b
   return l
 
+def saveSplit(s, sep):
+  if not sep:
+    return s.split()
+  return s.split(sep)
+
 # *****************************************************************************
