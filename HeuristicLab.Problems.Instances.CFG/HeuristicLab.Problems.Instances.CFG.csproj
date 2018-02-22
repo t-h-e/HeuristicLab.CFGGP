@@ -175,6 +175,7 @@
     <Compile Include="GrammarConstruction\DeepCoderDSL\DeepCoderDSLConstructor.cs" />
     <Compile Include="GrammarConstruction\Grammar.cs" />
     <Compile Include="GrammarConstruction\GrammarParser.cs" />
+    <Compile Include="GrammarConstruction\IGrammarConstructor.cs" />
     <Compile Include="GrammarConstruction\Options.cs" />
     <Compile Include="GrammarConstruction\PythonPushRelated\PythonPushRelatedGrammarConstructor.cs" />
     <Compile Include="GrammarConstruction\Python\PythonGrammarConstructor.cs" />

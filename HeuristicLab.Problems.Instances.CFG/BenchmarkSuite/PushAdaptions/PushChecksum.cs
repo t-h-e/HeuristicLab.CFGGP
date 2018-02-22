@@ -26,7 +26,5 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.String }; } }
     protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.Char }; } }
     protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Boolean, DataType.Integer, DataType.String, DataType.Char }; } }
-
-    protected override PythonGrammarConstructor GetGrammarConstructor => new PythonPushRelatedGrammarConstructor();
   }
 }

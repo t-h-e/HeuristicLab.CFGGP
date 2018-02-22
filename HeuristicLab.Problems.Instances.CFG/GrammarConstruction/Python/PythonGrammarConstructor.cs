@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class PythonGrammarConstructor {
+  public class PythonGrammarConstructor : IGrammarConstructor {
 
     private const string Structure = "structure.bnf";
     private const string StructureTree = "structure_tree.bnf";
@@ -116,8 +116,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
         }
       }
 
-      if (true) {
-        //if (options.Recursion) {
+      if (options.Recursion) {
         var pre = grammar.Rules[RootRule].Productions;
         if (pre.Count == 1) {
           // should only have one rule

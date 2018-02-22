@@ -55,9 +55,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
       get { return "BenchmarkSuite"; }
     }
 
-    public virtual CFGData LoadDataLocal(IDataDescriptor id, bool treeStructure, int numberOfVariables = 3) {
+    public virtual CFGData LoadDataLocal(IDataDescriptor id, bool treeStructure, int numberOfVariables = 3, bool recursion = false) {
       BenchmarkSuiteDataDescritpor descriptor = (BenchmarkSuiteDataDescritpor)id;
-      CFGData cfgData = descriptor.GenerateData(treeStructure, numberOfVariables);
+      CFGData cfgData = descriptor.GenerateData(treeStructure, numberOfVariables, recursion, new PythonGrammarConstructor());
       var instanceArchiveName = GetResourceName(FileName + @"\.zip");
       using (
         var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName), ZipArchiveMode.Read)) {

@@ -34,9 +34,9 @@ namespace HeuristicLab.Problems.Instances.CFG {
       get { return "Push Related Grammars General Program Synthesis Benchmark Suite"; }
     }
 
-    public override CFGData LoadDataLocal(IDataDescriptor id, bool treeStructure, int numberOfVariables = 3) {
+    public override CFGData LoadDataLocal(IDataDescriptor id, bool treeStructure, int numberOfVariables = 3, bool recursion = false) {
       BenchmarkSuiteDataDescritpor descriptor = (BenchmarkSuiteDataDescritpor)id;
-      CFGData cfgData = descriptor.GenerateData(treeStructure, numberOfVariables);
+      CFGData cfgData = descriptor.GenerateData(treeStructure, numberOfVariables, true, new PythonPushRelatedGrammarConstructor());  // set recursion to true. it should always be used for the Push Related Grammars
       var instanceArchiveName = GetResourceName(FileName + @"\.zip");
       using (
         var instancesZipFile = new ZipArchive(GetType().Assembly.GetManifestResourceStream(instanceArchiveName), ZipArchiveMode.Read)) {

@@ -52,23 +52,20 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected abstract IEnumerable<DataType> OutputDataTypes { get; }
     protected abstract HashSet<DataType> AdditionalDataTypes { get; }
 
-    protected virtual PythonGrammarConstructor GetGrammarConstructor => new PythonGrammarConstructor();
-
     public override CFGData GenerateData() {
-      return GenerateData(false, 3);
+      return GenerateData(false, 3, false, null);
     }
 
-    public CFGData GenerateData(bool treeStructure, int numberOfVariables) {
+    public CFGData GenerateData(bool treeStructure, int numberOfVariables, bool recursion, IGrammarConstructor grammarConstructor) {
       // Always generate the same dataset 
       rand = new FastRandom(0);
       var cfgData = base.GenerateData();
-      cfgData.Grammar = GenerateGrammar(treeStructure, numberOfVariables);
+      cfgData.Grammar = GenerateGrammar(treeStructure, numberOfVariables, recursion, grammarConstructor);
       return cfgData;
     }
 
-    public string GenerateGrammar(bool treeStructure, int numberOfVariables) {
-      var grammarConstructor = GetGrammarConstructor;
-      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, treeStructure, numberOfVariables, false);
+    public string GenerateGrammar(bool treeStructure, int numberOfVariables, bool recursion, IGrammarConstructor grammarConstructor) {
+      Options options = new Options(InputDataTypes, OutputDataTypes, AdditionalDataTypes, treeStructure, numberOfVariables, recursion);
       var g = grammarConstructor.CombineDataTypes(options);
       ModifyGrammar(g);
       g.TrimGrammar(true);

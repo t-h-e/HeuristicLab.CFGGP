@@ -1,6 +1,6 @@
 ﻿#region License Information
 /* HeuristicLab
- * Copyright (C) 2002-2015 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
+ * Copyright (C) 2002-2018 Heuristic and Evolutionary Algorithms Laboratory (HEAL)
  *
  * This file is part of HeuristicLab.
  *
@@ -19,12 +19,9 @@
  */
 #endregion
 
-using System.Collections.Generic;
 
 namespace HeuristicLab.Problems.Instances.CFG {
-  public class PushSuperAnagrams : SuperAnagrams {
-    protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.String, DataType.String }; } }
-    protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.Boolean }; } }
-    protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Boolean, DataType.String, DataType.Char }; } }
+  public interface IGrammarConstructor {
+    Grammar CombineDataTypes(Options options);
   }
 }
