@@ -46,4 +46,4 @@
 
 // Return bool
 
-<bool> ::= <string> <in_list_comp_op> <list_string> | <list_string> <list_comp_op> <list_string> | <list_string>' == []'
+<bool> ::= '('<string> <in_list_comp_op> <list_string>')' | '('<list_string> <list_comp_op> <list_string>')' | '('<list_string>' == [])'

@@ -60,6 +60,15 @@ namespace HeuristicLab.Problems.Instances.CFG {
           var endOfOriginalHeader = cfgData.Embed.LastIndexOf(HeaderSeparation);
           cfgData.Embed = realHeader + cfgData.Embed.Substring(endOfOriginalHeader + HeaderSeparation.Length);
         }
+
+        ZipArchiveEntry additionalEntry = pushRelatedZipFile.Entries.FirstOrDefault(e => e.FullName.StartsWith(descriptor.Identifier) && !String.IsNullOrWhiteSpace(e.Name));
+        if (additionalEntry != null) {
+          using (var stream = new StreamReader(additionalEntry.Open())) {
+            var additionalHeader = stream.ReadToEnd();
+            var endOfHeader = cfgData.Embed.LastIndexOf(HeaderSeparation);
+            cfgData.Embed = cfgData.Embed.Substring(0, endOfHeader) + additionalHeader + cfgData.Embed.Substring(endOfHeader, cfgData.Embed.Length - endOfHeader);
+          }
+        }
       }
 
       return cfgData;

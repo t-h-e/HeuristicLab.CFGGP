@@ -40,4 +40,4 @@
 
 // Return bool
 
-<bool> ::= <int> <in_list_comp_op> <list_int> | <list_int> <list_comp_op> <list_int>  | <list_int>' == []'
+<bool> ::= '('<int> <in_list_comp_op> <list_int>')' | '('<list_int> <list_comp_op> <list_int>')'  | '('<list_int>' == [])'

@@ -57,19 +57,6 @@ def getCharFromString(curString, index):
     return ' '
   return curString[index % len(curString)]
 
-#def saveChr(number):
-#    return chr(number % 128)
-
-#def saveOrd(literal):
-#    if len(literal) <= 0:
-#        return 32
-#    return ord(literal[0])
-
-def saveSplit(curString, separator):
-  if not separator:
-    return []
-  return curString.split(separator)
-
 def saveRange(start, end):
   if end > start and abs(start - end) > 10000:
     return range(start, start + 10000)

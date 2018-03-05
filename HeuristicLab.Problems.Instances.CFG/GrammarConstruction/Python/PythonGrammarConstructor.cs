@@ -21,7 +21,7 @@ namespace HeuristicLab.Problems.Instances.CFG {
 
     private static readonly string RecursionPredifined = "if 'rec_counter' not in globals():{:" + Environment.NewLine + "globals()['rec_counter'] = 0:}" + Environment.NewLine + "global rec_counter" + Environment.NewLine;
     private static readonly string RecursionBefore = "if rec_counter < 900 and not stop.value:{:" + Environment.NewLine + "rec_counter += 1" + Environment.NewLine;
-    private static readonly string RecursionAfter = Environment.NewLine + "rec_counter -= 1";
+    private static readonly string RecursionAfter = Environment.NewLine + "rec_counter -= 1" + Environment.NewLine + ":}";
 
     protected virtual Dictionary<string, List<DataType>> grammarMapping {
       get {

@@ -20,8 +20,8 @@
 // Return bool
 
 <bool> ::= 'getIndexBoolList('<list_bool>', '<int>')' | 'getIndexBoolList('<list_bool>', 0)' | 'getIndexBoolList('<list_bool>', -1)'
-         | <bool> <in_list_comp_op> <list_bool> | <list_bool> <list_comp_op> <list_bool>
-         | <list_bool>' == []'
+         | '('<bool> <in_list_comp_op> <list_bool>')' | '('<list_bool> <list_comp_op> <list_bool>')'
+         | '('<list_bool>' == [])'
 
 // Add to
 
