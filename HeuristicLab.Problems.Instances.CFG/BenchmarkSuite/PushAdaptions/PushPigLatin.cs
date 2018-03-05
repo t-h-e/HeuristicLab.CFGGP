@@ -26,5 +26,12 @@ namespace HeuristicLab.Problems.Instances.CFG {
     protected override IEnumerable<DataType> InputDataTypes { get { return new List<DataType>() { DataType.String }; } }
     protected override IEnumerable<DataType> OutputDataTypes { get { return new List<DataType>() { DataType.String }; } }
     protected override HashSet<DataType> AdditionalDataTypes { get { return new HashSet<DataType>() { DataType.Integer, DataType.Boolean, DataType.String, DataType.Char }; } }
+
+    protected override void ModifyGrammar(Grammar g) {
+      var partialGrammar = GrammarParser.ReadGrammarBNF("<string_const> ::= \"'ay'\" | \"'aeiou'\"");
+      g.Combine(partialGrammar);
+      partialGrammar = GrammarParser.ReadGrammarBNF("<char_literal> ::= 'a' | 'e' | 'i' | 'o' | 'u'");
+      g.Combine(partialGrammar);
+    }
   }
 }
