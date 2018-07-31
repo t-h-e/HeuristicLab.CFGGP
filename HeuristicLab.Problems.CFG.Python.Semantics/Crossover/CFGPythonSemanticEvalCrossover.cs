@@ -297,9 +297,8 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
         case VariableType.List_Bool:
           return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<bool>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<bool>().ToList())), normalize);
         case VariableType.List_Int:
-          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<int>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<int>().ToList())), normalize);
         case VariableType.List_Float:
-          return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<double>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<double>().ToList())), normalize);
+          return PythonSemanticComparer.Compare(curDiff0.Select(x => ConvertIntJsonToDouble(x)), curDiffOthers.Select(x => x.Select(y => ConvertIntJsonToDouble(y))), normalize);
         case VariableType.List_String:
           return PythonSemanticComparer.Compare(curDiff0.Select(x => x.Values<string>().ToList()), curDiffOthers.Select(x => x.Select(y => y.Values<string>().ToList())), normalize);
       }
@@ -311,7 +310,7 @@ namespace HeuristicLab.Problems.CFG.Python.Semantics {
     /// </summary>
     /// <param name="curDiff0"></param>
     /// <returns></returns>
-    private IEnumerable<double> ConvertIntJsonToDouble(JToken curDiff0) {
+    private IList<double> ConvertIntJsonToDouble(JToken curDiff0) {
       var converted = new List<double>();
       foreach (var child in curDiff0.Children()) {
         converted.Add((double)child);
