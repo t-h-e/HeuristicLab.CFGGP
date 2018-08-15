@@ -27,8 +27,24 @@ A new Problem "Context Free Grammar Problem" will be available in the "New Item"
 ### Publications:
 
 _Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
+**Extending Program Synthesis Grammars for Grammar-Guided Genetic Programming**
+PPSN 2018: 15th International Conference on Parallel Problem Solving from Nature, Springer Verlag, 8–12 Sep. 2017.
+
+_Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
+**Towards Effective Semantic Operators for Program Synthesis in Genetic Programming**
+GECCO ’18: Genetic and Evolutionary Computation Conference, ACM, 15–19 July 2018.
+
+_Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
+**Towards Understanding and Refining the General Program Synthesis Benchmark Suite with Genetic Programming**
+CEC 2018: IEEE Congress on Evolutionary Computation, IEEE, 8–13 July 2018.
+
+_Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
+**Semantics-based crossover for program synthesis in genetic programming**
+Artifcial Evolution, Springer Verlag, 25-27 Oct. 2017.
+
+_Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
 **A Grammar Design Pattern for Arbitrary Program Synthesis Problems in Genetic Programming**
-EuroGP 2017: Proceedings of the 20th European Conference on Genetic Programming, LNCS, Vol. 10196, pp. 262-277, Springer Verlag, April 19-21 2017.
+EuroGP 2017: Proceedings of the 20th European Conference on Genetic Programming, LNCS, Vol. 10196, pp. 262-277, Springer Verlag, 19-21 April 2017.
 
 _Stefan Forstenlechner, Miguel Nicolau, David Fagan and Michael O'Neill_
 **Grammar Design for Derivation Tree Based Genetic Programming Systems**
