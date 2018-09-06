@@ -28,7 +28,7 @@ A new Problem "Context Free Grammar Problem" will be available in the "New Item"
 
 _Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
 **Extending Program Synthesis Grammars for Grammar-Guided Genetic Programming**
-PPSN 2018: 15th International Conference on Parallel Problem Solving from Nature, Springer Verlag, 8–12 Sep. 2017.
+PPSN 2018: 15th International Conference on Parallel Problem Solving from Nature, Springer Verlag, 8–12 Sep. 2018.
 
 _Stefan Forstenlechner, David Fagan, Miguel Nicolau and Michael O'Neill_
 **Towards Effective Semantic Operators for Program Synthesis in Genetic Programming**
