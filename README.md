@@ -11,18 +11,35 @@ Also includes all problem instances from ["General Program Synthesis Benchmark S
 ### How to use
 
 1. If you want to build HeursiticLab from scratch
- 1. Clone [HeuristicLab](https://github.com/HeuristicLab/HeuristicLab)
- 2. Build "HeuristicLab.ExtLibs.sln" and then "HeuristicLab 3.3.sln"
- 3. Clone HeuristicLab.CFGGP next to HeursticLab
- 4. Open and build "HeuristicLab.CFGGP.sln" solution
- 5. Binaries will automatically be copied to "HeuristicLab/bin"
+   1. Clone [HeuristicLab](https://github.com/HeuristicLab/HeuristicLab)
+   2. Build "HeuristicLab.ExtLibs.sln" and then "HeuristicLab 3.3.sln"
+   3. Clone HeuristicLab.CFGGP next to HeursticLab
+   4. Open and build "HeuristicLab.CFGGP.sln" solution
+   5. Binaries will automatically be copied to "HeuristicLab/bin"
 2. If you an existing version of HeuristicLab
- 1. Clone HeuristicLab.CFGGP
- 2. Open and build "HeuristicLab.CFGGP.sln" solution
- 3. A folder "HeuristicLab/bin" will be created outside of the repository, which contains the binaries
- 4. Copy the binaries in you HeursiticLab version
+   1. Clone HeuristicLab.CFGGP
+   2. Open and build "HeuristicLab.CFGGP.sln" solution
+   3. A folder "HeuristicLab/bin" will be created outside of the repository, which contains the binaries
+   4. Copy the binaries in you HeursiticLab version
 
 A new Problem "Context Free Grammar Problem" will be available in the "New Item" Dialog under Problems -> Genetic Programming.
+
+#### In the terminal
+
+On Windows you can use `msbuild`. For every other OS use `xbuild` from Mono, but read documentation [How to compile and run HeuristicLab with Mono](https://dev.heuristiclab.com/trac.fcgi/wiki/Documentation/DevelopmentCenter/Compile%20HeuristicLab%20under%20Linux) first.
+
+```
+git clone https://github.com/t-h-e/HeuristicLab.git
+
+msbuild /p:Configuration=Release /p:Platform=x64 HeuristicLab\HeuristicLab.ExtLibs.sln
+msbuild /p:Configuration=Release /p:Platform=x64 "HeuristicLab\HeuristicLab 3.3.sln"
+
+git clone https://github.com/t-h-e/HeuristicLab.CFGGP.git
+
+msbuild /p:Configuration=Release /p:Platform=x64 HeuristicLab.CFGGP\HeuristicLab.CFGGP.sln
+```
+
+Executable will be `HeuristicLab\bin\HeuristicLab 3.3.exe`
 
 ### Publications:
 
